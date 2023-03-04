@@ -86,7 +86,7 @@ def f_add_with_overflow(arr_a: array, arr_b: array, ind: int):
 
     a_plus_b = uint16_a + uint16_b
     if a_plus_b > cUINT16_MAX:
-        a_plus_b &= cONE_LOWER16 
+        a_plus_b &= cONE_LOWER16
 
     arr_a[ind] = a_plus_b
 
@@ -150,13 +150,8 @@ def f_get_8b_prime(num: int) -> array:
     return array('H', [prime])
 
 
-def f_get_bionom(n: int, k: int) -> int:
-    if k > n:
-        return 0
-    if k == 0 or k == n:
-        return 1
-
-    return f_get_bionom(n - 1, k - 1) + f_get_bionom(n - 1, k)
+def f_log_2_n(num: int) -> int:
+    return 1 + f_log_2_n(num / 2) if (num > 1) else 0
 
 
 def f_pox_factors_to_hex_digest(factor_array: array) -> str:
@@ -240,9 +235,8 @@ def f_pox_gamma(temp_array: array) -> None:
 
     temp_array[aside] >>= (alaph ^ cMASK_ZZFZ) % cWORD_WIDTH
     temp_array[argmin] >>= (gamal ^ cMASK_FZZZ) % ((mmax % 2) + 1)
-    temp_array[argmax] ^= f_get_bionom(dalath, cWORD_WIDTH // 8) & cMASK_ZFFF
-    temp_array[beside] ^= f_get_bionom(teth, cWORD_WIDTH // 8) >> (
-        (gamal % 2) + 1)
+    temp_array[argmax] ^= f_log_2_n(dalath) & cMASK_ZFFF
+    temp_array[beside] ^= f_log_2_n(teth) >> ((gamal % 2) + 1)
 
 
 def f_pox_round_op(temp_array: array) -> None:
@@ -314,12 +308,9 @@ def f_process_block(factor_array: array, block: list[int]) -> None:
         ]
 
         for k, subportion in enumerate(subportions):
-           # print(k, subportion)
             for i in range(cPOX_ROUND_NUM):
                 f_pox_apply_bytes(factor_array, subportion)
                 f_pox_round(factor_array)
-
-        #    print(factor_array)
 
 
 def f_pox_hash(to_hash: bytearray) -> any:
@@ -347,4 +338,7 @@ def f_pox_hash(to_hash: bytearray) -> any:
         })
 
 
-print(f_pox_hash(b'abcdefghijk').hexdigest)
+print(
+    f_pox_hash(
+        b"""bbcdefghjk"""
+    ).hexdigest)
