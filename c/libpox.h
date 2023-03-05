@@ -38,6 +38,7 @@
 #define MASK_ZFFF 0x0fff
 
 #define WORD_WIDTH 16
+#define BYTE_WIDTH 8
 #define HEX_SIZE WORD_WIDTH / 4
 #define BYTE_SIZE POX_BLOCK_NUM / 8
 #define SIZE_BIONOM 6
@@ -124,13 +125,10 @@ static inline uint16_t sum_portion(char *arr)
     return sum;
 }
 
-#define PAD_STRING_AND_SIZE(str, strsize)                     \
-    size_t __lencpy = strsize;                         \
-    while (strsize % 512 != 0)                                \
-        strsize++;                                            \
-    for (int ____q = 0; ____q <= strsize - __lencpy; ____q++) \
-    {                                                         \
-        strncat(str, 0, 1);                                   \
+#define PAD_SIZE(strsize)                \
+    while (strsize % POX_BLOCK_NUM != 0) \
+    {                                    \
+        strsize++;                       \
     }
 
 #define COPY_WORDS_TO_SUBARRAY(wordarr, subarr, start, end) \
@@ -155,20 +153,20 @@ static inline uint16_t sum_portion(char *arr)
         num = (num & ONE_UPPER16) >> WORD_WIDTH;    \
     }
 
-#define ADD_WITH_OVERFLOW(a, b, ptr)                    \
-    do                                                  \
-    {                                                   \
+#define ADD_WITH_OVERFLOW(a, b, ptr)             \
+    do                                           \
+    {                                            \
         uint32_t __a_ttb = (uint32_t)a;          \
         uint32_t __b_ttb = (uint32_t)b;          \
         uint32_t __a_plus_b = __a_ttb + __b_ttb; \
-        if (__a_plus_b > UINT16_MAX)                    \
-            __a_plus_b &= ONE_LOWER16;                  \
-        *ptr = (uint16_t)__a_plus_b;                    \
+        if (__a_plus_b > UINT16_MAX)             \
+            __a_plus_b &= ONE_LOWER16;           \
+        *ptr = (uint16_t)__a_plus_b;             \
     } while (0)
 
 #define WORD_TO_2BYTE(word, bytelow, bytehigh) \
-    bytelow = (uint8_t)word & MASK_ZZFF;       \
-    bytehigh = (uint8_t)word & MASK_FFZZ;
+    bytelow = word & MASK_ZZFF;                \
+    bytehigh = (word & MASK_FFZZ) >> BYTE_WIDTH;
 
 #define WEIGHTED_AVG(arr, weights, res)             \
     for (int __ig = 0; __ig < POX_FACT_NUM; __ig++) \
@@ -184,13 +182,19 @@ static inline uint16_t sum_portion(char *arr)
     }                                               \
     res /= 2;
 
-#define AVG_PORTION(arr, res)        \
-    uint16_t sum = sum_portion(arr); \
-    res = sum / POX_FACT_NUM;
+#define AVG_PORTION(arr, res)            \
+    do                                   \
+    {                                    \
+        uint16_t sum = sum_portion(arr); \
+        res = sum / POX_FACT_NUM;        \
+    } while (0)
 
-#define MED_PORTION(arr, res)        \
-    uint16_t sum = sum_portion(arr); \
-    res = sum / 2;
+#define MED_PORTION(arr, res)            \
+    do                                   \
+    {                                    \
+        uint16_t sum = sum_portion(arr); \
+        res = sum / 2;                   \
+    } while (0);
 
 #define MIN_ARGMIN(arr, min, minindex)              \
     min = arr[0];                                   \
@@ -399,8 +403,6 @@ static inline uint16_t sum_portion(char *arr)
         for (int __jt = __ip; __jt < __ip + POX_PORTION_NUM; __jt += POX_FACT_NUM)                  \
         {                                                                                           \
             POX_PROCESS_APPLY(factor_array, block_array, portion_array, __jt, __jt + POX_FACT_NUM); \
-            \
-                                                                                              \
         }                                                                                           \
     }
 
@@ -428,10 +430,15 @@ extern inline poxhash_t pox_hash(char *data)
     uint16_t factor_array[POX_FACT_NUM] = {
         cPOX_PRIME_A, cPOX_PRIME_B, cPOX_PRIME_C, cPOX_PRIME_D};
 
-    PAD_STRING_AND_SIZE(data, length_data);
+    size_t lengh_old = length_data;
+    PAD_SIZE(length_data);
+    char data_padded[length_data];
+    memset(data_padded, 0, SIZE_BYTE_ARR(length_data));
+    memcpy(data_padded, data, SIZE_BYTE_ARR(lengh_old));
+
     for (int i = 0; i < length_data; i += POX_BLOCK_NUM)
     {
-        POX_PROCESS_BLOCK(factor_array, data, block_array, portion_array, i, i + POX_BLOCK_NUM);
+        POX_PROCESS_BLOCK(factor_array, data_padded, block_array, portion_array, i, i + POX_BLOCK_NUM);
     }
 
     poxhash_t result;
