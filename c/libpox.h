@@ -46,19 +46,19 @@
 #define SIZE_BYTE_ARR(num) sizeof(char) * num
 #define SIZE_BYTE sizeof(char)
 
-static const uint16_t cPOX_PRIMES[POX_PRIME_NUM] = {
+const uint16_t cPOX_PRIMES[POX_PRIME_NUM] = {
     0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
     0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
     0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
     0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549};
-static const uint16_t cPOX_8B_PRIMES[POX_8B_PRIME_NUM] = {
+const uint16_t cPOX_8B_PRIMES[POX_8B_PRIME_NUM] = {
     0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
     0x2b, 0x2f, 0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61,
     0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d,
     0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3,
     0xe5, 0xe9, 0xef, 0xf1, 0xfb};
-static const uint16_t cPOX_MAGIC_PRIMES[POX_MAGIC_NUM] = {0x33, 0x65};
-static const char cHEX_CHARS[16] = {
+const uint16_t cPOX_MAGIC_PRIMES[POX_MAGIC_NUM] = {0x33, 0x65};
+const char cHEX_CHARS[16] = {
     '0',
     '1',
     '2',
@@ -76,20 +76,20 @@ static const char cHEX_CHARS[16] = {
     'E',
     'F',
 };
-static const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
-static const size_t cCOMB_BIONOM[6][2] = {
+const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
+const size_t cCOMB_BIONOM[6][2] = {
     {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}};
-static const uint16_t cPOX_PRIME_A = 0x9f91;
-static const uint16_t cPOX_PRIME_B = 0xdb3b;
-static const uint16_t cPOX_PRIME_C = 0xc091;
-static const uint16_t cPOX_PRIME_D = 0xac8b;
+const uint16_t cPOX_PRIME_A = 0x9f91;
+const uint16_t cPOX_PRIME_B = 0xdb3b;
+const uint16_t cPOX_PRIME_C = 0xc091;
+const uint16_t cPOX_PRIME_D = 0xac8b;
 
-static inline uint16_t log2n(uint16_t num)
+inline uint16_t log2n(uint16_t num)
 {
     return (num > 1) ? (1 + log2n(num / 2)) : 0;
 }
 
-static inline char *dec2hex(uint16_t dec)
+inline char *dec2hex(uint16_t dec)
 {
     char *ret = (char *)calloc(HEX_SIZE + 1, SIZE_BYTE);
 
@@ -103,20 +103,20 @@ static inline char *dec2hex(uint16_t dec)
     return ret;
 }
 
-static inline uint16_t *copy_to_temp(uint16_t *src)
+inline uint16_t *copy_to_temp(uint16_t *src)
 {
     uint16_t *dst = (uint16_t *)calloc(POX_FACT_NUM, SIZE_WORD);
     memcpy(dst, src, SIZE_WORD_ARR(POX_FACT_NUM));
     return dst;
 }
 
-static inline uint16_t get_8b_prime(uint16_t num)
+inline uint16_t get_8b_prime(uint16_t num)
 {
-    static uint16_t remainder = num % POX_8B_PRIME_NUM;
+    uint16_t remainder = num % POX_8B_PRIME_NUM;
     return cPOX_8B_PRIMES[remainder];
 }
 
-static inline uint16_t sum_portion(char *arr)
+inline uint16_t sum_portion(char *arr)
 {
     uint16_t sum = 0;
     for (int i = 0; i < POX_FACT_NUM; i++)
@@ -125,7 +125,7 @@ static inline uint16_t sum_portion(char *arr)
 }
 
 #define PAD_STRING_AND_SIZE(str, strsize)                     \
-    static size_t __lencpy = strsize;                         \
+    size_t __lencpy = strsize;                         \
     while (strsize % 512 != 0)                                \
         strsize++;                                            \
     for (int ____q = 0; ____q <= strsize - __lencpy; ____q++) \
@@ -158,9 +158,9 @@ static inline uint16_t sum_portion(char *arr)
 #define ADD_WITH_OVERFLOW(a, b, ptr)                    \
     do                                                  \
     {                                                   \
-        static uint32_t __a_ttb = (uint32_t)a;          \
-        static uint32_t __b_ttb = (uint32_t)b;          \
-        static uint32_t __a_plus_b = __a_ttb + __b_ttb; \
+        uint32_t __a_ttb = (uint32_t)a;          \
+        uint32_t __b_ttb = (uint32_t)b;          \
+        uint32_t __a_plus_b = __a_ttb + __b_ttb; \
         if (__a_plus_b > UINT16_MAX)                    \
             __a_plus_b &= ONE_LOWER16;                  \
         *ptr = (uint16_t)__a_plus_b;                    \
