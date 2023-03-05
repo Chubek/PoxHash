@@ -246,7 +246,7 @@ def __pox_round_add_tmp_to_facts(factor_array: __array,
     __add_with_overflow(factor_array, temp_array, 3)
 
 
-def __pox_apply_shuffle(temp_array: __array) -> None:
+def __pox_round_apply_shuffle(temp_array: __array) -> None:
 
     def f_inner_pox_shuffle(temp_array: __array, indexof: int, indexwith: int):
         tmp = temp_array[indexof]
@@ -261,7 +261,7 @@ def __pox_round(factor_array: __array) -> None:
     temporary_array = __array('H', factor_array.tolist())
     __pox_round_op(temporary_array)
     __pox_round_apply_prime(temporary_array)
-    __pox_apply_shuffle(temporary_array)
+    __pox_round_apply_shuffle(temporary_array)
     __pox_round_add_tmp_to_facts(factor_array, temporary_array)
 
 
