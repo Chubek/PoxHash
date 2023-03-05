@@ -90,18 +90,13 @@ static inline uint16_t log2n(uint16_t num)
     return (num > 1) ? (1 + log2n(num / 2)) : 0;
 }
 
-static inline char *dec2hex(uint16_t dec)
+static inline void *dec2hex(uint16_t dec, char out[HEX_SIZE])
 {
-    char *ret = (char *)calloc(HEX_SIZE + 1, SIZE_BYTE);
-
-    uint16_t rem;
-    for (int i = 0; i < WORD_WIDTH / 4; i++)
+    for (int i = 0; i < HEX_SIZE; i++)
     {
-        ret[HEX_SIZE - i - 2] = cHEX_CHARS[dec % WORD_WIDTH];
+        out[HEX_SIZE - i - 1] = cHEX_CHARS[dec % WORD_WIDTH];
         dec /= 16;
     }
-
-    return ret;
 }
 
 static inline uint16_t *copy_to_temp(uint16_t *src)
@@ -239,19 +234,17 @@ static inline uint16_t sum_portion(char *arr)
     WORD_TO_2BYTE(warr[2], barr[4], barr[5]); \
     WORD_TO_2BYTE(warr[3], barr[6], barr[7]);
 
-#define FACTORS_TO_HEXDIGEST(warr, digest) \
-    char *__digest_a = dec2hex(warr[0]);   \
-    char *__digest_b = dec2hex(warr[1]);   \
-    char *__digest_c = dec2hex(warr[2]);   \
-    char *__digest_d = dec2hex(warr[3]);   \
-    strncat(digest, __digest_a, HEX_SIZE); \
-    strncat(digest, __digest_b, HEX_SIZE); \
-    strncat(digest, __digest_c, HEX_SIZE); \
-    strncat(digest, __digest_d, HEX_SIZE); \
-    free(__digest_a);                      \
-    free(__digest_b);                      \
-    free(__digest_c);                      \
-    free(__digest_d);
+#define FACTORS_TO_HEXDIGEST(warr, digest)                                            \
+    char hex[HEX_SIZE];                                                               \
+    for (int __io = 0; __io < POX_FACT_NUM; __io++)                                   \
+    {                                                                                 \
+        dec2hex(warr[__io], hex);                                                     \
+        int __kl = 0;                                                                 \
+        for (int __jo = HEX_SIZE * __io; __jo < (HEX_SIZE * __io) + HEX_SIZE; __jo++) \
+        {                                                                             \
+            digest[__jo] = hex[__kl++];                                               \
+        }                                                                             \
+    }
 
 #define POX_ALPHA(temp_array)                                     \
     uint16_t aleph = (temp_array[0] ^ temp_array[1]) & MASK_ZZFF; \
