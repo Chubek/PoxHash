@@ -121,9 +121,9 @@ const weightedMed = (ls, weights) => {
     weightedMed += ls[i] * weights[i];
   }
 
-  weightedMed = iDiv(weightedMed, 2);
+  weightedMed = iDiv(weightedMed + 1, 2);
   if (weightedMed > cUINT16_MAX) {
-    weightedMed = (weightedMed & cONE_LOWER16) >> cWORD_WIDTH;
+    weightedMed &= cONE_LOWER16;
   }
 
   return weightedMed;
@@ -154,7 +154,7 @@ const minAndArgMin = (ls) => {
     }
   }
 
-  return { max: currMin, argmax: currIndex };
+  return { min: currMin, argmin: currIndex };
 };
 
 const wordArrayToByteArray = (wordarray) => {
@@ -316,17 +316,12 @@ const poxGamma = (tempArray) => {
   const mmax = maxWithArgmax.max;
   const argmin = minWithArgmin.argmin;
   const argmax = maxWithArgmax.argmax;
-
-  const sides = cRANGE_ZTG.filter((item) => {
-    if (item != argmin && item != argmax) {
-      return item;
-    }
-  });
+  const sides = cRANGE_ZTG.filter((item) => item != argmax && item != argmin);
   const aside = sides[0];
   const beside = sides[1];
 
   const alaph = tempArray[aside] % get8BPrime(tempArray[aside]);
-  const dalath = (get8BPrime(mmax)[0] ^ cMASK_ZFZF) % get8BPrime(mmin);
+  const dalath = (get8BPrime(mmax) ^ cMASK_ZFZF) % get8BPrime(mmin);
   const teth = mmax % get8BPrime(mmax);
   const gamal = tempArray[beside] % get8BPrime(iDiv(mmin + mmax, 2));
 
@@ -393,7 +388,7 @@ const poxApplySubportion = (factorArray, subportion) => {
 
 const poxProcessBlock = (factorArray, blockArray) => {
   for (let i = 0; i < cPOX_BLOCK_NUM; i += cPOX_PORTION_NUM) {
-    for (let j = i; j < i + cPOX_FACT_NUM; j += cPOX_FACT_NUM) {
+    for (let j = i; j < i + cPOX_PORTION_NUM; j += cPOX_FACT_NUM) {
       let subportion = blockArray.subarray(j, j + cPOX_FACT_NUM);
       for (let _m = 0; _m < cPOX_ROUND_NUM; _m++) {
         poxApplySubportion(factorArray, subportion);
@@ -403,7 +398,7 @@ const poxProcessBlock = (factorArray, blockArray) => {
   }
 };
 
-export const poxHash = (data) => {
+exports.poxHash = (data) => {
   const processedInput = processInput(data);
   if (processInput == null) {
     console.log(
@@ -419,7 +414,7 @@ export const poxHash = (data) => {
   ]);
 
   for (let i = 0; i < processedInput.length; i += cPOX_BLOCK_NUM) {
-    const portion = processInput.subarray(i, i + cPOX_BLOCK_NUM);
+    const portion = processedInput.subarray(i, i + cPOX_BLOCK_NUM);
     poxProcessBlock(factorArray, portion);
   }
 
