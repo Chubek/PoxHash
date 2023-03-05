@@ -277,7 +277,7 @@ def __pox_apply_bytes(factor_array: __array, subportion: __array) -> None:
     factor_array[3] ^= (subportion[3] + med_subportion) ^ avg_odd_factor
 
 
-def __process_block(factor_array: __array, block: list[int]) -> None:
+def __pox_process_block(factor_array: __array, block: list[int]) -> None:
     portions = [
         block[i:i + __POX_PORTION_NUM]
         for i in range(0, __POX_BLOCK_NUM, __POX_PORTION_NUM)
@@ -307,7 +307,7 @@ def pox_hash(to_hash: bytearray) -> any:
         'H', [__POX_PRIME_A, __POX_PRIME_B, __POX_PRIME_C, __POX_PRIME_D])
 
     for block in blocks:
-        __process_block(factor_array, block)
+        __pox_process_block(factor_array, block)
 
     hex_digest = __pox_factors_to_hex_digest(factor_array)
     bytes_array = __pox_factors_to_byte_array(factor_array)
