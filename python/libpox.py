@@ -207,8 +207,8 @@ def __pox_gamma(temp_array: __array) -> None:
     mmax = max_and_argmax[0]
     argmin = min_and_argmin[1]
     argmax = max_and_argmax[1]
-
     aside, beside = [ind for ind in __RANGE_ZTF if ind not in [argmin, argmax]]
+
     alaph = temp_array[aside] % __get_8b_prime(temp_array[aside])[0]
     dalath = (__get_8b_prime(mmax)[0] ^ __MASK_ZFZF) % __get_8b_prime(mmin)[0]
     teth = mmax % __get_8b_prime(mmax)[0]
@@ -290,7 +290,7 @@ def __pox_process_block(factor_array: __array, block: list[int]) -> None:
         ]
 
         for k, subportion in enumerate(subportions):
-            for _ in range(__POX_ROUND_NUM):
+            for i in range(__POX_ROUND_NUM):
                 __pox_apply_bytes(factor_array, subportion)
                 __pox_round(factor_array)
 
