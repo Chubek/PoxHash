@@ -404,12 +404,12 @@ static inline uint16_t sum_portion(char *arr)
         }                                                                                           \
     }
 
-struct PoxHash
+typedef struct PoxHash
 {
     char hexdigest[WORD_WIDTH + 1];
     uint8_t bytes[BYTE_SIZE];
     uint16_t factors[POX_FACT_NUM];
-};
+} poxhash_t;
 
 #define INIT_POXHASH(poxhash, factor_array)                      \
     memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR(WORD_WIDTH + 1)); \
@@ -419,7 +419,7 @@ struct PoxHash
     FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);             \
     memcpy(poxhash.factors, factor_array, SIZE_WORD_ARR(POX_FACT_NUM));
 
-inline char *pox_hash(char *data)
+inline poxhash_t pox_hash(char *data)
 {
     size_t length_data = strlen(data);
 
@@ -434,8 +434,10 @@ inline char *pox_hash(char *data)
         POX_PROCESS_BLOCK(factor_array, data, block_array, portion_array, i, i + POX_BLOCK_NUM);
     }
 
-    struct PoxHash result;
+    poxhash_t result;
     INIT_POXHASH(result, factor_array);
+
+    return result;
 }
 
 #endif
