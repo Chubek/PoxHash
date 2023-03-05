@@ -36,12 +36,14 @@
 #define MASK_ZFFZ 0x0ff0
 #define MASK_FFFZ 0xfff0
 #define MASK_ZFFF 0x0fff
+#define MASK_ZFZF 0x0f0f
 
 #define WORD_WIDTH 16
 #define BYTE_WIDTH 8
 #define HEX_SIZE WORD_WIDTH / 4
 #define BYTE_SIZE POX_BLOCK_NUM / 8
 #define SIZE_BIONOM 6
+#define SIZE_SD_PRIME 3
 #define SIZE_WORD_ARR(num) sizeof(uint16_t) * num
 #define SIZE_WORD sizeof(uint16_t)
 #define SIZE_BYTE_ARR(num) sizeof(char) * num
@@ -59,6 +61,7 @@ static const uint16_t cPOX_8B_PRIMES[POX_8B_PRIME_NUM] = {
     0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3,
     0xe5, 0xe9, 0xef, 0xf1, 0xfb};
 static const uint16_t cPOX_MAGIC_PRIMES[POX_MAGIC_NUM] = {0x33, 0x65};
+static const uint16_t cPOX_SINGLE_DIGIT_PRIMES[SIZE_SD_PRIME] = {0x3, 0x5, 0x7};
 static const char cHEX_CHARS[16] = {
     '0',
     '1',
@@ -120,6 +123,36 @@ static inline uint16_t sum_portion(char *arr)
     return sum;
 }
 
+static inline uint16_t weighted_avg(uint16_t arr[POX_FACT_NUM], uint16_t weights[POX_FACT_NUM])
+{
+    uint16_t result = 0;
+    for (int i = 0; i < POX_FACT_NUM; i++)
+    {
+        result += arr[i] * weights[i];
+    }
+
+    result /= POX_FACT_NUM;
+    if (result > UINT16_MAX)
+        result = (result & ONE_UPPER16) >> WORD_WIDTH;
+
+    return (uint16_t)result;
+}
+
+static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights[POX_FACT_NUM])
+{
+    uint32_t result = 0;
+    for (int i = 0; i < POX_FACT_NUM; i++)
+    {
+        result += arr[i] * weights[i];
+    }
+
+    result = (result + 1) / 2;
+    if (result > UINT16_MAX)
+        result &= ONE_LOWER16;
+
+    return (uint16_t)result;
+}
+
 #define PAD_SIZE(strsize)                \
     while (strsize % POX_BLOCK_NUM != 0) \
     {                                    \
@@ -163,20 +196,6 @@ static inline uint16_t sum_portion(char *arr)
     bytelow = word & MASK_ZZFF;                \
     bytehigh = (word & MASK_FFZZ) >> BYTE_WIDTH;
 
-#define WEIGHTED_AVG(arr, weights, res)             \
-    for (int __ig = 0; __ig < POX_FACT_NUM; __ig++) \
-    {                                               \
-        res += arr[__ig] * weights[__ig];           \
-    }                                               \
-    res /= POX_FACT_NUM;
-
-#define WEIGHTED_MED(arr, weights, res)             \
-    for (int __ik = 0; __ik < POX_FACT_NUM; __ik++) \
-    {                                               \
-        res += arr[__ik] * weights[__ik];           \
-    }                                               \
-    res /= 2;
-
 #define AVG_PORTION(arr, res)            \
     do                                   \
     {                                    \
@@ -184,11 +203,11 @@ static inline uint16_t sum_portion(char *arr)
         res = sum / POX_FACT_NUM;        \
     } while (0)
 
-#define MED_PORTION(arr, res)            \
-    do                                   \
-    {                                    \
-        uint16_t sum = sum_portion(arr); \
-        res = sum / 2;                   \
+#define MED_PORTION(arr, res)                \
+    do                                       \
+    {                                        \
+        uint16_t sum = sum_portion(arr) + 1; \
+        res = sum / 2;                       \
     } while (0);
 
 #define MIN_ARGMIN(arr, min, minindex)              \
@@ -255,20 +274,20 @@ static inline uint16_t sum_portion(char *arr)
     temp_array[1] >>= ((daal + gaaf) % 2) + 1;                    \
     temp_array[2] >>= gaaf;
 
-#define POX_DELTA(temp_array)                                                   \
-    uint16_t alaf = (temp_array[0] ^ MASK_FFFZ) % get_8b_prime(temp_array[0]);  \
-    uint16_t dalat = (temp_array[1] ^ MASK_FZZF) % get_8b_prime(temp_array[1]); \
-    uint16_t tit = (temp_array[2] & MASK_ZFFF) % get_8b_prime(temp_array[2]);   \
-    uint16_t gaman = (temp_array[3] & MASK_FFZZ) % get_8b_prime(temp_array[3]); \
-    for (int ___qz = 0; ___qz < POX_FACT_NUM; ___qz++)                          \
-    {                                                                           \
-        alaf >>= dalat;                                                         \
-        BITWISE_ROTATE_LEFT(dalat, 2);                                          \
-        tit >>= gaman;                                                          \
-        gaman ^= alaf ^ MASK_ZZFF;                                              \
-    }                                                                           \
-    temp_array[1] ^= temp_array[2] % cPOX_MAGIC_PRIMES[1];                      \
-    temp_array[2] ^= alaf + tit;                                                \
+#define POX_DELTA(temp_array)                                                         \
+    uint16_t alaf = (temp_array[0] ^ MASK_FFFZ) % get_8b_prime(temp_array[0]);        \
+    uint16_t dalat = (temp_array[1] ^ MASK_FZZF) % get_8b_prime(temp_array[1]);       \
+    uint16_t tit = (temp_array[2] & MASK_ZFFF) % get_8b_prime(temp_array[2]);         \
+    uint16_t gaman = (temp_array[3] & MASK_FFZZ) % get_8b_prime(temp_array[3]);       \
+    for (int ___qz = 0; ___qz < POX_FACT_NUM; ___qz++)                                \
+    {                                                                                 \
+        alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % SIZE_SD_PRIME];                     \
+        BITWISE_ROTATE_LEFT(dalat, 2);                                                \
+        tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % SIZE_SD_PRIME];                      \
+        gaman ^= (alaf ^ MASK_ZZFF) >> cPOX_SINGLE_DIGIT_PRIMES[tit % SIZE_SD_PRIME]; \
+    }                                                                                 \
+    temp_array[1] ^= temp_array[2] % cPOX_MAGIC_PRIMES[1];                            \
+    temp_array[2] ^= alaf + tit;                                                      \
     temp_array[3] ^= tit + gaman;
 
 #define POX_THETA(temp_array)                                    \
@@ -277,25 +296,25 @@ static inline uint16_t sum_portion(char *arr)
     uint16_t tet = temp_array[2] % 2;                            \
     uint16_t gimmel = temp_array[3] % 2;                         \
     uint16_t wavg, wmed;                                         \
-    uint16_t weights[4] = {alef, dalet, tet, gimmel};            \
-    WEIGHTED_AVG(temp_array, weights, wavg);                     \
-    WEIGHTED_MED(temp_array, weights, wmed);                     \
+    uint16_t weights[POX_FACT_NUM] = {alef, dalet, tet, gimmel}; \
+    wavg = weighted_avg(temp_array, weights);                    \
+    wmed = weighted_med(temp_array, weights);                    \
     temp_array[0] ^= ((wavg >> gimmel) ^ MASK_ZZFF) & MASK_ZZZF; \
     temp_array[3] ^= ((wmed << alef) ^ MASK_FZFZ) & MASK_FZZZ;
 
-#define POX_GAMMA(temp_array)                                              \
-    uint16_t mmin, argmin, mmax, argmax, aside, beside;                    \
-    MIN_ARGMIN(temp_array, mmin, argmin);                                  \
-    MAX_ARGMAX(temp_array, mmax, argmax);                                  \
-    FILTER_INDEX_ARR(argmin, argmax, aside, beside);                       \
-    uint16_t alaph = temp_array[aside] % get_8b_prime(temp_array[aside]);  \
-    uint16_t dalath = ~(mmin ^ MASK_FZFZ) % get_8b_prime(mmin);            \
-    uint16_t teth = mmax % get_8b_prime(mmax);                             \
-    uint16_t gamal = temp_array[beside] % get_8b_prime((mmin + mmax) / 2); \
-    temp_array[aside] >>= (alaph ^ MASK_ZZFZ) % WORD_WIDTH;                \
-    temp_array[argmin] >>= (gamal ^ MASK_FZZZ) % ((mmax % 2) + 1);         \
-    temp_array[argmax] ^= log2n(dalath) & MASK_ZFFF;                       \
-    temp_array[beside] ^= log2n(teth) >> ((gamal % 2) + 1);
+#define POX_GAMMA(temp_array)                                                \
+    uint16_t mmin, argmin, mmax, argmax, aside, beside;                      \
+    MIN_ARGMIN(temp_array, mmin, argmin);                                    \
+    MAX_ARGMAX(temp_array, mmax, argmax);                                    \
+    FILTER_INDEX_ARR(argmin, argmax, aside, beside);                         \
+    uint16_t alaph = temp_array[aside] % get_8b_prime(temp_array[aside]);    \
+    uint16_t dalath = (get_8b_prime(mmax) ^ MASK_ZFZF) % get_8b_prime(mmin); \
+    uint16_t teth = mmax % get_8b_prime(mmax);                               \
+    uint16_t gamal = temp_array[beside] % get_8b_prime((mmin + mmax) / 2);   \
+    temp_array[aside] >>= (alaph ^ MASK_ZZFZ) % WORD_WIDTH;                  \
+    temp_array[argmin] >>= (gamal ^ MASK_FZZZ) % ((mmax % 2) + 1);           \
+    temp_array[argmax] ^= log2n(dalath) & MASK_ZFFF;                         \
+    temp_array[beside] ^= (uint16_t)log2n(teth) >> ((gamal % 2) + 1);
 
 #define POX_ALPHA_WRAP(temp_array) \
     do                             \
@@ -357,23 +376,23 @@ static inline uint16_t sum_portion(char *arr)
         SWAP(temp_array[cCOMB_BIONOM[__iy][0]], temp_array[cCOMB_BIONOM[__iy][1]], uint16_t); \
     }
 
-#define POX_ROUND(factor_array)                                                                    \
-    uint16_t temp_array[4] = {factor_array[0], factor_array[1], factor_array[2], factor_array[3]}; \
-    POX_ROUND_OP(temp_array);                                                                      \
-    POX_ROUND_APPLY_PRIME(temp_array);                                                             \
-    POX_ROUND_APPLY_SHUFFLE(temp_array);                                                           \
+#define POX_ROUND(factor_array)                                                                               \
+    uint16_t temp_array[POX_FACT_NUM] = {factor_array[0], factor_array[1], factor_array[2], factor_array[3]}; \
+    POX_ROUND_OP(temp_array);                                                                                 \
+    POX_ROUND_APPLY_PRIME(temp_array);                                                                        \
+    POX_ROUND_APPLY_SHUFFLE(temp_array);                                                                      \
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);
 
-#define POX_APPLY_BYTES(factor_array, portion)                 \
-    uint16_t avg, median, odd_factor_avg, odd_factor_med;      \
-    AVG_PORTION(portion, avg);                                 \
-    MED_PORTION(portion, median);                              \
-    odd_factor_avg = UINT16_MAX * (avg % 2);                   \
-    odd_factor_med = UINT16_MAX * (median % 2);                \
-    factor_array[0] ^= (portion[0] + avg) ^ odd_factor_med;    \
-    factor_array[1] ^= (portion[1] + median) ^ odd_factor_avg; \
-    factor_array[2] ^= (portion[2] + avg) ^ odd_factor_med;    \
-    factor_array[3] ^= (portion[3] + median) ^ odd_factor_avg;
+#define POX_APPLY_BYTES(factor_array, portion)                             \
+    uint16_t avg, median, odd_factor_avg, odd_factor_med;                  \
+    AVG_PORTION(portion, avg);                                             \
+    MED_PORTION(portion, median);                                          \
+    odd_factor_avg = UINT16_MAX * (avg % 2);                               \
+    odd_factor_med = UINT16_MAX * (median % 2);                            \
+    factor_array[0] ^= (((uint16_t)portion[0]) + avg) ^ odd_factor_med;    \
+    factor_array[1] ^= (((uint16_t)portion[1]) + median) ^ odd_factor_avg; \
+    factor_array[2] ^= (((uint16_t)portion[2]) + avg) ^ odd_factor_med;    \
+    factor_array[3] ^= (((uint16_t)portion[3]) + median) ^ odd_factor_avg;
 
 #define POX_ROUND_ACTION(factor_array, portion) \
     POX_APPLY_BYTES(factor_array, portion);     \
