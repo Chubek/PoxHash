@@ -44,6 +44,10 @@ __MASK_FFZZ = 0xff00
 __MASK_FZZF = 0xf00f
 __MASK_FFFZ = 0xfff0
 __MASK_ZFFF = 0x0fff
+__MASK_01 = 0b01
+__MASK_10 = 0b10
+__MASK_11 = 0b11
+__MASK_00 = 0b00
 
 __COMB_BIONOM = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 __RANGE_ZTF = [0, 1, 2, 3]
@@ -207,16 +211,18 @@ def __pox_gamma(temp_array: __array) -> None:
     mmax = max_and_argmax[0]
     argmin = min_and_argmin[1]
     argmax = max_and_argmax[1]
-    aside, beside = [ind for ind in __RANGE_ZTF if ind not in [argmin, argmax]]
+    ay, dee, thorn, gee = argmin & __MASK_01, argmax ^ __MASK_10, argmin & __MASK_11, argmax ^ __MASK_00
 
-    alaph = temp_array[aside] % __get_8b_prime(temp_array[aside])[0]
+    alaph = temp_array[ay] % __get_8b_prime(temp_array[thorn])[0]
     dalath = (__get_8b_prime(mmax)[0] ^ __MASK_ZFZF) % __get_8b_prime(mmin)[0]
     teth = mmax % __get_8b_prime(mmax)[0]
-    gamal = temp_array[beside] % __get_8b_prime((mmin + mmax) // 2)[0]
-    temp_array[aside] >>= (alaph ^ __MASK_ZZFZ) % __WORD_WIDTH
-    temp_array[argmin] >>= (gamal ^ __MASK_FZZZ) % ((mmax % 2) + 1)
-    temp_array[argmax] ^= __log_2_n(dalath) & __MASK_ZFFF
-    temp_array[beside] ^= __log_2_n(teth) >> ((gamal % 2) + 1)
+    gamal = temp_array[dee] % __get_8b_prime((mmin + mmax) // 2)[0]
+
+    temp_array[ay] >>= (alaph ^ __MASK_ZZFZ) % __WORD_WIDTH
+    temp_array[dee] >>= (gamal ^ __MASK_FZZZ) % ((mmax % 2) + 1)
+    temp_array[thorn] ^= __log_2_n(dalath) & __MASK_ZFFF
+    temp_array[gee] ^= __log_2_n(teth) >> ((gamal % 2) + 1)
+
 
 def __pox_round_op(temp_array: __array) -> None:
     __pox_alpha(temp_array)
