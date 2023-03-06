@@ -45,11 +45,14 @@ mod consts {
     pub const MASK_FZZF: u16 = 0xf00f;
     pub const MASK_FFFZ: u16 = 0xfff0;
     pub const MASK_ZFFF: u16 = 0x0fff;
+    pub const MASK_01: usize = 0b01;
+    pub const MASK_10: usize = 0b10;
+    pub const MASK_11: usize = 0b11;
+    pub const MASK_00: usize = 0b00;
 
     pub const COMB_BIONOM: &'static [(usize, usize)] =
         &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
     pub const SIZE_BIONOM: usize = 6;
-    pub const RANGE_ZTF: &'static [usize] = &[0, 1, 2, 3];
     pub const HEX_CHARS: &'static [char] = &[
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     ];
@@ -269,30 +272,23 @@ mod alphabet {
     pub fn gamma(temp_array: consts::ArrTypeRef) -> consts::ArrType {
         let (mmin, argmin) = tools::min_and_argmin(temp_array, consts::POX_FACT_NUM);
         let (mmax, argmax) = tools::max_and_argmax(temp_array, consts::POX_FACT_NUM);
-        let (aside, beside) = {
-            let aside_beside: &mut [usize] = &mut [0, 0];
-            let mut j = 0usize;
-            for i in 0..consts::POX_FACT_NUM {
-                if consts::RANGE_ZTF[i] != argmin && consts::RANGE_ZTF[i] != argmax {
-                    aside_beside[j] = consts::RANGE_ZTF[i];
-                    j += 1;
-                }
-            }
-            (aside_beside[0], aside_beside[1])
-        };
+        let ay = argmin & consts::MASK_01;
+        let dee = argmax ^ consts::MASK_10;
+        let thorn = argmin & consts::MASK_11;
+        let gee = argmax ^ consts::MASK_00;
 
-        let alaph: u16 = temp_array[aside] % tools::get_8b_prime(temp_array[aside]);
+        let alaph: u16 = temp_array[ay] % tools::get_8b_prime(temp_array[thorn]);
         let dalath: u16 =
             (tools::get_8b_prime(mmax) ^ consts::MASK_ZFZF) % tools::get_8b_prime(mmin);
         let teth: u16 = mmax % tools::get_8b_prime(mmax);
         let gamal: u16 =
-            temp_array[beside] % tools::get_8b_prime((((mmin as u32) + (mmax as u32)) / 2) as u16);
+            temp_array[dee] % tools::get_8b_prime((((mmin as u32) + (mmax as u32)) / 2) as u16);
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[aside] >>= (alaph ^ consts::MASK_ZZFZ) % consts::WORD_WIDTH_U16;
-        temp_array_cpy[argmin] >>= (gamal ^ consts::MASK_FZZZ) % ((mmax % 2) + 1);
-        temp_array_cpy[argmax] ^= tools::log2n(dalath) & consts::MASK_ZFFF;
-        temp_array_cpy[beside] ^= tools::log2n(teth) >> ((gamal % 2) + 1);
+        temp_array_cpy[ay] >>= (alaph ^ consts::MASK_ZZFZ) % consts::WORD_WIDTH_U16;
+        temp_array_cpy[dee] >>= (gamal ^ consts::MASK_FZZZ) % ((mmax % 2) + 1);
+        temp_array_cpy[thorn] ^= tools::log2n(dalath) & consts::MASK_ZFFF;
+        temp_array_cpy[gee] ^= tools::log2n(teth) >> ((gamal % 2) + 1);
 
         temp_array_cpy
     }
