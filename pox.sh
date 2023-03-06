@@ -8,18 +8,18 @@ NC="\033[0m"
 language=""
 
 help() {
+    echo
     printf "${YELLOW}PoxHash${NC} Code Runner by ${BLUE}Chubak Bidpaa${NC}\n"
     echo "Help:"
-    echo
-    echo "\t\tPass the name of the language as the first argument,"
-    echo "\tand the strings which you wish to hash as the consecutive"
-    echo "\targuments. Supperted language names are:"
-    echo
-    printf "\t\t\t${RED}python${NC} ${GREEN}c${NC} ${YELLOW}rust${NC}\n"
-    printf "\t\t\t${BLUE}js${NC} ${PURPLE}go${NC} ${CYAN}nim${NC}\n"
-    echo
+    printf "\tPass the name of the language as the first argument,\n"
+    printf "and the strings which you wish to hash as the consecutive\n"
+    printf "arguments. Supperted language names as argument are:\n\n"
+    printf "\t${RED}python${NC}\t${GREEN}c${NC}\t${YELLOW}rust${NC}\n"
+    printf "\t${BLUE}js${NC}\t${PURPLE}go${NC}\t${CYAN}nim${NC}\n\n"
+    printf "\tExample: ./poxhash.sh python HashThis\n\n"
     echo "PoxHash was designed and first implemented by Chubak Bidpaa in 2023"
     echo "Licensed under GPLv3"
+    echo
     exit 0;
 }
 
