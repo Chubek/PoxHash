@@ -1,13 +1,13 @@
 package libpox
 
 const (
-	poxBLOCK_NUM int = 64
+	poxBLOCK_NUM    int = 64
 	pox8B_PRIME_NUM int = 54
-	poxPRIME_NUM int = 32
-	poxPORTION_NUM int = 16
-	poxROUND_NUM int = 8
-	poxFACT_NUM int = 4
-	
+	poxPRIME_NUM    int = 32
+	poxPORTION_NUM  int = 16
+	poxROUND_NUM    int = 8
+	poxFACT_NUM     int = 4
+
 	poxPRIME_A uint16 = 0x9f91
 	poxPRIME_B uint16 = 0xdb3b
 	poxPRIME_C uint16 = 0xc091
@@ -18,45 +18,49 @@ const (
 	bitBYTE_WIDTH_u16 uint16 = 8
 	bitUINT16_MAX_U16 uint16 = 65535
 	bitUINT16_MAX_U32 uint32 = 65535
-	bitBYTE_ARR_SIZE = 8
+	bitBYTE_ARR_SIZE         = 8
 
-	numSD_PRIME int = 3
+	numSD_PRIME    int = 3
 	numCOMB_BIONOM int = 6
-	numRANGE_ZTF int = 4
-	numHEX_SIZE int = 4
+	numRANGE_ZTF   int = 4
+	numHEX_SIZE    int = 4
 
 	maskONE_UPPER16 uint32 = 0xffff0000
 	maskONE_LOWER16 uint32 = 0x0000ffff
-	maskFZFZ uint16 = 0xf0f0
-	maskZFZF uint16 = 0x0f0f
-	maskFZZZ uint16 = 0xf000
-	maskZZFZ uint16 = 0x00f0
-	maskZZZF uint16 = 0x000f
-	maskZZFF uint16 = 0x00ff
-	maskFFZZ uint16 = 0xff00
-	maskFZZF uint16 = 0xf00f
-	maskFFFZ uint16 = 0xfff0
-	maskZFFF uint16 = 0x0fff
+	maskFZFZ        uint16 = 0xf0f0
+	maskZFZF        uint16 = 0x0f0f
+	maskFZZZ        uint16 = 0xf000
+	maskZZFZ        uint16 = 0x00f0
+	maskZZZF        uint16 = 0x000f
+	maskZZFF        uint16 = 0x00ff
+	maskFFZZ        uint16 = 0xff00
+	maskFZZF        uint16 = 0xf00f
+	maskFFFZ        uint16 = 0xfff0
+	maskZFFF        uint16 = 0x0fff
+	mask01          int    = 0b01
+	mask10          int    = 0b10
+	mask11          int    = 0b11
+	mask00          int    = 0b00
 )
 
 var (
-	poxPRIMES = [poxPRIME_NUM]uint16 { 0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
+	poxPRIMES = [poxPRIME_NUM]uint16{0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
 		0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
 		0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
-		0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549 }
-	pox8BPRIMES = [pox8B_PRIME_NUM]uint16 { 0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
+		0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549}
+	pox8BPRIMES = [pox8B_PRIME_NUM]uint16{0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
 		0x2b, 0x2f, 0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61,
 		0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d,
 		0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3,
-		0xe5, 0xe9, 0xef, 0xf1, 0xfb }
-	poxMAGIC_PRIMES = [...]uint16 { 0x33, 0x65 }
-	poxSINGLE_DIGIT_PRIMES = [...]uint16 { 0x3, 0x5, 0x7 }
+		0xe5, 0xe9, 0xef, 0xf1, 0xfb}
+	poxMAGIC_PRIMES        = [...]uint16{0x33, 0x65}
+	poxSINGLE_DIGIT_PRIMES = [...]uint16{0x3, 0x5, 0x7}
 
-	iterCOMB_BIONOM = [numCOMB_BIONOM][2]int { {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3} }
-	iterRANGE_ZTF = [numRANGE_ZTF]int { 0, 1, 2, 3 }
-	
+	iterCOMB_BIONOM = [numCOMB_BIONOM][2]int{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
+	iterRANGE_ZTF   = [numRANGE_ZTF]int{0, 1, 2, 3}
+
 	byteZERO_CHAR byte = 48
-	byteHEX = [bitUINT16_MAX_U32]byte {  
+	byteHEX            = [bitUINT16_MAX_U32]byte{
 		48,
 		49,
 		50,
@@ -72,7 +76,7 @@ var (
 		67,
 		68,
 		69,
-		80, }
+		80}
 )
 
 type factorType [poxFACT_NUM]uint16
@@ -137,7 +141,7 @@ func minAndArgmin(arr factorType) (uint16, int) {
 		if intgr < currMin {
 			currMin = intgr
 			currIndex = i
-		} 
+		}
 	}
 
 	return currMin, currIndex
@@ -148,10 +152,10 @@ func maxAndArgmax(arr factorType) (uint16, int) {
 	currIndex := 0
 
 	for i, intgr := range arr {
-		if intgr < currMax {
+		if intgr > currMax {
 			currMax = intgr
 			currIndex = i
-		} 
+		}
 	}
 
 	return currMax, currIndex
@@ -168,15 +172,15 @@ func wordArrToByteArr(wordarr factorType) byteType {
 	for _, word := range wordarr {
 		lower, upper := wordToByte(word)
 		bytearr[z] = lower
-		bytearr[z + 1] = upper
-		z += 2 
+		bytearr[z+1] = upper
+		z += 2
 	}
 	return bytearr
 }
 
 func byteArrToWordArrAndPad(bytearr []byte) []uint16 {
 	length := len(bytearr)
-	for length % poxBLOCK_NUM != 0 {
+	for length%poxBLOCK_NUM != 0 {
 		length++
 	}
 	padded := make([]uint16, length)
@@ -189,8 +193,8 @@ func byteArrToWordArrAndPad(bytearr []byte) []uint16 {
 func decimalToHex(dec uint16) string {
 	hex := []byte{byteZERO_CHAR, byteZERO_CHAR, byteZERO_CHAR, byteZERO_CHAR}
 	for i := 0; i < numHEX_SIZE; i++ {
-		hex[numHEX_SIZE - i - 1] = byteHEX[dec % bitWORD_WIDTH_U16]
-		dec /= bitWORD_WIDTH_U16		
+		hex[numHEX_SIZE-i-1] = byteHEX[dec%bitWORD_WIDTH_U16]
+		dec /= bitWORD_WIDTH_U16
 	}
 	return string(hex)
 }
@@ -204,12 +208,12 @@ func wordArrToHexDigest(wordarr factorType) string {
 }
 
 func get8BPrime(num uint16) uint16 {
-	return pox8BPRIMES[num % uint16(pox8B_PRIME_NUM)]
+	return pox8BPRIMES[num%uint16(pox8B_PRIME_NUM)]
 }
 
 func log2N(num uint16) uint16 {
 	if num > 1 {
-		return 1 + log2N(num / 2)
+		return 1 + log2N(num/2)
 	}
 	return 0
 }
@@ -233,32 +237,20 @@ func copyWordArray(wordarr factorType) factorType {
 func newPortion(block blockType, start int) factorType {
 	var ret factorType
 	ret[0] = block[start]
-	ret[1] = block[start + 1]
-	ret[2] = block[start + 2]
-	ret[3] = block[start + 3]
+	ret[1] = block[start+1]
+	ret[2] = block[start+2]
+	ret[3] = block[start+3]
 	return ret
 }
 
 func newBlock(data []uint16, start int) blockType {
 	var ret blockType
 	z := 0
-	for i := start; i < start + poxBLOCK_NUM; i++ {
+	for i := start; i < start+poxBLOCK_NUM; i++ {
 		ret[z] = data[i]
 		z++
 	}
 	return ret
-}
-
-func otherIndices(argmin, argmax int) (aside, beside int) {
-	aside_beside := []int{0, 0}
-	j := 0
-	for i := 0; i < poxFACT_NUM; i++ {
-		if iterRANGE_ZTF[i] != argmin && iterRANGE_ZTF[i] != argmax {
-			aside_beside[j] = iterRANGE_ZTF[i]
-			j++ 
-		}
-	}
-	return aside_beside[0], aside_beside[1]
 }
 
 func newFactorArray() factorType {
@@ -274,58 +266,58 @@ func poxAlpha(tempArray factorType) factorType {
 	var aleph, theh, daal, gaaf uint16 = 0, 0, 0, 0
 
 	aleph = (tempArray[0] ^ tempArray[1]) & maskZZFF
-    theh = (tempArray[2] ^ tempArray[3]) & maskFFZZ
-    daal = (aleph | theh) % pox8BPRIMES[0]
-    gaaf = (aleph ^ theh) % pox8BPRIMES[1]
+	theh = (tempArray[2] ^ tempArray[3]) & maskFFZZ
+	daal = (aleph | theh) % pox8BPRIMES[0]
+	gaaf = (aleph ^ theh) % pox8BPRIMES[1]
 
 	tempArrayCpy := copyWordArray(tempArray)
 
 	tempArrayCpy[0] >>= daal
-    tempArrayCpy[1] >>= ((daal + gaaf) % 2) + 1
-    tempArrayCpy[2] >>= gaaf
+	tempArrayCpy[1] >>= ((daal + gaaf) % 2) + 1
+	tempArrayCpy[2] >>= gaaf
 
 	return tempArrayCpy
-} 
+}
 
 func poxDelta(tempArray factorType) factorType {
 	var alaf, dalat, tit, gaman uint16 = 0, 0, 0, 0
 
 	alaf = (tempArray[0] ^ maskFFFZ) % get8BPrime(tempArray[0])
-    dalat = (tempArray[1] ^ maskFZZF) % get8BPrime(tempArray[1])
-    tit = (tempArray[2] & maskZFFF) % get8BPrime(tempArray[2])
-    gaman = (tempArray[3] & maskFFZZ) % get8BPrime(tempArray[3])
+	dalat = (tempArray[1] ^ maskFZZF) % get8BPrime(tempArray[1])
+	tit = (tempArray[2] & maskZFFF) % get8BPrime(tempArray[2])
+	gaman = (tempArray[3] & maskFFZZ) % get8BPrime(tempArray[3])
 
-    for i := 0; i < poxFACT_NUM; i++ {
-		alaf >>= poxSINGLE_DIGIT_PRIMES[dalat % uint16(numSD_PRIME)]
-        dalat = rotateLeft(dalat, 2)
-        tit >>= poxSINGLE_DIGIT_PRIMES[gaman % uint16(numSD_PRIME)]
-        gaman ^= (alaf ^ maskZZFF) >> poxSINGLE_DIGIT_PRIMES[tit % uint16(numSD_PRIME)]
+	for i := 0; i < poxFACT_NUM; i++ {
+		alaf >>= poxSINGLE_DIGIT_PRIMES[dalat%uint16(numSD_PRIME)]
+		dalat = rotateLeft(dalat, 2)
+		tit >>= poxSINGLE_DIGIT_PRIMES[gaman%uint16(numSD_PRIME)]
+		gaman ^= (alaf ^ maskZZFF) >> poxSINGLE_DIGIT_PRIMES[tit%uint16(numSD_PRIME)]
 	}
-    
+
 	tempArrayCpy := copyWordArray(tempArray)
 
-    tempArrayCpy[1] ^= tempArray[2] % poxMAGIC_PRIMES[1]
-    tempArrayCpy[2] ^= alaf + tit
-    tempArrayCpy[3] ^= tit + gaman
+	tempArrayCpy[1] ^= tempArray[2] % poxMAGIC_PRIMES[1]
+	tempArrayCpy[2] ^= alaf + tit
+	tempArrayCpy[3] ^= tit + gaman
 
 	return tempArrayCpy
 }
 
 func poxTheta(tempArray factorType) factorType {
 	var alef, dalet, tet, gimmel, wavg, wmed uint16 = 0, 0, 0, 0, 0, 0
-	
-	alef = tempArray[0] % 2
-    dalet = tempArray[1] % 2
-    tet = tempArray[2] % 2
-    gimmel = tempArray[3] % 2
 
-    wavg = weightedAvg(tempArray, factorType {alef, dalet, tet, gimmel})
-    wmed = weightedMed(tempArray, factorType {alef, dalet, tet, gimmel})
+	alef = tempArray[0] % 2
+	dalet = tempArray[1] % 2
+	tet = tempArray[2] % 2
+	gimmel = tempArray[3] % 2
+
+	wavg = weightedAvg(tempArray, factorType{alef, dalet, tet, gimmel})
+	wmed = weightedMed(tempArray, factorType{alef, dalet, tet, gimmel})
 
 	tempArrayCpy := copyWordArray(tempArray)
 
-    tempArrayCpy[0] ^= ((wavg >> gimmel) ^ maskZZFF) & maskZZZF
-    tempArrayCpy[3] ^= ((wmed << alef) ^ maskFZFZ) & maskFZZZ
+	tempArrayCpy[0] ^= ((wavg >> gimmel) ^ maskZZFF) & maskZZZF
+	tempArrayCpy[3] ^= ((wmed << alef) ^ maskFZFZ) & maskFZZZ
 
 	return tempArrayCpy
 }
@@ -335,19 +327,22 @@ func poxGamma(tempArray factorType) factorType {
 
 	mmax, argmax := maxAndArgmax(tempArray)
 	mmin, argmin := minAndArgmin(tempArray)
-	aside, beside := otherIndices(argmin, argmax)
+	ay := argmin & mask01
+	dee := argmax ^ mask10
+	thorn := argmin & mask11
+	gee := argmax ^ mask00
 
-	alaph = tempArray[aside] % get8BPrime(tempArray[aside])
-    dalath = (get8BPrime(mmax) ^ maskZFZF) % get8BPrime(mmin)
-    teth = mmax % get8BPrime(mmax)
-    gamal = tempArray[beside] % get8BPrime(uint16((uint32(mmin) + uint32(mmax)) / 2))
-    
+	alaph = tempArray[ay] % get8BPrime(tempArray[thorn])
+	dalath = (get8BPrime(mmax) ^ maskZFZF) % get8BPrime(mmin)
+	teth = mmax % get8BPrime(mmax)
+	gamal = tempArray[dee] % get8BPrime(uint16((uint32(mmin)+uint32(mmax))/2))
+
 	tempArrayCpy := copyWordArray(tempArray)
 
-	tempArrayCpy[aside] >>= (alaph ^ maskZZFZ) % bitWORD_WIDTH_U16
-    tempArrayCpy[argmin] >>= (gamal ^ maskFZZZ) % ((mmax % 2) + 1)
-    tempArrayCpy[argmax] ^= log2N(dalath) & maskZFFF
-    tempArrayCpy[beside] ^= log2N(teth) >> ((gamal % 2) + 1)
+	tempArrayCpy[ay] >>= (alaph ^ maskZZFZ) % bitWORD_WIDTH_U16
+	tempArrayCpy[dee] >>= (gamal ^ maskFZZZ) % ((mmax % 2) + 1)
+	tempArrayCpy[thorn] ^= log2N(dalath) & maskZFFF
+	tempArrayCpy[gee] ^= log2N(teth) >> ((gamal % 2) + 1)
 
 	return tempArrayCpy
 }
@@ -397,7 +392,7 @@ func poxRoundApplyAddition(factorArray, tempArray factorType) factorType {
 
 func poxRound(factorArray factorType) factorType {
 	tempArray := copyWordArray(factorArray)
-	
+
 	tempArray = poxRoundApplyOp(tempArray)
 	tempArray = poxRoundApplyPrime(tempArray)
 	tempArray = poxRoundApplyShuffle(tempArray)
@@ -418,39 +413,40 @@ func poxApplyBytes(factorArray, portion factorType) factorType {
 	factorArrayCpy := copyWordArray(factorArray)
 
 	factorArrayCpy[0] ^= (portion[0] + avg) ^ medOddFactor
-    factorArrayCpy[1] ^= (portion[1] + med) ^ avgOddFactor
-    factorArrayCpy[2] ^= (portion[2] + avg) ^ medOddFactor
-    factorArrayCpy[3] ^= (portion[3] + med) ^ avgOddFactor
+	factorArrayCpy[1] ^= (portion[1] + med) ^ avgOddFactor
+	factorArrayCpy[2] ^= (portion[2] + avg) ^ medOddFactor
+	factorArrayCpy[3] ^= (portion[3] + med) ^ avgOddFactor
 
 	return factorArrayCpy
 }
 
 func poxProcessBlock(factorArray factorType, block blockType) factorType {
 	factorArrayCpy := copyWordArray(factorArray)
-	for i := 0; i < poxBLOCK_NUM; i+=poxPORTION_NUM {
-		for j := i; j < i + poxPORTION_NUM; j+=poxFACT_NUM {
+	for i := 0; i < poxBLOCK_NUM; i += poxPORTION_NUM {
+		for j := i; j < i+poxPORTION_NUM; j += poxFACT_NUM {
 			portion := newPortion(block, j)
 			z := poxROUND_NUM
 			for z > 0 {
 				factorArrayCpy = poxApplyBytes(factorArrayCpy, portion)
 				factorArrayCpy = poxRound(factorArrayCpy)
+				z--
 			}
 		}
 	}
-	return factorArray
+	return factorArrayCpy
 }
 
 type PoxHashTy struct {
-	Hexdigest string  `json:"hexdigest"`
-	Bytes byteType    `json:"bytes"`
-	Factors  factorType   `json:"factors"`
+	Hexdigest string     `json:"hexdigest"`
+	Bytes     byteType   `json:"bytes"`
+	Factors   factorType `json:"factors"`
 }
 
 func PoxHash(data []byte) PoxHashTy {
 	padded := byteArrToWordArrAndPad(data)
 	factorArray := newFactorArray()
 
-	for i := 0; i < len(padded); i+=poxBLOCK_NUM {
+	for i := 0; i < len(padded); i += poxBLOCK_NUM {
 		block := newBlock(padded, i)
 		factorArray = poxProcessBlock(factorArray, block)
 	}
@@ -458,5 +454,5 @@ func PoxHash(data []byte) PoxHashTy {
 	hexdigest := wordArrToHexDigest(factorArray)
 	bytes := wordArrToByteArr(factorArray)
 
-	return PoxHashTy{ Hexdigest: hexdigest, Bytes: bytes, Factors: factorArray }
+	return PoxHashTy{Hexdigest: hexdigest, Bytes: bytes, Factors: factorArray}
 }
