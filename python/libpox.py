@@ -218,10 +218,6 @@ def __pox_gamma(temp_array: __array) -> None:
     temp_array[argmax] ^= __log_2_n(dalath) & __MASK_ZFFF
     temp_array[beside] ^= __log_2_n(teth) >> ((gamal % 2) + 1)
 
-
-1
-
-
 def __pox_round_op(temp_array: __array) -> None:
     __pox_alpha(temp_array)
     __pox_delta(temp_array)
