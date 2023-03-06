@@ -1,0 +1,1 @@
+gcc c/example.c -o /tmp/cpox && /tmp/cpox $@

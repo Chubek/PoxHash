@@ -213,7 +213,6 @@ def __pox_gamma(temp_array: __array) -> None:
     dalath = (__get_8b_prime(mmax)[0] ^ __MASK_ZFZF) % __get_8b_prime(mmin)[0]
     teth = mmax % __get_8b_prime(mmax)[0]
     gamal = temp_array[beside] % __get_8b_prime((mmin + mmax) // 2)[0]
-
     temp_array[aside] >>= (alaph ^ __MASK_ZZFZ) % __WORD_WIDTH
     temp_array[argmin] >>= (gamal ^ __MASK_FZZZ) % ((mmax % 2) + 1)
     temp_array[argmax] ^= __log_2_n(dalath) & __MASK_ZFFF
