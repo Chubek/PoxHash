@@ -31,7 +31,6 @@ mod consts {
     pub const WORD_WIDTH_U32: u32 = 16;
     pub const WORD_WIDTH_U16: u16 = 16;
     pub const BYTE_WIDTH_U16: u16 = 8;
-    pub const BYTE_WIDTH_U8: u8 = 8;
     pub const HEX_SIZE: usize = 4;
     pub const ONE_UPPER16: u32 = 0xffff0000;
     pub const ONE_LOWER16: u32 = 0x0000ffff;
@@ -57,16 +56,6 @@ mod consts {
 
     pub type ArrTypeRef<'a> = &'a [u16];
     pub type ArrType = [u16; 4];
-
-    macro_rules! swap {
-        ($arr: ident, $indexof: ident, $indexwith: ident) => {{
-            let tmp = $arr[$indexof];
-            $arr[$indexof] = $arr[$indexwith];
-            $arr[$indexwith] = tmp;
-        }};
-    }
-
-    pub(crate) use swap;
 }
 
 mod tools {
@@ -179,13 +168,13 @@ mod convert {
     }
 
     fn decimal_to_hex(dec: u16) -> String {
-        let mut hex = vec!['\0'; consts::HEX_SIZE];
+        let mut hex = vec!['0' as u8; consts::HEX_SIZE];
         let mut dec_mut = dec;
         hex.iter_mut().rev().for_each(|c| {
-            *c = consts::HEX_CHARS[(dec_mut % consts::WORD_WIDTH_U16) as usize];
+            *c = consts::HEX_CHARS[(dec_mut % consts::WORD_WIDTH_U16) as usize] as u8;
             dec_mut /= consts::WORD_WIDTH_U16;
         });
-        String::from_iter(hex.into_iter())
+        String::from_utf8(hex).unwrap()
     }
 
     pub fn word_array_to_byte_array(word_array: consts::ArrTypeRef) -> Vec<u8> {
@@ -312,6 +301,14 @@ mod alphabet {
 mod round {
     use super::{alphabet, bits, consts, tools};
 
+    macro_rules! swap {
+        ($arr: ident, $indexof: ident, $indexwith: ident) => {{
+            let tmp = $arr[$indexof];
+            $arr[$indexof] = $arr[$indexwith];
+            $arr[$indexwith] = tmp;
+        }};
+    }
+
     fn apply_alphabet_operation(temp_array: consts::ArrTypeRef) -> consts::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
         temp_array_cpy = alphabet::alpha(&temp_array_cpy);
@@ -348,7 +345,7 @@ mod round {
         let mut temp_array_cpy = tools::copy_array(temp_array);
         for i in 0..consts::SIZE_BIONOM {
             let (iof, iwith) = consts::COMB_BIONOM[i];
-            consts::swap!(temp_array_cpy, iof, iwith);
+            swap!(temp_array_cpy, iof, iwith);
         }
         temp_array_cpy
     }
@@ -404,9 +401,9 @@ mod block {
 }
 
 pub struct PoxHash {
-    hexdigest: String,
-    bytes: Vec<u8>,
-    factors: Vec<u16>,
+    pub hexdigest: String,
+    pub bytes: Vec<u8>,
+    pub factors: Vec<u16>,
 }
 
 pub fn pox_hash(data: Vec<u8>) -> PoxHash {
