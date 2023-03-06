@@ -29,7 +29,6 @@ const cWORD_WIDTH = 16;
 const cBYTE_WIDTH = 8;
 const cUINT16_MAX = 2 ** 16 - 1;
 const cNUM_SD_PRIME = 3;
-const cNUM_8B_PRIME = 54;
 const cHEX_SIZE = 4;
 
 const cONE_UPPER16 = 0xffff0000;
@@ -44,6 +43,10 @@ const cMASK_FFZZ = 0xff00;
 const cMASK_FZZF = 0xf00f;
 const cMASK_FFFZ = 0xfff0;
 const cMASK_ZFFF = 0x0fff;
+const cMASK_01 = 0b01;
+const cMASK_10 = 0b10;
+const cMASK_11 = 0b11;
+const cMASK_00 = 0b00;
 
 const cCOMB_BIONOM = [
   [0, 1],
@@ -316,19 +319,20 @@ const poxGamma = (tempArray) => {
   const mmax = maxWithArgmax.max;
   const argmin = minWithArgmin.argmin;
   const argmax = maxWithArgmax.argmax;
-  const sides = cRANGE_ZTG.filter((item) => item != argmax && item != argmin);
-  const aside = sides[0];
-  const beside = sides[1];
+  const ay = argmin & cMASK_01;
+  const dee = argmax ^ cMASK_10;
+  const thorn = argmin & cMASK_11;
+  const gee = argmax ^ cMASK_00;
 
-  const alaph = tempArray[aside] % get8BPrime(tempArray[aside]);
+  const alaph = tempArray[ay] % get8BPrime(tempArray[thorn]);
   const dalath = (get8BPrime(mmax) ^ cMASK_ZFZF) % get8BPrime(mmin);
   const teth = mmax % get8BPrime(mmax);
-  const gamal = tempArray[beside] % get8BPrime(iDiv(mmin + mmax, 2));
+  const gamal = tempArray[dee] % get8BPrime(iDiv(mmin + mmax, 2));
 
-  tempArray[aside] >>= (alaph ^ cMASK_ZZFZ) % cWORD_WIDTH;
-  tempArray[argmin] >>= (gamal ^ cMASK_FZZZ) % ((mmax % 2) + 1);
-  tempArray[argmax] ^= log2N(dalath) & cMASK_ZFFF;
-  tempArray[beside] ^= log2N(teth) >> ((gamal % 2) + 1);
+  tempArray[ay] >>= (alaph ^ cMASK_ZZFZ) % cWORD_WIDTH;
+  tempArray[dee] >>= (gamal ^ cMASK_FZZZ) % ((mmax % 2) + 1);
+  tempArray[thorn] ^= log2N(dalath) & cMASK_ZFFF;
+  tempArray[gee] ^= log2N(teth) >> ((gamal % 2) + 1);
 };
 
 const poxRoundOp = (tempArray) => {
