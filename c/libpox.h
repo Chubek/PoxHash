@@ -37,6 +37,10 @@
 #define MASK_FFFZ 0xfff0
 #define MASK_ZFFF 0x0fff
 #define MASK_ZFZF 0x0f0f
+#define MASK_01 0b01
+#define MASK_10 0b10
+#define MASK_11 0b11
+#define MASK_00 0b00
 
 #define WORD_WIDTH 16
 #define BYTE_WIDTH 8
@@ -234,15 +238,6 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
         }                                           \
     }
 
-#define FILTER_INDEX_ARR(argmin, argmax, aside, beside)             \
-    uint16_t *__resultarr[2] = {&aside, &beside};                   \
-    int __iadded = 0;                                               \
-    for (int __k = 0; __k < POX_FACT_NUM; __k++)                    \
-    {                                                               \
-        if (cRANGE_ZTF[__k] != argmin && cRANGE_ZTF[__k] != argmax) \
-            *__resultarr[__iadded++] = cRANGE_ZTF[__k];             \
-    }
-
 #define PAD_SIZE_TO_BLOCK_SIZE(size)  \
     while (size % POX_BLOCK_NUM != 0) \
         ++size;
@@ -303,18 +298,21 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
     temp_array[3] ^= ((wmed << alef) ^ MASK_FZFZ) & MASK_FZZZ;
 
 #define POX_GAMMA(temp_array)                                                \
-    uint16_t mmin, argmin, mmax, argmax, aside, beside;                      \
+    uint16_t mmin, argmin, mmax, argmax, ay, dee, thorn, gee;                \
     MIN_ARGMIN(temp_array, mmin, argmin);                                    \
     MAX_ARGMAX(temp_array, mmax, argmax);                                    \
-    FILTER_INDEX_ARR(argmin, argmax, aside, beside);                         \
-    uint16_t alaph = temp_array[aside] % get_8b_prime(temp_array[aside]);    \
+    ay = argmin & MASK_01;                                                   \
+    dee = argmax ^ MASK_10;                                                  \
+    thorn = argmin & MASK_11;                                                \
+    gee = argmax ^ MASK_00;                                                  \
+    uint16_t alaph = temp_array[ay] % get_8b_prime(temp_array[thorn]);       \
     uint16_t dalath = (get_8b_prime(mmax) ^ MASK_ZFZF) % get_8b_prime(mmin); \
     uint16_t teth = mmax % get_8b_prime(mmax);                               \
-    uint16_t gamal = temp_array[beside] % get_8b_prime((mmin + mmax) / 2);   \
-    temp_array[aside] >>= (alaph ^ MASK_ZZFZ) % WORD_WIDTH;                  \
-    temp_array[argmin] >>= (gamal ^ MASK_FZZZ) % ((mmax % 2) + 1);           \
-    temp_array[argmax] ^= log2n(dalath) & MASK_ZFFF;                         \
-    temp_array[beside] ^= (uint16_t)log2n(teth) >> ((gamal % 2) + 1);
+    uint16_t gamal = temp_array[dee] % get_8b_prime((mmin + mmax) / 2);      \
+    temp_array[ay] >>= (alaph ^ MASK_ZZFZ) % WORD_WIDTH;                     \
+    temp_array[dee] >>= (gamal ^ MASK_FZZZ) % ((mmax % 2) + 1);              \
+    temp_array[thorn] ^= log2n(dalath) & MASK_ZFFF;                          \
+    temp_array[gee] ^= (uint16_t)log2n(teth) >> ((gamal % 2) + 1);
 
 #define POX_ALPHA_WRAP(temp_array) \
     do                             \
