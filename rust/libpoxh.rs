@@ -32,6 +32,7 @@ mod consts {
     pub const POX_ROUND_NUM: usize = 8;
     pub const POX_PORTION_NUM: usize = 4;
     pub const POX_NUM_SD_PRIME: u16 = 3;
+    pub const POX_NUM_MAGIC_PRIME: u16 = 2;
 
     pub const UINT16_MAX_U32: u32 = 65535;
     pub const UINT16_MAX_U16: u16 = 65535;
@@ -252,7 +253,8 @@ mod alphabet {
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[1] ^= temp_array[2] % consts::POX_MAGIC_PRIMES[1];
+        temp_array_cpy[1] ^=
+            temp_array[2] % consts::POX_MAGIC_PRIMES[alaf % consts::POX_NUM_MAGIC_PRIME];
         temp_array_cpy[2] ^= alaf + tit;
         temp_array_cpy[3] ^= tit + gaman;
 

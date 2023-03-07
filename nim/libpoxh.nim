@@ -25,6 +25,9 @@ const POX_PRIME_NUM  = 32
 const POX_CHUNK_NUM = 16
 const POX_ROUND_NUM = 8
 const POX_PORTION_NUM = 4
+const POX_SD_PRIME_NUM = 3
+const POX_MAGIC_PRIME_NUM = 2
+
 
 const BIT_WORD_WIDTH_U16 = 16u16
 const BIT_WORD_WIDTH_U32 = 16u32
@@ -33,7 +36,6 @@ const BIT_UINT16_MAX_U16 = 65535u16
 const BIT_UINT16_MAX_U32 = 65535u32
 const BIT_BYTE_ARR_SIZE  = 8
 
-const NUM_SD_PRIME = 3
 const NUM_HEX_SIZE  = 4
 
 const MASK_ONE_UPPER16 = 0xffff0000u32
@@ -297,12 +299,12 @@ proc poxDelta(tempArray: var FactorArray) =
     gaman = (tempArray[3] &  MASK_FFZZ) % :::tempArray[3]
 
     for _ in ...POX_PORTION_NUM:
-        alaf >>=  POX_SINGLE_DIGIT_PRIMES[dalat % NUM_SD_PRIME]
+        alaf >>=  POX_SINGLE_DIGIT_PRIMES[dalat % POX_SD_PRIME_NUM]
         dalat <<<= 2
-        tit >>=  POX_SINGLE_DIGIT_PRIMES[gaman % NUM_SD_PRIME]
-        gaman ^= (alaf ^  MASK_ZZFF) >>  POX_SINGLE_DIGIT_PRIMES[tit % NUM_SD_PRIME]
+        tit >>=  POX_SINGLE_DIGIT_PRIMES[gaman % POX_SD_PRIME_NUM]
+        gaman ^= (alaf ^  MASK_ZZFF) >>  POX_SINGLE_DIGIT_PRIMES[tit % POX_SD_PRIME_NUM]
     
-    tempArray[1] ^= tempArray[2] %  POX_MAGIC_PRIMES[1]
+    tempArray[1] ^= tempArray[2] %  POX_MAGIC_PRIMES[alaf % POX_MAGIC_PRIME_NUM]
     tempArray[2] ^= alaf + tit
     tempArray[3] ^= tit + gaman
 

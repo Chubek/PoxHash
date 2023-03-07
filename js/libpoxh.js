@@ -31,11 +31,12 @@ const cPOX_NUM_PRIME = 32;
 const cPOX_CHUNK_NUM = 16;
 const cPOX_ROUND_NUM = 8;
 const cPOX_PORTION_NUM = 4;
+const cPOX_SD_PRIME_NUM = 3;
+const cPOX_MAGIC_PRIME_NUM = 2;
 
 const cWORD_WIDTH = 16;
 const cBYTE_WIDTH = 8;
 const cUINT16_MAX = 2 ** 16 - 1;
-const cNUM_SD_PRIME = 3;
 const cHEX_SIZE = 4;
 
 const cONE_UPPER16 = 0xffff0000;
@@ -293,14 +294,14 @@ const poxDelta = (tempArray) => {
   let gaman = (tempArray[3] & cMASK_FFZZ) % get8BPrime(tempArray[3]);
 
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
-    alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % cNUM_SD_PRIME];
+    alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % cPOX_SD_PRIME_NUM];
     dalat = rotateLeft(dalat, 2)[0];
-    tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % cNUM_SD_PRIME];
+    tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % cPOX_SD_PRIME_NUM];
     gaman ^=
-      (alaf ^ cMASK_ZZFF) >> cPOX_SINGLE_DIGIT_PRIMES[tit % cNUM_SD_PRIME];
+      (alaf ^ cMASK_ZZFF) >> cPOX_SINGLE_DIGIT_PRIMES[tit % cPOX_SD_PRIME_NUM];
   }
 
-  tempArray[1] ^= tempArray[2] % cPOX_MAGIC_PRIMES[1];
+  tempArray[1] ^= tempArray[2] % cPOX_MAGIC_PRIMES[alaf % cPOX_MAGIC_PRIME_NUM];
   tempArray[2] ^= alaf + tit;
   tempArray[3] ^= tit + gaman;
 };

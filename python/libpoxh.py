@@ -30,15 +30,16 @@ __POX_MAGIC_PRIMES = __array('H', [0x33, 0x65])
 __POX_SINGLE_DIGIT_PRIMES = __array('H', [0x3, 0x5, 0x7])
 
 __POX_BLOCK_NUM = 64
+__POX_8B_PRIME_NUM = 54
 __POX_CHUNK_NUM = 16
 __POX_ROUND_NUM = 8
 __POX_PORTION_NUM = 4
+__POX_SD_PRIME_NUM = 3
+__POX_MAGIC_PRIME_NUM = 2
 
 __WORD_WIDTH = 16
 __BYTE_WIDTH = 8
 __UINT16_MAX = 2**16 - 1
-__NUM_SD_PRIME = 3
-__NUM_8B_PRIME = 54
 
 __ONE_UPPER16 = 0xffff0000
 __ONE_LOWER16 = 0x0000ffff
@@ -144,7 +145,7 @@ def __pad_array_with_zero(arr: __array) -> __array:
 
 
 def __get_8b_prime(num: int) -> __array:
-    remainder = num % __NUM_8B_PRIME
+    remainder = num % __POX_8B_PRIME_NUM
     prime = __POX_8B_PRIMES[remainder]
     return __array('H', [prime])
 
@@ -195,13 +196,14 @@ def __pox_delta(temp_array: __array) -> None:
     gaman = (temp_array[3] & __MASK_FFZZ) % __get_8b_prime(temp_array[3])[0]
 
     for _ in range(__POX_PORTION_NUM):
-        alaf >>= __POX_SINGLE_DIGIT_PRIMES[dalat % __NUM_SD_PRIME]
+        alaf >>= __POX_SINGLE_DIGIT_PRIMES[dalat % __POX_SD_PRIME_NUM]
         dalat = __rotate_left(dalat, 2)[0]
-        tit >>= __POX_SINGLE_DIGIT_PRIMES[gaman % __NUM_SD_PRIME]
+        tit >>= __POX_SINGLE_DIGIT_PRIMES[gaman % __POX_SD_PRIME_NUM]
         gaman ^= (alaf ^ __MASK_ZZFF
-                  ) >> __POX_SINGLE_DIGIT_PRIMES[tit % __NUM_SD_PRIME]
+                  ) >> __POX_SINGLE_DIGIT_PRIMES[tit % __POX_SD_PRIME_NUM]
 
-    temp_array[1] ^= temp_array[2] % __POX_MAGIC_PRIMES[1]
+    temp_array[1] ^= temp_array[2] % __POX_MAGIC_PRIMES[alaf %
+                                                        __POX_MAGIC_PRIME_NUM]
     temp_array[2] ^= alaf + tit
     temp_array[3] ^= tit + gaman
 

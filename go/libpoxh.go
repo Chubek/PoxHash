@@ -8,46 +8,47 @@
 package libpoxh
 
 const (
-	poxBLOCK_NUM    int = 64
-	pox8B_PRIME_NUM int = 54
-	poxPRIME_NUM    int = 32
-	poxCHUNK_NUM    int = 16
-	poxROUND_NUM    int = 8
-	poxPORTION_NUM  int = 4
+	poxBLOCK_NUM       int = 64
+	pox8B_PRIME_NUM        = 54
+	poxPRIME_NUM           = 32
+	poxCHUNK_NUM           = 16
+	poxROUND_NUM           = 8
+	poxPORTION_NUM         = 4
+	poxSD_PRIME_NUM        = 3
+	poxMAGIC_PRIME_NUM     = 2
 
 	poxPRIME_A uint16 = 0x9f91
-	poxPRIME_B uint16 = 0xdb3b
-	poxPRIME_C uint16 = 0xc091
-	poxPRIME_D uint16 = 0xac8b
+	poxPRIME_B        = 0xdb3b
+	poxPRIME_C        = 0xc091
+	poxPRIME_D        = 0xac8b
 
 	bitWORD_WIDTH_U16 uint16 = 16
+	bitBYTE_WIDTH_u16        = 8
+	bitUINT16_MAX_U16        = 65535
 	bitWORD_WIDTH_U32 uint32 = 16
-	bitBYTE_WIDTH_u16 uint16 = 8
-	bitUINT16_MAX_U16 uint16 = 65535
-	bitUINT16_MAX_U32 uint32 = 65535
+	bitUINT16_MAX_U32        = 65535
 	bitBYTE_ARR_SIZE         = 8
 
-	numSD_PRIME    int = 3
-	numCOMB_BIONOM int = 6
-	numRANGE_ZTF   int = 4
-	numHEX_SIZE    int = 4
+	numCOMB_BIONOM = 6
+	numRANGE_ZTF   = 4
+	numHEX_SIZE    = 4
 
 	maskONE_UPPER16 uint32 = 0xffff0000
-	maskONE_LOWER16 uint32 = 0x0000ffff
+	maskONE_LOWER16        = 0x0000ffff
 	maskFZFZ        uint16 = 0xf0f0
-	maskZFZF        uint16 = 0x0f0f
-	maskFZZZ        uint16 = 0xf000
-	maskZZFZ        uint16 = 0x00f0
-	maskZZZF        uint16 = 0x000f
-	maskZZFF        uint16 = 0x00ff
-	maskFFZZ        uint16 = 0xff00
-	maskFZZF        uint16 = 0xf00f
-	maskFFFZ        uint16 = 0xfff0
-	maskZFFF        uint16 = 0x0fff
+	maskZFZF               = 0x0f0f
+	maskFZZZ               = 0xf000
+	maskZZFZ               = 0x00f0
+	maskZZZF               = 0x000f
+	maskZZFF               = 0x00ff
+	maskFFZZ               = 0xff00
+	maskFZZF               = 0xf00f
+	maskFFFZ               = 0xfff0
+	maskZFFF               = 0x0fff
 	mask01          int    = 0b01
-	mask10          int    = 0b10
-	mask11          int    = 0b11
-	mask00          int    = 0b00
+	mask10                 = 0b10
+	mask11                 = 0b11
+	mask00                 = 0b00
 )
 
 var (
@@ -83,7 +84,7 @@ var (
 		67,
 		68,
 		69,
-		80}
+		70}
 )
 
 type factorType [poxPORTION_NUM]uint16
@@ -295,15 +296,15 @@ func poxDelta(tempArray factorType) factorType {
 	gaman = (tempArray[3] & maskFFZZ) % get8BPrime(tempArray[3])
 
 	for i := 0; i < poxPORTION_NUM; i++ {
-		alaf >>= poxSINGLE_DIGIT_PRIMES[dalat%uint16(numSD_PRIME)]
+		alaf >>= poxSINGLE_DIGIT_PRIMES[dalat%uint16(poxSD_PRIME_NUM)]
 		dalat = rotateLeft(dalat, 2)
-		tit >>= poxSINGLE_DIGIT_PRIMES[gaman%uint16(numSD_PRIME)]
-		gaman ^= (alaf ^ maskZZFF) >> poxSINGLE_DIGIT_PRIMES[tit%uint16(numSD_PRIME)]
+		tit >>= poxSINGLE_DIGIT_PRIMES[gaman%uint16(poxSD_PRIME_NUM)]
+		gaman ^= (alaf ^ maskZZFF) >> poxSINGLE_DIGIT_PRIMES[tit%uint16(poxSD_PRIME_NUM)]
 	}
 
 	tempArrayCpy := copyWordArray(tempArray)
 
-	tempArrayCpy[1] ^= tempArray[2] % poxMAGIC_PRIMES[1]
+	tempArrayCpy[1] ^= tempArray[2] % poxMAGIC_PRIMES[alaf%poxMAGIC_PRIME_NUM]
 	tempArrayCpy[2] ^= alaf + tit
 	tempArrayCpy[3] ^= tit + gaman
 
