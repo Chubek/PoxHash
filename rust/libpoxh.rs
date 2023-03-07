@@ -55,10 +55,10 @@ mod consts {
     pub const MASK_WORD_FZZF: u16 = 0xf00f;
     pub const MASK_WORD_FFFZ: u16 = 0xfff0;
     pub const MASK_WORD_ZFFF: u16 = 0x0fff;
-    pub const MASK_NIBBLE_01: usize = 0b01;
-    pub const MASK_NIBBLE_10: usize = 0b10;
-    pub const MASK_NIBBLE_11: usize = 0b11;
-    pub const MASK_NIBBLE_00: usize = 0b00;
+    pub const MASK_NIBBLET_01: usize = 0b01;
+    pub const MASK_NIBBLET_10: usize = 0b10;
+    pub const MASK_NIBBLET_11: usize = 0b11;
+    pub const MASK_NIBBLET_00: usize = 0b00;
 
     pub const COMB_BIONOM: &'static [(usize, usize)] =
         &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
@@ -286,10 +286,10 @@ mod alphabet {
     pub fn gamma(temp_array: consts::ArrTypeRef) -> consts::ArrType {
         let (mmin, argmin) = tools::min_and_argmin(temp_array, consts::POX_PORTION_NUM);
         let (mmax, argmax) = tools::max_and_argmax(temp_array, consts::POX_PORTION_NUM);
-        let ay = argmin & consts::MASK_NIBBLE_01;
-        let dee = argmax ^ consts::MASK_NIBBLE_10;
-        let thorn = argmin & consts::MASK_NIBBLE_11;
-        let gee = argmax ^ consts::MASK_NIBBLE_00;
+        let ay = argmin & consts::MASK_NIBBLET_01;
+        let dee = argmax ^ consts::MASK_NIBBLET_10;
+        let thorn = argmin & consts::MASK_NIBBLET_11;
+        let gee = argmax ^ consts::MASK_NIBBLET_00;
 
         let alaph: u16 = temp_array[ay] % tools::get_8b_prime(temp_array[thorn]);
         let dalath: u16 =

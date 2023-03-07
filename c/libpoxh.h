@@ -45,10 +45,10 @@
 #define MASK_WORD_FFFZ 0xfff0
 #define MASK_WORD_ZFFF 0x0fff
 #define MASK_WORD_ZFZF 0x0f0f
-#define MASK_NIBBLE_01 0b01
-#define MASK_NIBBLE_10 0b10
-#define MASK_NIBBLE_11 0b11
-#define MASK_NIBBLE_00 0b00
+#define MASK_NIBBLET_01 0b01
+#define MASK_NIBBLET_10 0b10
+#define MASK_NIBBLET_11 0b11
+#define MASK_NIBBLET_00 0b00
 
 #define WORD_WIDTH 16
 #define BYTE_WIDTH 8
@@ -308,10 +308,10 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
     uint16_t mmin, argmin, mmax, argmax, ay, dee, thorn, gee;                     \
     MIN_ARGMIN(temp_array, mmin, argmin);                                         \
     MAX_ARGMAX(temp_array, mmax, argmax);                                         \
-    ay = argmin & MASK_NIBBLE_01;                                                 \
-    dee = argmax ^ MASK_NIBBLE_10;                                                \
-    thorn = argmin & MASK_NIBBLE_11;                                              \
-    gee = argmax ^ MASK_NIBBLE_00;                                                \
+    ay = argmin & MASK_NIBBLET_01;                                                 \
+    dee = argmax ^ MASK_NIBBLET_10;                                                \
+    thorn = argmin & MASK_NIBBLET_11;                                              \
+    gee = argmax ^ MASK_NIBBLET_00;                                                \
     uint16_t alaph = temp_array[ay] % get_8b_prime(temp_array[thorn]);            \
     uint16_t dalath = (get_8b_prime(mmax) ^ MASK_WORD_ZFZF) % get_8b_prime(mmin); \
     uint16_t teth = mmax % get_8b_prime(mmax);                                    \

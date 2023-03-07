@@ -45,10 +45,10 @@ const (
 	maskWORD_FZZF         = 0xf00f
 	maskWORD_FFFZ         = 0xfff0
 	maskWORD_ZFFF         = 0x0fff
-	maskNIBBLE_01  int    = 0b01
-	maskNIBBLE_10         = 0b10
-	maskNIBBLE_11         = 0b11
-	maskNIBBLE_00         = 0b00
+	maskNIBBLET_01 int    = 0b01
+	maskNIBBLET_10        = 0b10
+	maskNIBBLET_11        = 0b11
+	maskNIBBLET_00        = 0b00
 )
 
 var (
@@ -335,10 +335,10 @@ func poxGamma(tempArray factorType) factorType {
 
 	mmax, argmax := maxAndArgmax(tempArray)
 	mmin, argmin := minAndArgmin(tempArray)
-	ay := argmin & maskNIBBLE_01
-	dee := argmax ^ maskNIBBLE_10
-	thorn := argmin & maskNIBBLE_11
-	gee := argmax ^ maskNIBBLE_00
+	ay := argmin & maskNIBBLET_01
+	dee := argmax ^ maskNIBBLET_10
+	thorn := argmin & maskNIBBLET_11
+	gee := argmax ^ maskNIBBLET_00
 
 	alaph = tempArray[ay] % get8BPrime(tempArray[thorn])
 	dalath = (get8BPrime(mmax) ^ maskWORD_ZFZF) % get8BPrime(mmin)

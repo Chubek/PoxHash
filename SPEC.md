@@ -45,15 +45,17 @@ We mentioned that there are several constant, standard values in use at the over
 
 I'll denote numeric constants with `#` and collective constants with `[...]`
 
+### Numeric COnstants
+
 ```
-#BLOCK_NUM = 64 ---> Size of each block
-#8B_PRIME_NUM = 54 ---> Number o 8bit primes in the collective [...]8B_PRIMES
-#PRIME_NUM = 32 ---> Number of 16bit primes n the collective [...]PRIMES
-#CHUNK_NUM = 16 ---> Size of each block chunk
-#ROUND_NUM = 8 ---> Number of rounds
-#PORTION_NUM = 4 ---> Size of chunk portion, and also the number of factors!
-#SD_PRIME_NUM = 3 ---> Number of single-digit primes (3, 5, 7) in [...]SD_PRIMES
-#MAGIC_PRIME_NUM = 2 ---> Number of prime numbers in [...]MAGIC_PRIMES
+#BLOCK_NUM = 64 -> Size of each block
+#8B_PRIME_NUM = 54 -> Number o 8bit primes in the collective [...]8B_PRIMES
+#PRIME_NUM = 32 -> Number of 16bit primes n the collective [...]PRIMES
+#CHUNK_NUM = 16 -> Size of each block chunk
+#ROUND_NUM = 8 -> Number of rounds
+#PORTION_NUM = 4 -> Size of chunk portion, and also the number of factors!
+#SD_PRIME_NUM = 3 -> Number of single-digit primes (3, 5, 7) in [...]SD_PRIMES
+#MAGIC_PRIME_NUM = 2 -> Number of prime numbers in [...]MAGIC_PRIMES
 
 These are the primes which the factor array is instanciated with:
 
@@ -63,13 +65,13 @@ These are the primes which the factor array is instanciated with:
 #PRIME_D = 0xac8b
 
 These are bitwise contracts:
-#WORD_WIDTH = 16 ---> 16 bits in a word
-#BYTE_WIDTH = 8 ---> 8 bits in a byte
-#MAX_WORD = 0xffff ---> We need this for multiplication. Equivalent of 65535u16
+#WORD_WIDTH = 16 -> 16 bits in a word
+#BYTE_WIDTH = 8 -> 8 bits in a byte
+#MAX_WORD = 0xffff -> We need this for multiplication. Equivalent of 65535u16
 
 These are the masks we will use for bitwise operations:
-#DOUBLE_WORD_UPPER_ONE = 0xffff0000
-#DOUBLE_WORD_LOWER_ONE = 0x0000ffff
+#DOUBLE_WORD_4F4Z = 0xffff0000
+#DOUBLE_WORD_4Z4F = 0x0000ffff
 #WORD_FZFZ = 0xf0f0
 #WORD_ZFZF = 0x0f0f
 #WORD_FZZZ = 0xf000
@@ -80,9 +82,45 @@ These are the masks we will use for bitwise operations:
 #WORD_FZZF = 0xf00f
 #WORD_FFFZ = 0xfff0
 #WORD_ZFFF = 0x0fff
-#NIBBLE_01 = 0b01
-#NIBBLE_10 = 0b10
-#NIBBLE_11 = 0b11
-#NIBBLE_00 = 0b00
+#NIBBLET_01 = 0b01
+#NIBBLET_10 = 0b10
+#NIBBLET_11 = 0b11
+#NIBBLET_00 = 0b00
+
+#COMB_BIONOM_SIZE = 6 -> size of [...]COMB_BIONOM
 ```
+### Collective Constants
+
+Now, the collective constants are:
+
+```
+These are the random prime numbers that will be used in Apply Prime operation during each round
+[...]PRIMES = [
+    0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
+    0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
+    0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
+    0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549
+]
+
+These are the 8-bit primes, which are used in alphabet operations
+[...]8B_PRIMS = [
+    0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
+    0x2b, 0x2f, 0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61,
+    0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d,
+    0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3,
+    0xe5, 0xe9, 0xef, 0xf1, 0xfb
+]
+
+[...]MAGIC_PRIMES = [0x33, 0x65] -> Primes that's been proven to be good for hashing, 51 and 101 in decimal
+
+[...]SD_PRIMES = [0x3, 0x5, 0x7] -> Single digit primes
+
+These are the bionomial coefficients (combinations) of 4 and 2, they will be used in shuffling
+[...]COMB_BIONOM = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)] 
+```
+Let's get to the next section wherein we explain our operetional contracts.
+
+## Operational Contracts
+
+We need to set an standard for the operations we're going to use. These operations indclude bitwise, statistical and calculative operations. We will also define a few terms.
 

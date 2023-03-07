@@ -54,10 +54,10 @@ __MASK_WORD_FFZZ = 0xff00
 __MASK_WORD_FZZF = 0xf00f
 __MASK_WORD_FFFZ = 0xfff0
 __MASK_WORD_ZFFF = 0x0fff
-__MASK_NIBBLE_01 = 0b01
-__MASK_NIBBLE_10 = 0b10
-__MASK_NIBBLE_11 = 0b11
-__MASK_NIBBLE_00 = 0b00
+__MASK_NIBBLET_01 = 0b01
+__MASK_NIBBLET_10 = 0b10
+__MASK_NIBBLET_11 = 0b11
+__MASK_NIBBLET_00 = 0b00
 
 __COMB_BIONOM = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 __HEX_CHARS = [
@@ -263,7 +263,7 @@ def __pox_gamma(temp_array: __array) -> None:
     mmax = max_and_argmax[0]
     argmin = min_and_argmin[1]
     argmax = max_and_argmax[1]
-    ay, dee, thorn, gee = argmin & __MASK_NIBBLE_01, argmax ^ __MASK_NIBBLE_10, argmin & __MASK_NIBBLE_11, argmax ^ __MASK_NIBBLE_00
+    ay, dee, thorn, gee = argmin & __MASK_NIBBLET_01, argmax ^ __MASK_NIBBLET_10, argmin & __MASK_NIBBLET_11, argmax ^ __MASK_NIBBLET_00
 
     alaph = temp_array[ay] % __get_8b_prime(temp_array[thorn])[0]
     dalath = (__get_8b_prime(mmax)[0]

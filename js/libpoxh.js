@@ -51,10 +51,10 @@ const cMASK_WORD_FFZZ = 0xff00;
 const cMASK_WORD_FZZF = 0xf00f;
 const cMASK_WORD_FFFZ = 0xfff0;
 const cMASK_WORD_ZFFF = 0x0fff;
-const cMASK_NIBBLE_01 = 0b01;
-const cMASK_NIBBLE_10 = 0b10;
-const cMASK_NIBBLE_11 = 0b11;
-const cMASK_NIBBLE_00 = 0b00;
+const cMASK_NIBBLET_01 = 0b01;
+const cMASK_NIBBLET_10 = 0b10;
+const cMASK_NIBBLET_11 = 0b11;
+const cMASK_NIBBLET_00 = 0b00;
 
 const cCOMB_BIONOM = [
   [0, 1],
@@ -329,10 +329,10 @@ const poxGamma = (tempArray) => {
   const mmax = maxWithArgmax.max;
   const argmin = minWithArgmin.argmin;
   const argmax = maxWithArgmax.argmax;
-  const ay = argmin & cMASK_NIBBLE_01;
-  const dee = argmax ^ cMASK_NIBBLE_10;
-  const thorn = argmin & cMASK_NIBBLE_11;
-  const gee = argmax ^ cMASK_NIBBLE_00;
+  const ay = argmin & cMASK_NIBBLET_01;
+  const dee = argmax ^ cMASK_NIBBLET_10;
+  const thorn = argmin & cMASK_NIBBLET_11;
+  const gee = argmax ^ cMASK_NIBBLET_00;
 
   const alaph = tempArray[ay] % get8BPrime(tempArray[thorn]);
   const dalath = (get8BPrime(mmax) ^ cMASK_WORD_ZFZF) % get8BPrime(mmin);
