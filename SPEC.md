@@ -15,7 +15,7 @@ Each round is applied to each 4 byte of the passed buffer a total of 8 times. Th
 
 Pox uses a special operation to apply byte portion to factors, as we'll see. After the blocks have ran, the factors can be converted into bytes, hexdigest, or used raw. All the implementations in this repository pass an object that has all these 3.
 
-An ASCII flowchart of the process can be drawn as such:
+The steps of this of the process can be described as such:
 
 ```
     Key operations and concepts are in all-caps
@@ -38,3 +38,7 @@ An ASCII flowchart of the process can be drawn as such:
 ```
 
 In the upcomin sections we will explain all these steps in detail.
+
+## Constants
+
+We mentioned that there are several constant, standard values in use at 
