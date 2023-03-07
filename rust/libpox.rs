@@ -1,3 +1,10 @@
+//////////////////////////////////////////////
+//      PoxHash v1                          //
+//      Implementation in Rust 			    //
+//      By Chubak Bidpaa - March 2023       //
+//      License: GPLv3                      //
+//////////////////////////////////////////////
+
 mod consts {
     pub const POX_PRIMES: &'static [u16] = &[
         0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed, 0xfc4f, 0x9787,

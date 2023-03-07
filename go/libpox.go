@@ -354,7 +354,7 @@ func poxGamma(tempArray factorType) factorType {
 	return tempArrayCpy
 }
 
-func poxRoundApplyOp(tempArray factorType) factorType {
+func poxRoundApplyAlphabet(tempArray factorType) factorType {
 	tempArrayCpy := copyWordArray(tempArray)
 	tempArrayCpy = poxAlpha(tempArrayCpy)
 	tempArrayCpy = poxDelta(tempArrayCpy)
@@ -400,7 +400,7 @@ func poxRoundApplyAddition(factorArray, tempArray factorType) factorType {
 func poxRound(factorArray factorType) factorType {
 	tempArray := copyWordArray(factorArray)
 
-	tempArray = poxRoundApplyOp(tempArray)
+	tempArray = poxRoundApplyAlphabet(tempArray)
 	tempArray = poxRoundApplyPrime(tempArray)
 	tempArray = poxRoundApplyShuffle(tempArray)
 	additionResult := poxRoundApplyAddition(factorArray, tempArray)

@@ -1,3 +1,10 @@
+//////////////////////////////////////////////
+//      PoxHash v1                          //
+//      Implementation in Header-Only C     //
+//      By Chubak Bidpaa - March 2023       //
+//      License: GPLv3                      //
+//////////////////////////////////////////////
+
 #ifndef __POX_H
 #define __POX_H
 
@@ -335,7 +342,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
         POX_GAMMA(temp_array);     \
     } while (0)
 
-#define POX_ROUND_OP(temp_array) \
+#define POX_ROUND_ALPHABET(temp_array) \
     POX_ALPHA_WRAP(temp_array);  \
     POX_DELTA_WRAP(temp_array);  \
     POX_THETA_WRAP(temp_array);  \
@@ -376,7 +383,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
 
 #define POX_ROUND(factor_array)                                                                               \
     uint16_t temp_array[POX_FACT_NUM] = {factor_array[0], factor_array[1], factor_array[2], factor_array[3]}; \
-    POX_ROUND_OP(temp_array);                                                                                 \
+    POX_ROUND_ALPHABET(temp_array);                                                                                 \
     POX_ROUND_APPLY_PRIME(temp_array);                                                                        \
     POX_ROUND_APPLY_SHUFFLE(temp_array);                                                                      \
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);

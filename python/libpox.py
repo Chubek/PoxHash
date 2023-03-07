@@ -1,3 +1,10 @@
+##############################################
+##      PoxHash v1                          ##
+##      Implementation in Python			##
+##      By Chubak Bidpaa - March 2023       ##
+##      License: GPLv3                      ##
+##############################################
+
 from array import array as __array
 
 __POX_PRIMES = __array('H', [
@@ -224,7 +231,7 @@ def __pox_gamma(temp_array: __array) -> None:
     temp_array[gee] ^= __log_2_n(teth) >> ((gamal % 2) + 1)
 
 
-def __pox_round_op(temp_array: __array) -> None:
+def __pox_round_apply_alphabet(temp_array: __array) -> None:
     __pox_alpha(temp_array)
     __pox_delta(temp_array)
     __pox_theta(temp_array)
@@ -260,7 +267,7 @@ def __pox_round_apply_shuffle(temp_array: __array) -> None:
 
 def __pox_round(factor_array: __array) -> None:
     temporary_array = __array('H', factor_array.tolist())
-    __pox_round_op(temporary_array)
+    __pox_round_apply_alphabet(temporary_array)
     __pox_round_apply_prime(temporary_array)
     __pox_round_apply_shuffle(temporary_array)
     __pox_round_add_tmp_to_facts(factor_array, temporary_array)

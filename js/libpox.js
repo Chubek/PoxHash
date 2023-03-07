@@ -1,3 +1,10 @@
+//////////////////////////////////////////////
+//      PoxHash v1                          //
+//      Implementation in JavaScript			  //
+//      By Chubak Bidpaa - March 2023       //
+//      License: GPLv3                      //
+//////////////////////////////////////////////
+
 const cPOX_PRIMES = new Uint16Array([
   0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
   0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
@@ -335,7 +342,7 @@ const poxGamma = (tempArray) => {
   tempArray[gee] ^= log2N(teth) >> ((gamal % 2) + 1);
 };
 
-const poxRoundOp = (tempArray) => {
+const poxRoundApplyAlphabet = (tempArray) => {
   poxAlpha(tempArray);
   poxDelta(tempArray);
   poxTheta(tempArray);
@@ -372,7 +379,7 @@ const poxRoundApplyShuffle = (tempArray) => {
 
 const poxRound = (factorArray) => {
   let tempArray = new Uint16Array(factorArray);
-  poxRoundOp(tempArray);
+  poxRoundApplyAlphabet(tempArray);
   poxRoundApplyPrime(tempArray);
   poxRoundApplyShuffle(tempArray);
   poxRoundAddTempsToFacts(factorArray, tempArray);
