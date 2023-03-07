@@ -40,6 +40,7 @@ __POX_MAGIC_PRIME_NUM = 2
 __WORD_WIDTH = 16
 __BYTE_WIDTH = 8
 __UINT16_MAX = 2**16 - 1
+__HEX_SIZE = 4
 
 __MASK_DWORD_4F4Z = 0xffff0000
 __MASK_DWORD_4Z4F = 0x0000ffff
@@ -59,7 +60,24 @@ __MASK_NIBBLE_11 = 0b11
 __MASK_NIBBLE_00 = 0b00
 
 __COMB_BIONOM = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-__RANGE_ZTF = [0, 1, 2, 3]
+__HEX_CHARS = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+]
 
 
 def __rotate_left(num: int, by: int) -> __array:
@@ -161,13 +179,21 @@ def __word_to_byte(word: int) -> tuple[int, int]:
     return (lower, upper)
 
 
-def __pox_factors_to_hex_digest(factor_array: __array) -> str:
-    hex_str_a = f"{factor_array[0]:04x}"
-    hex_str_b = f"{factor_array[1]:04x}"
-    hex_str_c = f"{factor_array[2]:04x}"
-    hex_str_d = f"{factor_array[3]:04x}"
+def __dec_to_hex(dec: int) -> str:
+    hex = ['0', '0', '0', '0']
+    for i in reversed(range(__HEX_SIZE)):
+        hex[i] = __HEX_CHARS[dec % __WORD_WIDTH]
+        dec //= __WORD_WIDTH
+    return "".join(hex)
 
-    return f"{hex_str_a}{hex_str_b}{hex_str_c}{hex_str_d}".upper()
+
+def __pox_factors_to_hex_digest(factor_array: __array) -> str:
+    hex_str_a = __dec_to_hex(factor_array[0])
+    hex_str_b = __dec_to_hex(factor_array[1])
+    hex_str_c = __dec_to_hex(factor_array[2])
+    hex_str_d = __dec_to_hex(factor_array[3])
+
+    return hex_str_a + hex_str_b + hex_str_c + hex_str_d
 
 
 def __pox_factors_to_byte_array(factor_array: __array) -> __array:
@@ -190,10 +216,13 @@ def __pox_alpha(temp_array: __array) -> None:
 
 
 def __pox_delta(temp_array: __array) -> None:
-    alaf = (temp_array[0] ^ __MASK_WORD_FFFZ) % __get_8b_prime(temp_array[0])[0]
-    dalat = (temp_array[1] ^ __MASK_WORD_FZZF) % __get_8b_prime(temp_array[1])[0]
+    alaf = (temp_array[0] ^ __MASK_WORD_FFFZ) % __get_8b_prime(
+        temp_array[0])[0]
+    dalat = (temp_array[1] ^ __MASK_WORD_FZZF) % __get_8b_prime(
+        temp_array[1])[0]
     tit = (temp_array[2] & __MASK_WORD_ZFFF) % __get_8b_prime(temp_array[2])[0]
-    gaman = (temp_array[3] & __MASK_WORD_FFZZ) % __get_8b_prime(temp_array[3])[0]
+    gaman = (temp_array[3] & __MASK_WORD_FFZZ) % __get_8b_prime(
+        temp_array[3])[0]
 
     for _ in range(__POX_PORTION_NUM):
         alaf >>= __POX_SINGLE_DIGIT_PRIMES[dalat % __POX_SD_PRIME_NUM]
@@ -220,8 +249,10 @@ def __pox_theta(temp_array: __array) -> None:
     weighted_med = __weighted_med(temp_array.tolist(),
                                   [alef, dalet, tet, gimmel])
 
-    temp_array[0] ^= ((weighted_avg >> gimmel) ^ __MASK_WORD_ZZFF) & __MASK_WORD_ZZZF
-    temp_array[3] ^= ((weighted_med << alef) ^ __MASK_WORD_FZFZ) & __MASK_WORD_FZZZ
+    temp_array[0] ^= (
+        (weighted_avg >> gimmel) ^ __MASK_WORD_ZZFF) & __MASK_WORD_ZZZF
+    temp_array[3] ^= (
+        (weighted_med << alef) ^ __MASK_WORD_FZFZ) & __MASK_WORD_FZZZ
 
 
 def __pox_gamma(temp_array: __array) -> None:
@@ -235,7 +266,8 @@ def __pox_gamma(temp_array: __array) -> None:
     ay, dee, thorn, gee = argmin & __MASK_NIBBLE_01, argmax ^ __MASK_NIBBLE_10, argmin & __MASK_NIBBLE_11, argmax ^ __MASK_NIBBLE_00
 
     alaph = temp_array[ay] % __get_8b_prime(temp_array[thorn])[0]
-    dalath = (__get_8b_prime(mmax)[0] ^ __MASK_WORD_ZFZF) % __get_8b_prime(mmin)[0]
+    dalath = (__get_8b_prime(mmax)[0]
+              ^ __MASK_WORD_ZFZF) % __get_8b_prime(mmin)[0]
     teth = mmax % __get_8b_prime(mmax)[0]
     gamal = temp_array[dee] % __get_8b_prime((mmin + mmax) // 2)[0]
 
