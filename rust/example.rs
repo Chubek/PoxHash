@@ -1,5 +1,5 @@
-extern crate libpox;
-use libpox::pox_hash;
+extern crate libpoxh;
+use libpoxh::pox_hash;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

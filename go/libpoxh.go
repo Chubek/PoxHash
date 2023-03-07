@@ -5,7 +5,7 @@
 //      License: GPLv3                      //
 //////////////////////////////////////////////
 
-package libpox
+package libpoxh
 
 const (
 	poxBLOCK_NUM    int = 64

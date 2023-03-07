@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "libpox.h"
+#include "libpoxh.h"
 
 int main(int argc, char **argv)
 {

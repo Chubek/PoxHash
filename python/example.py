@@ -1,4 +1,4 @@
-from libpox import pox_hash
+from libpoxh import pox_hash
 import sys
 
 if __name__ == "__main__":

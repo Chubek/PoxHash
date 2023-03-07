@@ -40,7 +40,7 @@ check_language() {
     elif [[ "${language}" == "go" ]]; then
         printf "Selected language: ${PURPLE}Go${NC}\n"
     elif [[ "${language}" == "nim" ]]; then
-        printf "Selected language: ${CYAN}Num${NC}\n"
+        printf "Selected language: ${CYAN}Nim${NC}\n"
     else
         printf "${RED}Wrong argument as language passed!${NC}\n"
         echo "Pass -h to the script or run it without any args to view help"
