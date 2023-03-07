@@ -6,24 +6,6 @@
 //////////////////////////////////////////////
 
 mod consts {
-    pub const POX_PRIMES: &'static [u16] = &[
-        0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed, 0xfc4f, 0x9787,
-        0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d, 0xd4e1, 0x9ea1, 0xee49, 0x97cd,
-        0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3, 0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549,
-    ];
-    pub const POX_8B_PRIMES: &'static [u16] = &[
-        0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29, 0x2b, 0x2f, 0x35,
-        0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61, 0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f,
-        0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d, 0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7,
-        0xd3, 0xdf, 0xe3, 0xe5, 0xe9, 0xef, 0xf1, 0xfb,
-    ];
-    pub const POX_MAGIC_PRIMES: &'static [u16] = &[0x33, 0x65];
-    pub const POX_SINGLE_DIGIT_PRIMES: &'static [u16] = &[0x3, 0x5, 0x7];
-
-    pub const POX_PRIME_A: u16 = 0x9f91;
-    pub const POX_PRIME_B: u16 = 0xdb3b;
-    pub const POX_PRIME_C: u16 = 0xc091;
-    pub const POX_PRIME_D: u16 = 0xac8b;
 
     pub const POX_BLOCK_NUM: usize = 64;
     pub const POX_8B_PRIME_NUM: usize = 54;
@@ -31,8 +13,27 @@ mod consts {
     pub const POX_CHUNK_NUM: usize = 16;
     pub const POX_ROUND_NUM: usize = 8;
     pub const POX_PORTION_NUM: usize = 4;
-    pub const POX_NUM_SD_PRIME: u16 = 3;
-    pub const POX_NUM_MAGIC_PRIME: u16 = 2;
+    pub const POX_SD_PRIME_NUM: usize = 3;
+    pub const POX_MAGIC_PRIME_NUM: usize = 2;
+
+    pub const POX_PRIMES: [u16; POX_PRIME_NUM] = [
+        0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed, 0xfc4f, 0x9787,
+        0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d, 0xd4e1, 0x9ea1, 0xee49, 0x97cd,
+        0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3, 0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549,
+    ];
+    pub const POX_8B_PRIMES: [u16; POX_8B_PRIME_NUM] = [
+        0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29, 0x2b, 0x2f, 0x35,
+        0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61, 0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f,
+        0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d, 0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7,
+        0xd3, 0xdf, 0xe3, 0xe5, 0xe9, 0xef, 0xf1, 0xfb,
+    ];
+    pub const POX_SINGLE_DIGIT_PRIMES: [u16; POX_SD_PRIME_NUM] = [0x3, 0x5, 0x7];
+    pub const POX_MAGIC_PRIMES: [u16; POX_MAGIC_PRIME_NUM] = [0x33, 0x65];
+
+    pub const POX_PRIME_A: u16 = 0x9f91;
+    pub const POX_PRIME_B: u16 = 0xdb3b;
+    pub const POX_PRIME_C: u16 = 0xc091;
+    pub const POX_PRIME_D: u16 = 0xac8b;
 
     pub const UINT16_MAX_U32: u32 = 65535;
     pub const UINT16_MAX_U16: u16 = 65535;
@@ -40,23 +41,24 @@ mod consts {
     pub const WORD_WIDTH_U16: u16 = 16;
     pub const BYTE_WIDTH_U16: u16 = 8;
     pub const HEX_SIZE: usize = 4;
-    pub const ONE_UPPER16: u32 = 0xffff0000;
-    pub const ONE_LOWER16: u32 = 0x0000ffff;
 
-    pub const MASK_FZFZ: u16 = 0xf0f0;
-    pub const MASK_ZFZF: u16 = 0x0f0f;
-    pub const MASK_FZZZ: u16 = 0xf000;
-    pub const MASK_ZZFZ: u16 = 0x00f0;
-    pub const MASK_ZZZF: u16 = 0x000f;
-    pub const MASK_ZZFF: u16 = 0x00ff;
-    pub const MASK_FFZZ: u16 = 0xff00;
-    pub const MASK_FZZF: u16 = 0xf00f;
-    pub const MASK_FFFZ: u16 = 0xfff0;
-    pub const MASK_ZFFF: u16 = 0x0fff;
-    pub const MASK_01: usize = 0b01;
-    pub const MASK_10: usize = 0b10;
-    pub const MASK_11: usize = 0b11;
-    pub const MASK_00: usize = 0b00;
+
+    pub const MASK_DWORD_4F4Z: u32 = 0xffff0000;
+    pub const MASK_DWORD_4Z4F: u32 = 0x0000ffff;
+    pub const MASK_WORD_FZFZ: u16 = 0xf0f0;
+    pub const MASK_WORD_ZFZF: u16 = 0x0f0f;
+    pub const MASK_WORD_FZZZ: u16 = 0xf000;
+    pub const MASK_WORD_ZZFZ: u16 = 0x00f0;
+    pub const MASK_WORD_ZZZF: u16 = 0x000f;
+    pub const MASK_WORD_ZZFF: u16 = 0x00ff;
+    pub const MASK_WORD_FFZZ: u16 = 0xff00;
+    pub const MASK_WORD_FZZF: u16 = 0xf00f;
+    pub const MASK_WORD_FFFZ: u16 = 0xfff0;
+    pub const MASK_WORD_ZFFF: u16 = 0x0fff;
+    pub const MASK_NIBBLE_01: usize = 0b01;
+    pub const MASK_NIBBLE_10: usize = 0b10;
+    pub const MASK_NIBBLE_11: usize = 0b11;
+    pub const MASK_NIBBLE_00: usize = 0b00;
 
     pub const COMB_BIONOM: &'static [(usize, usize)] =
         &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
@@ -129,7 +131,7 @@ mod bits {
         let mut res = num as u32;
         res = (res << by) | (res >> (consts::WORD_WIDTH_U32 - by));
         if res > consts::UINT16_MAX_U32 {
-            res = (res & consts::ONE_UPPER16) >> consts::WORD_WIDTH_U32;
+            res = (res & consts::MASK_DWORD_4F4Z) >> consts::WORD_WIDTH_U32;
         }
         res as u16
     }
@@ -139,7 +141,7 @@ mod bits {
 
         let mut a_plus_b: u32 = (aa + bb) as u32;
         if a_plus_b > consts::UINT16_MAX_U32 {
-            a_plus_b &= consts::ONE_LOWER16;
+            a_plus_b &= consts::MASK_DWORD_4Z4F;
         }
         a_plus_b as u16
     }
@@ -151,7 +153,7 @@ mod bits {
         }
         wavg /= consts::POX_PORTION_NUM as u32;
         if wavg > consts::UINT16_MAX_U32 {
-            wavg = (wavg & consts::ONE_UPPER16) >> consts::WORD_WIDTH_U32;
+            wavg = (wavg & consts::MASK_DWORD_4F4Z) >> consts::WORD_WIDTH_U32;
         }
         wavg as u16
     }
@@ -163,7 +165,7 @@ mod bits {
         }
         wmed = (wmed + 1) / 2;
         if wmed > consts::UINT16_MAX_U32 {
-            wmed &= consts::ONE_LOWER16;
+            wmed &= consts::MASK_DWORD_4Z4F;
         }
         wmed as u16
     }
@@ -173,8 +175,8 @@ mod convert {
     use super::consts;
 
     fn single_word_to_byte(word: u16) -> (u8, u8) {
-        let lower: u8 = (word & consts::MASK_ZZFF) as u8;
-        let upper: u8 = ((word & consts::MASK_FFZZ) >> consts::BYTE_WIDTH_U16) as u8;
+        let lower: u8 = (word & consts::MASK_WORD_ZZFF) as u8;
+        let upper: u8 = ((word & consts::MASK_WORD_FFZZ) >> consts::BYTE_WIDTH_U16) as u8;
         (lower, upper)
     }
 
@@ -220,8 +222,8 @@ mod alphabet {
     use super::{bits, consts, tools};
 
     pub fn alpha(temp_array: consts::ArrTypeRef) -> consts::ArrType {
-        let aleph: u16 = (temp_array[0] ^ temp_array[1]) & consts::MASK_ZZFF;
-        let theh: u16 = (temp_array[2] ^ temp_array[3]) & consts::MASK_FFZZ;
+        let aleph: u16 = (temp_array[0] ^ temp_array[1]) & consts::MASK_WORD_ZZFF;
+        let theh: u16 = (temp_array[2] ^ temp_array[3]) & consts::MASK_WORD_FFZZ;
         let daal: u16 = (aleph | theh) % consts::POX_8B_PRIMES[0];
         let gaaf: u16 = (aleph ^ theh) % consts::POX_8B_PRIMES[1];
 
@@ -236,25 +238,28 @@ mod alphabet {
 
     pub fn delta(temp_array: consts::ArrTypeRef) -> consts::ArrType {
         let mut alaf: u16 =
-            (temp_array[0] ^ consts::MASK_FFFZ) % tools::get_8b_prime(temp_array[0]);
+            (temp_array[0] ^ consts::MASK_WORD_FFFZ) % tools::get_8b_prime(temp_array[0]);
         let mut dalat: u16 =
-            (temp_array[1] ^ consts::MASK_FZZF) % tools::get_8b_prime(temp_array[1]);
-        let mut tit: u16 = (temp_array[2] & consts::MASK_ZFFF) % tools::get_8b_prime(temp_array[2]);
+            (temp_array[1] ^ consts::MASK_WORD_FZZF) % tools::get_8b_prime(temp_array[1]);
+        let mut tit: u16 = (temp_array[2] & consts::MASK_WORD_ZFFF) % tools::get_8b_prime(temp_array[2]);
         let mut gaman: u16 =
-            (temp_array[3] & consts::MASK_FFZZ) % tools::get_8b_prime(temp_array[3]);
+            (temp_array[3] & consts::MASK_WORD_FFZZ) % tools::get_8b_prime(temp_array[3]);
 
         for _ in 0..consts::POX_PORTION_NUM {
-            alaf >>= consts::POX_SINGLE_DIGIT_PRIMES[(dalat % consts::POX_NUM_SD_PRIME) as usize];
+            alaf >>= consts::POX_SINGLE_DIGIT_PRIMES
+                [(dalat % (consts::POX_SD_PRIME_NUM as u16)) as usize];
             dalat = bits::rotate_left(dalat, 2);
-            tit >>= consts::POX_SINGLE_DIGIT_PRIMES[(gaman % consts::POX_NUM_SD_PRIME) as usize];
-            gaman ^= (alaf ^ consts::MASK_ZZFF)
-                >> consts::POX_SINGLE_DIGIT_PRIMES[(tit % consts::POX_NUM_SD_PRIME) as usize];
+            tit >>= consts::POX_SINGLE_DIGIT_PRIMES
+                [(gaman % (consts::POX_SD_PRIME_NUM as u16)) as usize];
+            gaman ^= (alaf ^ consts::MASK_WORD_ZZFF)
+                >> consts::POX_SINGLE_DIGIT_PRIMES
+                    [(tit % (consts::POX_SD_PRIME_NUM as u16)) as usize];
         }
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[1] ^=
-            temp_array[2] % consts::POX_MAGIC_PRIMES[alaf % consts::POX_NUM_MAGIC_PRIME];
+        temp_array_cpy[1] ^= temp_array[2]
+            % consts::POX_MAGIC_PRIMES[(alaf % (consts::POX_MAGIC_PRIME_NUM as u16)) as usize];
         temp_array_cpy[2] ^= alaf + tit;
         temp_array_cpy[3] ^= tit + gaman;
 
@@ -272,8 +277,8 @@ mod alphabet {
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[0] ^= ((weighted_avg >> gimmel) ^ consts::MASK_ZZFF) & consts::MASK_ZZZF;
-        temp_array_cpy[3] ^= ((weighted_med << alef) ^ consts::MASK_FZFZ) & consts::MASK_FZZZ;
+        temp_array_cpy[0] ^= ((weighted_avg >> gimmel) ^ consts::MASK_WORD_ZZFF) & consts::MASK_WORD_ZZZF;
+        temp_array_cpy[3] ^= ((weighted_med << alef) ^ consts::MASK_WORD_FZFZ) & consts::MASK_WORD_FZZZ;
 
         temp_array_cpy
     }
@@ -281,22 +286,22 @@ mod alphabet {
     pub fn gamma(temp_array: consts::ArrTypeRef) -> consts::ArrType {
         let (mmin, argmin) = tools::min_and_argmin(temp_array, consts::POX_PORTION_NUM);
         let (mmax, argmax) = tools::max_and_argmax(temp_array, consts::POX_PORTION_NUM);
-        let ay = argmin & consts::MASK_01;
-        let dee = argmax ^ consts::MASK_10;
-        let thorn = argmin & consts::MASK_11;
-        let gee = argmax ^ consts::MASK_00;
+        let ay = argmin & consts::MASK_NIBBLE_01;
+        let dee = argmax ^ consts::MASK_NIBBLE_10;
+        let thorn = argmin & consts::MASK_NIBBLE_11;
+        let gee = argmax ^ consts::MASK_NIBBLE_00;
 
         let alaph: u16 = temp_array[ay] % tools::get_8b_prime(temp_array[thorn]);
         let dalath: u16 =
-            (tools::get_8b_prime(mmax) ^ consts::MASK_ZFZF) % tools::get_8b_prime(mmin);
+            (tools::get_8b_prime(mmax) ^ consts::MASK_WORD_ZFZF) % tools::get_8b_prime(mmin);
         let teth: u16 = mmax % tools::get_8b_prime(mmax);
         let gamal: u16 =
             temp_array[dee] % tools::get_8b_prime((((mmin as u32) + (mmax as u32)) / 2) as u16);
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[ay] >>= (alaph ^ consts::MASK_ZZFZ) % consts::WORD_WIDTH_U16;
-        temp_array_cpy[dee] >>= (gamal ^ consts::MASK_FZZZ) % ((mmax % 2) + 1);
-        temp_array_cpy[thorn] ^= tools::log2n(dalath) & consts::MASK_ZFFF;
+        temp_array_cpy[ay] >>= (alaph ^ consts::MASK_WORD_ZZFZ) % consts::WORD_WIDTH_U16;
+        temp_array_cpy[dee] >>= (gamal ^ consts::MASK_WORD_FZZZ) % ((mmax % 2) + 1);
+        temp_array_cpy[thorn] ^= tools::log2n(dalath) & consts::MASK_WORD_ZFFF;
         temp_array_cpy[gee] ^= tools::log2n(teth) >> ((gamal % 2) + 1);
 
         temp_array_cpy

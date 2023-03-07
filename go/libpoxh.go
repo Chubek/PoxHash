@@ -33,22 +33,22 @@ const (
 	numRANGE_ZTF   = 4
 	numHEX_SIZE    = 4
 
-	maskONE_UPPER16 uint32 = 0xffff0000
-	maskONE_LOWER16        = 0x0000ffff
-	maskFZFZ        uint16 = 0xf0f0
-	maskZFZF               = 0x0f0f
-	maskFZZZ               = 0xf000
-	maskZZFZ               = 0x00f0
-	maskZZZF               = 0x000f
-	maskZZFF               = 0x00ff
-	maskFFZZ               = 0xff00
-	maskFZZF               = 0xf00f
-	maskFFFZ               = 0xfff0
-	maskZFFF               = 0x0fff
-	mask01          int    = 0b01
-	mask10                 = 0b10
-	mask11                 = 0b11
-	mask00                 = 0b00
+	maskDWORD_4F4Z uint32 = 0xffff0000
+	maskDWORD_4Z4F        = 0x0000ffff
+	maskWORD_FZFZ  uint16 = 0xf0f0
+	maskWORD_ZFZF         = 0x0f0f
+	maskWORD_FZZZ         = 0xf000
+	maskWORD_ZZFZ         = 0x00f0
+	maskWORD_ZZZF         = 0x000f
+	maskWORD_ZZFF         = 0x00ff
+	maskWORD_FFZZ         = 0xff00
+	maskWORD_FZZF         = 0xf00f
+	maskWORD_FFFZ         = 0xfff0
+	maskWORD_ZFFF         = 0x0fff
+	maskNIBBLE_01  int    = 0b01
+	maskNIBBLE_10         = 0b10
+	maskNIBBLE_11         = 0b11
+	maskNIBBLE_00         = 0b00
 )
 
 var (
@@ -96,7 +96,7 @@ func rotateLeft(num uint16, by uint32) uint16 {
 	res = (res << by) | (res >> (bitWORD_WIDTH_U32 - by))
 
 	if res > bitUINT16_MAX_U32 {
-		res = (res & maskONE_UPPER16) >> bitWORD_WIDTH_U32
+		res = (res & maskDWORD_4F4Z) >> bitWORD_WIDTH_U32
 	}
 
 	return uint16(res)
@@ -107,7 +107,7 @@ func addWithOverFLow(a, b uint16) uint16 {
 	a_plus_b := aa + bb
 
 	if a_plus_b > bitUINT16_MAX_U32 {
-		a_plus_b &= maskONE_LOWER16
+		a_plus_b &= maskDWORD_4Z4F
 	}
 
 	return uint16(a_plus_b)
@@ -121,7 +121,7 @@ func weightedAvg(arr, weights factorType) uint16 {
 	wavg /= uint32(poxPORTION_NUM)
 
 	if wavg > bitUINT16_MAX_U32 {
-		wavg = (wavg & maskONE_UPPER16) >> bitWORD_WIDTH_U32
+		wavg = (wavg & maskDWORD_4F4Z) >> bitWORD_WIDTH_U32
 	}
 
 	return uint16(wavg)
@@ -135,7 +135,7 @@ func weightedMed(arr, weights factorType) uint16 {
 	wmed = (wmed + 1) / 2
 
 	if wmed > bitUINT16_MAX_U32 {
-		wmed &= maskONE_LOWER16
+		wmed &= maskDWORD_4Z4F
 	}
 
 	return uint16(wmed)
@@ -170,7 +170,7 @@ func maxAndArgmax(arr factorType) (uint16, int) {
 }
 
 func wordToByte(word uint16) (uint8, uint8) {
-	var lower, upper uint16 = word & maskZZFF, (word & maskFFZZ) >> bitBYTE_WIDTH_u16
+	var lower, upper uint16 = word & maskWORD_ZZFF, (word & maskWORD_FFZZ) >> bitBYTE_WIDTH_u16
 	return uint8(lower), uint8(upper)
 }
 
@@ -273,8 +273,8 @@ func newFactorArray() factorType {
 func poxAlpha(tempArray factorType) factorType {
 	var aleph, theh, daal, gaaf uint16 = 0, 0, 0, 0
 
-	aleph = (tempArray[0] ^ tempArray[1]) & maskZZFF
-	theh = (tempArray[2] ^ tempArray[3]) & maskFFZZ
+	aleph = (tempArray[0] ^ tempArray[1]) & maskWORD_ZZFF
+	theh = (tempArray[2] ^ tempArray[3]) & maskWORD_FFZZ
 	daal = (aleph | theh) % pox8BPRIMES[0]
 	gaaf = (aleph ^ theh) % pox8BPRIMES[1]
 
@@ -290,16 +290,16 @@ func poxAlpha(tempArray factorType) factorType {
 func poxDelta(tempArray factorType) factorType {
 	var alaf, dalat, tit, gaman uint16 = 0, 0, 0, 0
 
-	alaf = (tempArray[0] ^ maskFFFZ) % get8BPrime(tempArray[0])
-	dalat = (tempArray[1] ^ maskFZZF) % get8BPrime(tempArray[1])
-	tit = (tempArray[2] & maskZFFF) % get8BPrime(tempArray[2])
-	gaman = (tempArray[3] & maskFFZZ) % get8BPrime(tempArray[3])
+	alaf = (tempArray[0] ^ maskWORD_FFFZ) % get8BPrime(tempArray[0])
+	dalat = (tempArray[1] ^ maskWORD_FZZF) % get8BPrime(tempArray[1])
+	tit = (tempArray[2] & maskWORD_ZFFF) % get8BPrime(tempArray[2])
+	gaman = (tempArray[3] & maskWORD_FFZZ) % get8BPrime(tempArray[3])
 
 	for i := 0; i < poxPORTION_NUM; i++ {
 		alaf >>= poxSINGLE_DIGIT_PRIMES[dalat%uint16(poxSD_PRIME_NUM)]
 		dalat = rotateLeft(dalat, 2)
 		tit >>= poxSINGLE_DIGIT_PRIMES[gaman%uint16(poxSD_PRIME_NUM)]
-		gaman ^= (alaf ^ maskZZFF) >> poxSINGLE_DIGIT_PRIMES[tit%uint16(poxSD_PRIME_NUM)]
+		gaman ^= (alaf ^ maskWORD_ZZFF) >> poxSINGLE_DIGIT_PRIMES[tit%uint16(poxSD_PRIME_NUM)]
 	}
 
 	tempArrayCpy := copyWordArray(tempArray)
@@ -324,8 +324,8 @@ func poxTheta(tempArray factorType) factorType {
 
 	tempArrayCpy := copyWordArray(tempArray)
 
-	tempArrayCpy[0] ^= ((wavg >> gimmel) ^ maskZZFF) & maskZZZF
-	tempArrayCpy[3] ^= ((wmed << alef) ^ maskFZFZ) & maskFZZZ
+	tempArrayCpy[0] ^= ((wavg >> gimmel) ^ maskWORD_ZZFF) & maskWORD_ZZZF
+	tempArrayCpy[3] ^= ((wmed << alef) ^ maskWORD_FZFZ) & maskWORD_FZZZ
 
 	return tempArrayCpy
 }
@@ -335,21 +335,21 @@ func poxGamma(tempArray factorType) factorType {
 
 	mmax, argmax := maxAndArgmax(tempArray)
 	mmin, argmin := minAndArgmin(tempArray)
-	ay := argmin & mask01
-	dee := argmax ^ mask10
-	thorn := argmin & mask11
-	gee := argmax ^ mask00
+	ay := argmin & maskNIBBLE_01
+	dee := argmax ^ maskNIBBLE_10
+	thorn := argmin & maskNIBBLE_11
+	gee := argmax ^ maskNIBBLE_00
 
 	alaph = tempArray[ay] % get8BPrime(tempArray[thorn])
-	dalath = (get8BPrime(mmax) ^ maskZFZF) % get8BPrime(mmin)
+	dalath = (get8BPrime(mmax) ^ maskWORD_ZFZF) % get8BPrime(mmin)
 	teth = mmax % get8BPrime(mmax)
 	gamal = tempArray[dee] % get8BPrime(uint16((uint32(mmin)+uint32(mmax))/2))
 
 	tempArrayCpy := copyWordArray(tempArray)
 
-	tempArrayCpy[ay] >>= (alaph ^ maskZZFZ) % bitWORD_WIDTH_U16
-	tempArrayCpy[dee] >>= (gamal ^ maskFZZZ) % ((mmax % 2) + 1)
-	tempArrayCpy[thorn] ^= log2N(dalath) & maskZFFF
+	tempArrayCpy[ay] >>= (alaph ^ maskWORD_ZZFZ) % bitWORD_WIDTH_U16
+	tempArrayCpy[dee] >>= (gamal ^ maskWORD_FZZZ) % ((mmax % 2) + 1)
+	tempArrayCpy[thorn] ^= log2N(dalath) & maskWORD_ZFFF
 	tempArrayCpy[gee] ^= log2N(teth) >> ((gamal % 2) + 1)
 
 	return tempArrayCpy

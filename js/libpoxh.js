@@ -39,22 +39,22 @@ const cBYTE_WIDTH = 8;
 const cUINT16_MAX = 2 ** 16 - 1;
 const cHEX_SIZE = 4;
 
-const cONE_UPPER16 = 0xffff0000;
-const cONE_LOWER16 = 0x0000ffff;
-const cMASK_FZFZ = 0xf0f0;
-const cMASK_ZFZF = 0x0f0f;
-const cMASK_FZZZ = 0xf000;
-const cMASK_ZZFZ = 0x00f0;
-const cMASK_ZZZF = 0x000f;
-const cMASK_ZZFF = 0x00ff;
-const cMASK_FFZZ = 0xff00;
-const cMASK_FZZF = 0xf00f;
-const cMASK_FFFZ = 0xfff0;
-const cMASK_ZFFF = 0x0fff;
-const cMASK_01 = 0b01;
-const cMASK_10 = 0b10;
-const cMASK_11 = 0b11;
-const cMASK_00 = 0b00;
+const cMASK_DWORD_4F4Z = 0xffff0000;
+const cMASK_DWORD_4Z4F = 0x0000ffff;
+const cMASK_WORD_FZFZ = 0xf0f0;
+const cMASK_WORD_ZFZF = 0x0f0f;
+const cMASK_WORD_FZZZ = 0xf000;
+const cMASK_WORD_ZZFZ = 0x00f0;
+const cMASK_WORD_ZZZF = 0x000f;
+const cMASK_WORD_ZZFF = 0x00ff;
+const cMASK_WORD_FFZZ = 0xff00;
+const cMASK_WORD_FZZF = 0xf00f;
+const cMASK_WORD_FFFZ = 0xfff0;
+const cMASK_WORD_ZFFF = 0x0fff;
+const cMASK_NIBBLE_01 = 0b01;
+const cMASK_NIBBLE_10 = 0b10;
+const cMASK_NIBBLE_11 = 0b11;
+const cMASK_NIBBLE_00 = 0b00;
 
 const cCOMB_BIONOM = [
   [0, 1],
@@ -94,7 +94,7 @@ const rotateLeft = (num, by) => {
   resUint32[0] = (resUint32[0] << by) | (resUint32[0] >> (cWORD_WIDTH - by));
 
   if (resUint32[0] > cUINT16_MAX) {
-    resUint32[0] = (resUint32[0] & cONE_UPPER16) >> cWORD_WIDTH;
+    resUint32[0] = (resUint32[0] & cMASK_DWORD_4F4Z) >> cWORD_WIDTH;
   }
 
   const resUint16 = new Uint16Array([resUint32[0]]);
@@ -106,7 +106,7 @@ const addWithOverflow = (arrayA, arrayB, index) => {
   resUint32[0] = arrayA[index] + arrayB[index];
 
   if (resUint32[0] > cUINT16_MAX) {
-    resUint32[0] &= cONE_LOWER16;
+    resUint32[0] &= cMASK_DWORD_4Z4F;
   }
 
   arrayA[index] = resUint32[0];
@@ -120,7 +120,7 @@ const weightedAvg = (ls, weights) => {
 
   weightedAvg = iDiv(weightedAvg, cPOX_PORTION_NUM);
   if (weightedAvg > cUINT16_MAX) {
-    weightedAvg = (weightedAvg & cONE_UPPER16) >> cWORD_WIDTH;
+    weightedAvg = (weightedAvg & cMASK_DWORD_4F4Z) >> cWORD_WIDTH;
   }
 
   return weightedAvg;
@@ -134,7 +134,7 @@ const weightedMed = (ls, weights) => {
 
   weightedMed = iDiv(weightedMed + 1, 2);
   if (weightedMed > cUINT16_MAX) {
-    weightedMed &= cONE_LOWER16;
+    weightedMed &= cMASK_DWORD_4Z4F;
   }
 
   return weightedMed;
@@ -170,8 +170,8 @@ const minAndArgMin = (ls) => {
 
 const wordArrayToByteArray = (wordarray) => {
   const wordToBye = (word) => {
-    const lower = word & cMASK_ZZFF;
-    const upper = (word & cMASK_FFZZ) >> cBYTE_WIDTH;
+    const lower = word & cMASK_WORD_ZZFF;
+    const upper = (word & cMASK_WORD_FFZZ) >> cBYTE_WIDTH;
 
     return { lower: lower, upper: upper };
   };
@@ -277,8 +277,8 @@ const sumArray = (array) => {
 };
 
 const poxAlpha = (tempArray) => {
-  const aleph = (tempArray[0] ^ tempArray[1]) & cMASK_ZZFF;
-  const theh = (tempArray[2] ^ tempArray[3]) & cMASK_FFZZ;
+  const aleph = (tempArray[0] ^ tempArray[1]) & cMASK_WORD_ZZFF;
+  const theh = (tempArray[2] ^ tempArray[3]) & cMASK_WORD_FFZZ;
   const daal = (aleph | theh) % cPOX_8B_PRIMES[0];
   const gaaf = (aleph ^ theh) % cPOX_8B_PRIMES[1];
 
@@ -288,17 +288,18 @@ const poxAlpha = (tempArray) => {
 };
 
 const poxDelta = (tempArray) => {
-  let alaf = (tempArray[0] ^ cMASK_FFFZ) % get8BPrime(tempArray[0]);
-  let dalat = (tempArray[1] ^ cMASK_FZZF) % get8BPrime(tempArray[1]);
-  let tit = (tempArray[2] & cMASK_ZFFF) % get8BPrime(tempArray[2]);
-  let gaman = (tempArray[3] & cMASK_FFZZ) % get8BPrime(tempArray[3]);
+  let alaf = (tempArray[0] ^ cMASK_WORD_FFFZ) % get8BPrime(tempArray[0]);
+  let dalat = (tempArray[1] ^ cMASK_WORD_FZZF) % get8BPrime(tempArray[1]);
+  let tit = (tempArray[2] & cMASK_WORD_ZFFF) % get8BPrime(tempArray[2]);
+  let gaman = (tempArray[3] & cMASK_WORD_FFZZ) % get8BPrime(tempArray[3]);
 
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
     alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % cPOX_SD_PRIME_NUM];
     dalat = rotateLeft(dalat, 2)[0];
     tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % cPOX_SD_PRIME_NUM];
     gaman ^=
-      (alaf ^ cMASK_ZZFF) >> cPOX_SINGLE_DIGIT_PRIMES[tit % cPOX_SD_PRIME_NUM];
+      (alaf ^ cMASK_WORD_ZZFF) >>
+      cPOX_SINGLE_DIGIT_PRIMES[tit % cPOX_SD_PRIME_NUM];
   }
 
   tempArray[1] ^= tempArray[2] % cPOX_MAGIC_PRIMES[alaf % cPOX_MAGIC_PRIME_NUM];
@@ -315,8 +316,9 @@ const poxTheta = (tempArray) => {
   const weighted_avg = weightedAvg(tempArray, [alef, dalet, tet, gimmel]);
   const weighted_med = weightedMed(tempArray, [alef, dalet, tet, gimmel]);
 
-  tempArray[0] ^= ((weighted_avg >> gimmel) ^ cMASK_ZZFF) & cMASK_ZZZF;
-  tempArray[3] ^= ((weighted_med << alef) ^ cMASK_FZFZ) & cMASK_FZZZ;
+  tempArray[0] ^=
+    ((weighted_avg >> gimmel) ^ cMASK_WORD_ZZFF) & cMASK_WORD_ZZZF;
+  tempArray[3] ^= ((weighted_med << alef) ^ cMASK_WORD_FZFZ) & cMASK_WORD_FZZZ;
 };
 
 const poxGamma = (tempArray) => {
@@ -327,19 +329,19 @@ const poxGamma = (tempArray) => {
   const mmax = maxWithArgmax.max;
   const argmin = minWithArgmin.argmin;
   const argmax = maxWithArgmax.argmax;
-  const ay = argmin & cMASK_01;
-  const dee = argmax ^ cMASK_10;
-  const thorn = argmin & cMASK_11;
-  const gee = argmax ^ cMASK_00;
+  const ay = argmin & cMASK_NIBBLE_01;
+  const dee = argmax ^ cMASK_NIBBLE_10;
+  const thorn = argmin & cMASK_NIBBLE_11;
+  const gee = argmax ^ cMASK_NIBBLE_00;
 
   const alaph = tempArray[ay] % get8BPrime(tempArray[thorn]);
-  const dalath = (get8BPrime(mmax) ^ cMASK_ZFZF) % get8BPrime(mmin);
+  const dalath = (get8BPrime(mmax) ^ cMASK_WORD_ZFZF) % get8BPrime(mmin);
   const teth = mmax % get8BPrime(mmax);
   const gamal = tempArray[dee] % get8BPrime(iDiv(mmin + mmax, 2));
 
-  tempArray[ay] >>= (alaph ^ cMASK_ZZFZ) % cWORD_WIDTH;
-  tempArray[dee] >>= (gamal ^ cMASK_FZZZ) % ((mmax % 2) + 1);
-  tempArray[thorn] ^= log2N(dalath) & cMASK_ZFFF;
+  tempArray[ay] >>= (alaph ^ cMASK_WORD_ZZFZ) % cWORD_WIDTH;
+  tempArray[dee] >>= (gamal ^ cMASK_WORD_FZZZ) % ((mmax % 2) + 1);
+  tempArray[thorn] ^= log2N(dalath) & cMASK_WORD_ZFFF;
   tempArray[gee] ^= log2N(teth) >> ((gamal % 2) + 1);
 };
 

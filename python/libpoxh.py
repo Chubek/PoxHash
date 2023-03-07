@@ -41,22 +41,22 @@ __WORD_WIDTH = 16
 __BYTE_WIDTH = 8
 __UINT16_MAX = 2**16 - 1
 
-__ONE_UPPER16 = 0xffff0000
-__ONE_LOWER16 = 0x0000ffff
-__MASK_FZFZ = 0xf0f0
-__MASK_ZFZF = 0x0f0f
-__MASK_FZZZ = 0xf000
-__MASK_ZZFZ = 0x00f0
-__MASK_ZZZF = 0x000f
-__MASK_ZZFF = 0x00ff
-__MASK_FFZZ = 0xff00
-__MASK_FZZF = 0xf00f
-__MASK_FFFZ = 0xfff0
-__MASK_ZFFF = 0x0fff
-__MASK_01 = 0b01
-__MASK_10 = 0b10
-__MASK_11 = 0b11
-__MASK_00 = 0b00
+__MASK_DWORD_4F4Z = 0xffff0000
+__MASK_DWORD_4Z4F = 0x0000ffff
+__MASK_WORD_FZFZ = 0xf0f0
+__MASK_WORD_ZFZF = 0x0f0f
+__MASK_WORD_FZZZ = 0xf000
+__MASK_WORD_ZZFZ = 0x00f0
+__MASK_WORD_ZZZF = 0x000f
+__MASK_WORD_ZZFF = 0x00ff
+__MASK_WORD_FFZZ = 0xff00
+__MASK_WORD_FZZF = 0xf00f
+__MASK_WORD_FFFZ = 0xfff0
+__MASK_WORD_ZFFF = 0x0fff
+__MASK_NIBBLE_01 = 0b01
+__MASK_NIBBLE_10 = 0b10
+__MASK_NIBBLE_11 = 0b11
+__MASK_NIBBLE_00 = 0b00
 
 __COMB_BIONOM = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 __RANGE_ZTF = [0, 1, 2, 3]
@@ -67,7 +67,7 @@ def __rotate_left(num: int, by: int) -> __array:
     res_array[0] = (res_array[0] << by) | (res_array[0] >> (__WORD_WIDTH - by))
 
     if res_array[0] > __UINT16_MAX:
-        res_array[0] = (res_array[0] & __ONE_UPPER16) >> __WORD_WIDTH
+        res_array[0] = (res_array[0] & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
 
     res_uint16 = __array('H', res_array.tolist())
 
@@ -80,7 +80,7 @@ def __add_with_overflow(arr_a: __array, arr_b: __array, ind: int):
 
     a_plus_b = uint16_a + uint16_b
     if a_plus_b > __UINT16_MAX:
-        a_plus_b &= __ONE_LOWER16
+        a_plus_b &= __MASK_DWORD_4Z4F
 
     arr_a[ind] = a_plus_b
 
@@ -92,7 +92,7 @@ def __weighted_avg(ls: list[int], weights: list[int]) -> int:
 
     weighted_avg //= __POX_PORTION_NUM
     if weighted_avg > __UINT16_MAX:
-        weighted_avg = (weighted_avg & __ONE_UPPER16) >> __WORD_WIDTH
+        weighted_avg = (weighted_avg & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
 
     return weighted_avg
 
@@ -104,7 +104,7 @@ def __weighted_med(ls: list[int], weights: list[int]) -> int:
 
     weighted_med = (weighted_med + 1) // 2
     if weighted_med > __UINT16_MAX:
-        weighted_med &= __ONE_LOWER16
+        weighted_med &= __MASK_DWORD_4Z4F
 
     return weighted_med
 
@@ -155,8 +155,8 @@ def __log_2_n(num: int) -> int:
 
 
 def __word_to_byte(word: int) -> tuple[int, int]:
-    lower = word & __MASK_ZZFF
-    upper = (word & __MASK_FFZZ) >> __BYTE_WIDTH
+    lower = word & __MASK_WORD_ZZFF
+    upper = (word & __MASK_WORD_FFZZ) >> __BYTE_WIDTH
 
     return (lower, upper)
 
@@ -179,8 +179,8 @@ def __pox_factors_to_byte_array(factor_array: __array) -> __array:
 
 
 def __pox_alpha(temp_array: __array) -> None:
-    aleph = (temp_array[0] ^ temp_array[1]) & __MASK_ZZFF
-    theh = (temp_array[2] ^ temp_array[3]) & __MASK_FFZZ
+    aleph = (temp_array[0] ^ temp_array[1]) & __MASK_WORD_ZZFF
+    theh = (temp_array[2] ^ temp_array[3]) & __MASK_WORD_FFZZ
     daal = (aleph | theh) % __POX_8B_PRIMES[0]
     gaaf = (aleph ^ theh) % __POX_8B_PRIMES[1]
 
@@ -190,16 +190,16 @@ def __pox_alpha(temp_array: __array) -> None:
 
 
 def __pox_delta(temp_array: __array) -> None:
-    alaf = (temp_array[0] ^ __MASK_FFFZ) % __get_8b_prime(temp_array[0])[0]
-    dalat = (temp_array[1] ^ __MASK_FZZF) % __get_8b_prime(temp_array[1])[0]
-    tit = (temp_array[2] & __MASK_ZFFF) % __get_8b_prime(temp_array[2])[0]
-    gaman = (temp_array[3] & __MASK_FFZZ) % __get_8b_prime(temp_array[3])[0]
+    alaf = (temp_array[0] ^ __MASK_WORD_FFFZ) % __get_8b_prime(temp_array[0])[0]
+    dalat = (temp_array[1] ^ __MASK_WORD_FZZF) % __get_8b_prime(temp_array[1])[0]
+    tit = (temp_array[2] & __MASK_WORD_ZFFF) % __get_8b_prime(temp_array[2])[0]
+    gaman = (temp_array[3] & __MASK_WORD_FFZZ) % __get_8b_prime(temp_array[3])[0]
 
     for _ in range(__POX_PORTION_NUM):
         alaf >>= __POX_SINGLE_DIGIT_PRIMES[dalat % __POX_SD_PRIME_NUM]
         dalat = __rotate_left(dalat, 2)[0]
         tit >>= __POX_SINGLE_DIGIT_PRIMES[gaman % __POX_SD_PRIME_NUM]
-        gaman ^= (alaf ^ __MASK_ZZFF
+        gaman ^= (alaf ^ __MASK_WORD_ZZFF
                   ) >> __POX_SINGLE_DIGIT_PRIMES[tit % __POX_SD_PRIME_NUM]
 
     temp_array[1] ^= temp_array[2] % __POX_MAGIC_PRIMES[alaf %
@@ -220,8 +220,8 @@ def __pox_theta(temp_array: __array) -> None:
     weighted_med = __weighted_med(temp_array.tolist(),
                                   [alef, dalet, tet, gimmel])
 
-    temp_array[0] ^= ((weighted_avg >> gimmel) ^ __MASK_ZZFF) & __MASK_ZZZF
-    temp_array[3] ^= ((weighted_med << alef) ^ __MASK_FZFZ) & __MASK_FZZZ
+    temp_array[0] ^= ((weighted_avg >> gimmel) ^ __MASK_WORD_ZZFF) & __MASK_WORD_ZZZF
+    temp_array[3] ^= ((weighted_med << alef) ^ __MASK_WORD_FZFZ) & __MASK_WORD_FZZZ
 
 
 def __pox_gamma(temp_array: __array) -> None:
@@ -232,16 +232,16 @@ def __pox_gamma(temp_array: __array) -> None:
     mmax = max_and_argmax[0]
     argmin = min_and_argmin[1]
     argmax = max_and_argmax[1]
-    ay, dee, thorn, gee = argmin & __MASK_01, argmax ^ __MASK_10, argmin & __MASK_11, argmax ^ __MASK_00
+    ay, dee, thorn, gee = argmin & __MASK_NIBBLE_01, argmax ^ __MASK_NIBBLE_10, argmin & __MASK_NIBBLE_11, argmax ^ __MASK_NIBBLE_00
 
     alaph = temp_array[ay] % __get_8b_prime(temp_array[thorn])[0]
-    dalath = (__get_8b_prime(mmax)[0] ^ __MASK_ZFZF) % __get_8b_prime(mmin)[0]
+    dalath = (__get_8b_prime(mmax)[0] ^ __MASK_WORD_ZFZF) % __get_8b_prime(mmin)[0]
     teth = mmax % __get_8b_prime(mmax)[0]
     gamal = temp_array[dee] % __get_8b_prime((mmin + mmax) // 2)[0]
 
-    temp_array[ay] >>= (alaph ^ __MASK_ZZFZ) % __WORD_WIDTH
-    temp_array[dee] >>= (gamal ^ __MASK_FZZZ) % ((mmax % 2) + 1)
-    temp_array[thorn] ^= __log_2_n(dalath) & __MASK_ZFFF
+    temp_array[ay] >>= (alaph ^ __MASK_WORD_ZZFZ) % __WORD_WIDTH
+    temp_array[dee] >>= (gamal ^ __MASK_WORD_FZZZ) % ((mmax % 2) + 1)
+    temp_array[thorn] ^= __log_2_n(dalath) & __MASK_WORD_ZFFF
     temp_array[gee] ^= __log_2_n(teth) >> ((gamal % 2) + 1)
 
 

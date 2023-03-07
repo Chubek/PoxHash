@@ -30,25 +30,25 @@
 #define POX_SD_PRIME_NUM 3
 #define POX_MAGIC_PRIME_NUM 2
 
-#define ONE_UPPER16 0xffff0000
-#define ONE_LOWER16 0x0000ffff
-#define MASK_FZFZ 0xf0f0
-#define MASK_ZFZF 0x0f0f
-#define MASK_FZZZ 0xf000
-#define MASK_ZFZZ 0x0f00
-#define MASK_ZZFZ 0x00f0
-#define MASK_ZZZF 0x000f
-#define MASK_ZZFF 0x00ff
-#define MASK_FFZZ 0xff00
-#define MASK_FZZF 0xf00f
-#define MASK_ZFFZ 0x0ff0
-#define MASK_FFFZ 0xfff0
-#define MASK_ZFFF 0x0fff
-#define MASK_ZFZF 0x0f0f
-#define MASK_01 0b01
-#define MASK_10 0b10
-#define MASK_11 0b11
-#define MASK_00 0b00
+#define MASK_DWORD_4F4Z 0xffff0000
+#define MASK_DWORD_4Z4F 0x0000ffff
+#define MASK_WORD_FZFZ 0xf0f0
+#define MASK_WORD_ZFZF 0x0f0f
+#define MASK_WORD_FZZZ 0xf000
+#define MASK_WORD_ZFZZ 0x0f00
+#define MASK_WORD_ZZFZ 0x00f0
+#define MASK_WORD_ZZZF 0x000f
+#define MASK_WORD_ZZFF 0x00ff
+#define MASK_WORD_FFZZ 0xff00
+#define MASK_WORD_FZZF 0xf00f
+#define MASK_WORD_ZFFZ 0x0ff0
+#define MASK_WORD_FFFZ 0xfff0
+#define MASK_WORD_ZFFF 0x0fff
+#define MASK_WORD_ZFZF 0x0f0f
+#define MASK_NIBBLE_01 0b01
+#define MASK_NIBBLE_10 0b10
+#define MASK_NIBBLE_11 0b11
+#define MASK_NIBBLE_00 0b00
 
 #define WORD_WIDTH 16
 #define BYTE_WIDTH 8
@@ -144,7 +144,7 @@ static inline uint16_t weighted_avg(uint16_t arr[POX_PORTION_NUM], uint16_t weig
 
     result /= POX_PORTION_NUM;
     if (result > UINT16_MAX)
-        result = (result & ONE_UPPER16) >> WORD_WIDTH;
+        result = (result & MASK_DWORD_4F4Z) >> WORD_WIDTH;
 
     return (uint16_t)result;
 }
@@ -159,7 +159,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
 
     result = (result + 1) / 2;
     if (result > UINT16_MAX)
-        result &= ONE_LOWER16;
+        result &= MASK_DWORD_4Z4F;
 
     return (uint16_t)result;
 }
@@ -185,11 +185,11 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
         b = __tmp;    \
     } while (0)
 
-#define BITWISE_ROTATE_LEFT(num, by)                \
-    num = (num << by) | (num >> (WORD_WIDTH - by)); \
-    if (num > UINT16_MAX)                           \
-    {                                               \
-        num = (num & ONE_UPPER16) >> WORD_WIDTH;    \
+#define BITWISE_ROTATE_LEFT(num, by)                 \
+    num = (num << by) | (num >> (WORD_WIDTH - by));  \
+    if (num > UINT16_MAX)                            \
+    {                                                \
+        num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH; \
     }
 
 #define ADD_WITH_OVERFLOW(a, b, ptr)             \
@@ -199,13 +199,13 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
         uint32_t __b_ttb = (uint32_t)b;          \
         uint32_t __a_plus_b = __a_ttb + __b_ttb; \
         if (__a_plus_b > UINT16_MAX)             \
-            __a_plus_b &= ONE_LOWER16;           \
+            __a_plus_b &= MASK_DWORD_4Z4F;       \
         *ptr = (uint16_t)__a_plus_b;             \
     } while (0)
 
 #define WORD_TO_2BYTE(word, bytelow, bytehigh) \
-    bytelow = word & MASK_ZZFF;                \
-    bytehigh = (word & MASK_FFZZ) >> BYTE_WIDTH;
+    bytelow = word & MASK_WORD_ZZFF;           \
+    bytehigh = (word & MASK_WORD_FFZZ) >> BYTE_WIDTH;
 
 #define AVG_PORTION(arr, res)            \
     do                                   \
@@ -267,58 +267,58 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
         }                                                                             \
     }
 
-#define POX_ALPHA(temp_array)                                     \
-    uint16_t aleph = (temp_array[0] ^ temp_array[1]) & MASK_ZZFF; \
-    uint16_t theh = (temp_array[2] ^ temp_array[3]) & MASK_FFZZ;  \
-    uint16_t daal = (aleph | theh) % cPOX_8B_PRIMES[0];           \
-    uint16_t gaaf = (aleph ^ theh) % cPOX_8B_PRIMES[1];           \
-    temp_array[0] >>= daal;                                       \
-    temp_array[1] >>= ((daal + gaaf) % 2) + 1;                    \
+#define POX_ALPHA(temp_array)                                          \
+    uint16_t aleph = (temp_array[0] ^ temp_array[1]) & MASK_WORD_ZZFF; \
+    uint16_t theh = (temp_array[2] ^ temp_array[3]) & MASK_WORD_FFZZ;  \
+    uint16_t daal = (aleph | theh) % cPOX_8B_PRIMES[0];                \
+    uint16_t gaaf = (aleph ^ theh) % cPOX_8B_PRIMES[1];                \
+    temp_array[0] >>= daal;                                            \
+    temp_array[1] >>= ((daal + gaaf) % 2) + 1;                         \
     temp_array[2] >>= gaaf;
 
-#define POX_DELTA(temp_array)                                                            \
-    uint16_t alaf = (temp_array[0] ^ MASK_FFFZ) % get_8b_prime(temp_array[0]);           \
-    uint16_t dalat = (temp_array[1] ^ MASK_FZZF) % get_8b_prime(temp_array[1]);          \
-    uint16_t tit = (temp_array[2] & MASK_ZFFF) % get_8b_prime(temp_array[2]);            \
-    uint16_t gaman = (temp_array[3] & MASK_FFZZ) % get_8b_prime(temp_array[3]);          \
-    for (int ___qz = 0; ___qz < POX_PORTION_NUM; ___qz++)                                \
-    {                                                                                    \
-        alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % POX_SD_PRIME_NUM];                     \
-        BITWISE_ROTATE_LEFT(dalat, 2);                                                   \
-        tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % POX_SD_PRIME_NUM];                      \
-        gaman ^= (alaf ^ MASK_ZZFF) >> cPOX_SINGLE_DIGIT_PRIMES[tit % POX_SD_PRIME_NUM]; \
-    }                                                                                    \
-    temp_array[1] ^= temp_array[2] % cPOX_MAGIC_PRIMES[alaf % POX_MAGIC_PRIME_NUM];      \
-    temp_array[2] ^= alaf + tit;                                                         \
+#define POX_DELTA(temp_array)                                                                 \
+    uint16_t alaf = (temp_array[0] ^ MASK_WORD_FFFZ) % get_8b_prime(temp_array[0]);           \
+    uint16_t dalat = (temp_array[1] ^ MASK_WORD_FZZF) % get_8b_prime(temp_array[1]);          \
+    uint16_t tit = (temp_array[2] & MASK_WORD_ZFFF) % get_8b_prime(temp_array[2]);            \
+    uint16_t gaman = (temp_array[3] & MASK_WORD_FFZZ) % get_8b_prime(temp_array[3]);          \
+    for (int ___qz = 0; ___qz < POX_PORTION_NUM; ___qz++)                                     \
+    {                                                                                         \
+        alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % POX_SD_PRIME_NUM];                          \
+        BITWISE_ROTATE_LEFT(dalat, 2);                                                        \
+        tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % POX_SD_PRIME_NUM];                           \
+        gaman ^= (alaf ^ MASK_WORD_ZZFF) >> cPOX_SINGLE_DIGIT_PRIMES[tit % POX_SD_PRIME_NUM]; \
+    }                                                                                         \
+    temp_array[1] ^= temp_array[2] % cPOX_MAGIC_PRIMES[alaf % POX_MAGIC_PRIME_NUM];           \
+    temp_array[2] ^= alaf + tit;                                                              \
     temp_array[3] ^= tit + gaman;
 
-#define POX_THETA(temp_array)                                       \
-    uint16_t alef = temp_array[0] % 2;                              \
-    uint16_t dalet = temp_array[1] % 2;                             \
-    uint16_t tet = temp_array[2] % 2;                               \
-    uint16_t gimmel = temp_array[3] % 2;                            \
-    uint16_t wavg, wmed;                                            \
-    uint16_t weights[POX_PORTION_NUM] = {alef, dalet, tet, gimmel}; \
-    wavg = weighted_avg(temp_array, weights);                       \
-    wmed = weighted_med(temp_array, weights);                       \
-    temp_array[0] ^= ((wavg >> gimmel) ^ MASK_ZZFF) & MASK_ZZZF;    \
-    temp_array[3] ^= ((wmed << alef) ^ MASK_FZFZ) & MASK_FZZZ;
+#define POX_THETA(temp_array)                                              \
+    uint16_t alef = temp_array[0] % 2;                                     \
+    uint16_t dalet = temp_array[1] % 2;                                    \
+    uint16_t tet = temp_array[2] % 2;                                      \
+    uint16_t gimmel = temp_array[3] % 2;                                   \
+    uint16_t wavg, wmed;                                                   \
+    uint16_t weights[POX_PORTION_NUM] = {alef, dalet, tet, gimmel};        \
+    wavg = weighted_avg(temp_array, weights);                              \
+    wmed = weighted_med(temp_array, weights);                              \
+    temp_array[0] ^= ((wavg >> gimmel) ^ MASK_WORD_ZZFF) & MASK_WORD_ZZZF; \
+    temp_array[3] ^= ((wmed << alef) ^ MASK_WORD_FZFZ) & MASK_WORD_FZZZ;
 
-#define POX_GAMMA(temp_array)                                                \
-    uint16_t mmin, argmin, mmax, argmax, ay, dee, thorn, gee;                \
-    MIN_ARGMIN(temp_array, mmin, argmin);                                    \
-    MAX_ARGMAX(temp_array, mmax, argmax);                                    \
-    ay = argmin & MASK_01;                                                   \
-    dee = argmax ^ MASK_10;                                                  \
-    thorn = argmin & MASK_11;                                                \
-    gee = argmax ^ MASK_00;                                                  \
-    uint16_t alaph = temp_array[ay] % get_8b_prime(temp_array[thorn]);       \
-    uint16_t dalath = (get_8b_prime(mmax) ^ MASK_ZFZF) % get_8b_prime(mmin); \
-    uint16_t teth = mmax % get_8b_prime(mmax);                               \
-    uint16_t gamal = temp_array[dee] % get_8b_prime((mmin + mmax) / 2);      \
-    temp_array[ay] >>= (alaph ^ MASK_ZZFZ) % WORD_WIDTH;                     \
-    temp_array[dee] >>= (gamal ^ MASK_FZZZ) % ((mmax % 2) + 1);              \
-    temp_array[thorn] ^= log2n(dalath) & MASK_ZFFF;                          \
+#define POX_GAMMA(temp_array)                                                     \
+    uint16_t mmin, argmin, mmax, argmax, ay, dee, thorn, gee;                     \
+    MIN_ARGMIN(temp_array, mmin, argmin);                                         \
+    MAX_ARGMAX(temp_array, mmax, argmax);                                         \
+    ay = argmin & MASK_NIBBLE_01;                                                 \
+    dee = argmax ^ MASK_NIBBLE_10;                                                \
+    thorn = argmin & MASK_NIBBLE_11;                                              \
+    gee = argmax ^ MASK_NIBBLE_00;                                                \
+    uint16_t alaph = temp_array[ay] % get_8b_prime(temp_array[thorn]);            \
+    uint16_t dalath = (get_8b_prime(mmax) ^ MASK_WORD_ZFZF) % get_8b_prime(mmin); \
+    uint16_t teth = mmax % get_8b_prime(mmax);                                    \
+    uint16_t gamal = temp_array[dee] % get_8b_prime((mmin + mmax) / 2);           \
+    temp_array[ay] >>= (alaph ^ MASK_WORD_ZZFZ) % WORD_WIDTH;                     \
+    temp_array[dee] >>= (gamal ^ MASK_WORD_FZZZ) % ((mmax % 2) + 1);              \
+    temp_array[thorn] ^= log2n(dalath) & MASK_WORD_ZFFF;                          \
     temp_array[gee] ^= (uint16_t)log2n(teth) >> ((gamal % 2) + 1);
 
 #define POX_ALPHA_WRAP(temp_array) \

@@ -38,22 +38,22 @@ const BIT_BYTE_ARR_SIZE  = 8
 
 const NUM_HEX_SIZE  = 4
 
-const MASK_ONE_UPPER16 = 0xffff0000u32
-const MASK_ONE_LOWER16 = 0x0000ffffu32
-const MASK_FZFZ = 0xf0f0u16
-const MASK_ZFZF = 0x0f0fu16
-const MASK_FZZZ = 0xf000u16
-const MASK_ZZFZ = 0x00f0u16
-const MASK_ZZZF = 0x000fu16
-const MASK_ZZFF = 0x00ffu16
-const MASK_FFZZ = 0xff00u16
-const MASK_FZZF = 0xf00fu16
-const MASK_FFFZ = 0xfff0u16
-const MASK_ZFFF = 0x0fffu16
-const MASK_01 = 0b01u16
-const MASK_10 = 0b10u16
-const MASK_11 = 0b11u16
-const MASK_00 = 0b00u16
+const MASK_DWORD_4F4Z = 0xffff0000u32
+const MADK_DWORD_4Z4F = 0x0000ffffu32
+const MASK_WORD_FZFZ = 0xf0f0u16
+const MASK_WORD_ZFZF = 0x0f0fu16
+const MASK_WORD_FZZZ = 0xf000u16
+const MASK_WORD_ZZFZ = 0x00f0u16
+const MASK_WORD_ZZZF = 0x000fu16
+const MASK_WORD_ZZFF = 0x00ffu16
+const MASK_WORD_FFZZ = 0xff00u16
+const MASK_WORD_FZZF = 0xf00fu16
+const MASK_WORD_FFFZ = 0xfff0u16
+const MASK_WORD_ZFFF = 0x0fffu16
+const MASK_WORD_01 = 0b01u16
+const MASK_WORD_10 = 0b10u16
+const MASK_WORD_11 = 0b11u16
+const MASK_WORD_00 = 0b00u16
 
 const COMB_BIONOM = @[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 const HEX_DIGITS: array[16, char] = [
@@ -96,7 +96,7 @@ proc `<<<`(num, by: uint16): uint16 =
     res = (res << by) | (res >> (BIT_WORD_WIDTH_U32 - by))
 
     if res > BIT_UINT16_MAX_U32:
-        res = (res & MASK_ONE_UPPER16) >> BIT_WORD_WIDTH_U32
+        res = (res & MASK_DWORD_4F4Z) >> BIT_WORD_WIDTH_U32
 
     result = ^^res 
 
@@ -109,7 +109,7 @@ proc `+=`(a: var FactorArray, b: (FactorArray, int)) =
     var a_plus_b = aa + bb
 
     if a_plus_b > BIT_UINT16_MAX_U32:
-        a_plus_b &= MASK_ONE_LOWER16
+        a_plus_b &= MADK_DWORD_4Z4F
 
     a[index] = ^^a_plus_b
 proc `++`(a: var int) = inc a
@@ -200,7 +200,7 @@ proc weightedAverage(factors: FactorArray, weights: PortionArray): uint16 =
 
     wavg //= POX_PORTION_NUM
     if wavg > BIT_UINT16_MAX_U32:
-        wavg = (wavg & MASK_ONE_UPPER16) >> (BIT_WORD_WIDTH_U32)
+        wavg = (wavg & MASK_DWORD_4F4Z) >> (BIT_WORD_WIDTH_U32)
 
     result = ^^wavg
     
@@ -211,7 +211,7 @@ proc weightedMedian(factors: FactorArray, weights: PortionArray): uint16 =
 
     wmed = (wmed + 1) // 2
     if wmed > BIT_UINT16_MAX_U32:
-        wmed &= MASK_ONE_LOWER16
+        wmed &= MADK_DWORD_4Z4F
 
     result = ^^wmed
 
@@ -237,8 +237,8 @@ proc maxAndArgMax(factors: FactorArray): (uint16, uint16) =
 
     result = (currMax, currIndex)
 
-proc wordUpperBits(word: uint16): uint8 = ^((word & MASK_FFZZ) >> BIT_BYTE_WIDTH_U16)
-proc wordLowerBits(word: uint16): uint8 = ^(word & MASK_ZZFF)
+proc wordUpperBits(word: uint16): uint8 = ^((word & MASK_WORD_FFZZ) >> BIT_BYTE_WIDTH_U16)
+proc wordLowerBits(word: uint16): uint8 = ^(word & MASK_WORD_ZZFF)
 proc wordToByte(word: uint16): (uint8, uint8) = (wordLowerBits(word), wordUpperBits(word))
 proc factorsToByte(factors: FactorArray): ByteArray =
     var j = 0
@@ -277,8 +277,8 @@ proc poxAlpha(tempArray: var FactorArray) =
       daal: uint16
       gaaf: uint16
 
-    aleph = (tempArray[0] ^ tempArray[1]) & MASK_ZZFF
-    theh = (tempArray[2] ^ tempArray[3]) & MASK_FFZZ
+    aleph = (tempArray[0] ^ tempArray[1]) & MASK_WORD_ZZFF
+    theh = (tempArray[2] ^ tempArray[3]) & MASK_WORD_FFZZ
     daal = (aleph | theh) % POX_8B_PRIMES[0]
     gaaf = (aleph ^ theh) % POX_8B_PRIMES[1]
 
@@ -293,16 +293,16 @@ proc poxDelta(tempArray: var FactorArray) =
         tit: uint16
         gaman: uint16
 
-    alaf = (tempArray[0] ^  MASK_FFFZ) % :::tempArray[0]
-    dalat = (tempArray[1] ^  MASK_FZZF) % :::tempArray[1]
-    tit = (tempArray[2] &  MASK_ZFFF) % :::tempArray[2]
-    gaman = (tempArray[3] &  MASK_FFZZ) % :::tempArray[3]
+    alaf = (tempArray[0] ^  MASK_WORD_FFFZ) % :::tempArray[0]
+    dalat = (tempArray[1] ^  MASK_WORD_FZZF) % :::tempArray[1]
+    tit = (tempArray[2] &  MASK_WORD_ZFFF) % :::tempArray[2]
+    gaman = (tempArray[3] &  MASK_WORD_FFZZ) % :::tempArray[3]
 
     for _ in ...POX_PORTION_NUM:
         alaf >>=  POX_SINGLE_DIGIT_PRIMES[dalat % POX_SD_PRIME_NUM]
         dalat <<<= 2
         tit >>=  POX_SINGLE_DIGIT_PRIMES[gaman % POX_SD_PRIME_NUM]
-        gaman ^= (alaf ^  MASK_ZZFF) >>  POX_SINGLE_DIGIT_PRIMES[tit % POX_SD_PRIME_NUM]
+        gaman ^= (alaf ^  MASK_WORD_ZZFF) >>  POX_SINGLE_DIGIT_PRIMES[tit % POX_SD_PRIME_NUM]
     
     tempArray[1] ^= tempArray[2] %  POX_MAGIC_PRIMES[alaf % POX_MAGIC_PRIME_NUM]
     tempArray[2] ^= alaf + tit
@@ -325,8 +325,8 @@ proc poxTheta(tempArray: var FactorArray) =
     wavg = weightedAverage(tempArray, [alef, dalet, tet, gimmel])
     wmed = weightedMedian(tempArray, [alef, dalet, tet, gimmel])
 
-    tempArray[0] ^= ((wavg >> gimmel) ^ MASK_ZZFF) & MASK_ZZZF
-    tempArray[3] ^= ((wmed << alef) ^ MASK_FZFZ) & MASK_FZZZ
+    tempArray[0] ^= ((wavg >> gimmel) ^ MASK_WORD_ZZFF) & MASK_WORD_ZZZF
+    tempArray[3] ^= ((wmed << alef) ^ MASK_WORD_FZFZ) & MASK_WORD_FZZZ
 
 proc poxGamma(tempArray: var FactorArray) =
     var 
@@ -342,19 +342,19 @@ proc poxGamma(tempArray: var FactorArray) =
 
     var (mmax, argmax) = maxAndArgmax(tempArray)
     var (mmin, argmin) = minAndArgmin(tempArray)
-    ay = argmin & MASK_01
-    dee = argmax ^ MASK_10
-    thorn = argmin & MASK_11
-    gee = argmax ^ MASK_00
+    ay = argmin & MASK_WORD_01
+    dee = argmax ^ MASK_WORD_10
+    thorn = argmin & MASK_WORD_11
+    gee = argmax ^ MASK_WORD_00
 
     alaph = tempArray[ay] % :::tempArray[thorn]
-    dalath = (:::mmax ^ MASK_ZFZF) % :::mmin
+    dalath = (:::mmax ^ MASK_WORD_ZFZF) % :::mmin
     teth = mmax % :::mmax
     gamal = tempArray[dee] % :::(^^((^^^^(mmin) + ^^^^(mmax)) // 2))
 
-    tempArray[ay] >>= (alaph ^ MASK_ZZFZ) % BIT_WORD_WIDTH_U16
-    tempArray[dee] >>= (gamal ^ MASK_FZZZ) % ((mmax % 2) + 1)
-    tempArray[thorn] ^= log2N(dalath) & MASK_ZFFF
+    tempArray[ay] >>= (alaph ^ MASK_WORD_ZZFZ) % BIT_WORD_WIDTH_U16
+    tempArray[dee] >>= (gamal ^ MASK_WORD_FZZZ) % ((mmax % 2) + 1)
+    tempArray[thorn] ^= log2N(dalath) & MASK_WORD_ZFFF
     tempArray[gee] ^= log2N(teth) >> ((gamal % 2) + 1)
 
 proc poxRoundApplyAlphabet(tempArray: var FactorArray) =
