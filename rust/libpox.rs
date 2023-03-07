@@ -409,7 +409,7 @@ pub struct PoxHashTy {
     pub factors: Vec<u16>,
 }
 
-pub fn pox_hash(data: Vec<u8>) -> PoxHash {
+pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     let padded_u16 = convert::byte_vec_to_word_vec_and_pad(data);
     let mut factor_array: consts::ArrType = [
         consts::POX_PRIME_A,
