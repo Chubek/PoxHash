@@ -5,6 +5,7 @@ BLUE="\033[1;34m"
 PURPLE="\033[1;35m"
 CYAN="\033[1;36m"
 NC="\033[0m"
+BLD="\033[1m"
 language=""
 
 help() {
@@ -32,15 +33,15 @@ check_language() {
     if [[ "${language}" == "python" ]]; then
         printf "Selected language: ${RED}Python${NC}\n"
     elif [[ "${language}" == "rust" ]]; then
-        printf "Selected language: ${YELLOW}Rust${NC}\n"
+        printf "Selected language: ${YELLOW}Rust${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
     elif [[ "${language}" == "c" ]]; then
-        printf "Selected language: ${GREEN}C${NC}\n"
+        printf "Selected language: ${GREEN}C${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
     elif [[ "${language}" == "js" ]]; then
         printf "Selected language: ${BLUE}JavaScript${NC}\n"
     elif [[ "${language}" == "go" ]]; then
-        printf "Selected language: ${PURPLE}Go${NC}\n"
+        printf "Selected language: ${PURPLE}Go${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
     elif [[ "${language}" == "nim" ]]; then
-        printf "Selected language: ${CYAN}Nim${NC}\n"
+        printf "Selected language: ${CYAN}Nim${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
     else
         printf "${RED}Wrong argument as language passed!${NC}\n"
         echo "Pass -h to the script or run it without any args to view help"
@@ -54,5 +55,5 @@ case "$#" in
     *)
         language=$1 && shift
         check_language
-        sudo chmod +x $language/pox.sh && $language/pox.sh $@
+        sudo chmod +x $language/poxh.sh && $language/poxh.sh $@
 esac
