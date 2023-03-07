@@ -1,3 +1,10 @@
+//////////////////////////////////////////////
+//      PoxHash v1                          //
+//      Implementation in Go			    //
+//      By Chubak Bidpaa - March 2023       //
+//      License: GPLv3                      //
+//////////////////////////////////////////////
+
 package libpox
 
 const (
@@ -127,7 +134,7 @@ func weightedMed(arr, weights factorType) uint16 {
 	wmed = (wmed + 1) / 2
 
 	if wmed > bitUINT16_MAX_U32 {
-		wmed = (wmed & maskONE_UPPER16) >> bitWORD_WIDTH_U32
+		wmed &= maskONE_LOWER16
 	}
 
 	return uint16(wmed)
