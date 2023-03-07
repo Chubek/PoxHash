@@ -35,6 +35,7 @@ __POX_ROUND_NUM = 8
 __POX_FACT_NUM = 4
 
 __WORD_WIDTH = 16
+__BYTE_WIDTH = 8
 __UINT16_MAX = 2**16 - 1
 __NUM_SD_PRIME = 3
 __NUM_8B_PRIME = 54
@@ -152,6 +153,13 @@ def __log_2_n(num: int) -> int:
     return 1 + __log_2_n(num // 2) if (num > 1) else 0
 
 
+def __word_to_byte(word: int) -> tuple[int, int]:
+    lower = word & __MASK_ZZFF
+    upper = (word & __MASK_FFZZ) >> __BYTE_WIDTH
+
+    return (lower, upper)
+
+
 def __pox_factors_to_hex_digest(factor_array: __array) -> str:
     hex_str_a = f"{factor_array[0]:04x}"
     hex_str_b = f"{factor_array[1]:04x}"
@@ -161,8 +169,12 @@ def __pox_factors_to_hex_digest(factor_array: __array) -> str:
     return f"{hex_str_a}{hex_str_b}{hex_str_c}{hex_str_d}".upper()
 
 
-def __pox_factors_to_byte_array(factor_array: __array) -> str:
-    return factor_array.tobytes()
+def __pox_factors_to_byte_array(factor_array: __array) -> __array:
+    ret = []
+    for word in factor_array:
+        ret.extend(__word_to_byte(word))
+
+    return __array('B', ret)
 
 
 def __pox_alpha(temp_array: __array) -> None:
@@ -303,6 +315,18 @@ def __pox_process_block(factor_array: __array, block: list[int]) -> None:
                 __pox_round(factor_array)
 
 
+class PoxHashTy:
+    hexdigest: str
+    bytes: __array
+    factors: __array
+
+    def __init__(self, hexdgest: str, bytes: __array,
+                 factors: __array) -> None:
+        self.hexdigest = hexdgest
+        self.bytes = bytes
+        self.factors = factors
+
+
 def pox_hash(to_hash: bytearray) -> any:
     integer_list = __byte_to_array(to_hash)
     integer_list = __pad_array_with_zero(integer_list)
@@ -317,12 +341,7 @@ def pox_hash(to_hash: bytearray) -> any:
     for block in blocks:
         __pox_process_block(factor_array, block)
 
-    hex_digest = __pox_factors_to_hex_digest(factor_array)
-    bytes_array = __pox_factors_to_byte_array(factor_array)
+    hexdigest = __pox_factors_to_hex_digest(factor_array)
+    bytes = __pox_factors_to_byte_array(factor_array)
 
-    return type(
-        'PoxHash', (), {
-            "hexdigest": hex_digest,
-            "bytes": bytes_array,
-            "factors": factor_array.tolist()
-        })
+    return PoxHashTy(hexdgest=hexdigest, bytes=bytes, factors=factor_array)

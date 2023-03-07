@@ -423,7 +423,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
         }                                                                                           \
     }
 
-typedef struct PoxHash
+typedef struct PoxHashTy
 {
     char hexdigest[WORD_WIDTH + 1];
     uint8_t bytes[BYTE_SIZE];

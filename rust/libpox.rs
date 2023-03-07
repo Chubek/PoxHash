@@ -403,7 +403,7 @@ mod block {
     }
 }
 
-pub struct PoxHash {
+pub struct PoxHashTy {
     pub hexdigest: String,
     pub bytes: Vec<u8>,
     pub factors: Vec<u16>,
@@ -432,7 +432,7 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHash {
         factor_array[3],
     ];
 
-    PoxHash {
+    PoxHashTy {
         hexdigest,
         bytes,
         factors,
