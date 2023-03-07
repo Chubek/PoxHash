@@ -244,10 +244,18 @@ def __pox_gamma(temp_array: __array) -> None:
 
 
 def __pox_round_apply_alphabet(temp_array: __array) -> None:
+    print(temp_array[0],temp_array[1], temp_array[2], temp_array[3] )
     __pox_alpha(temp_array)
+    print(temp_array[0],temp_array[1], temp_array[2], temp_array[3] )
+
     __pox_delta(temp_array)
+    print(temp_array[0],temp_array[1], temp_array[2], temp_array[3] )
+
     __pox_theta(temp_array)
+    print(temp_array[0],temp_array[1], temp_array[2], temp_array[3] )
+
     __pox_gamma(temp_array)
+    print(temp_array[0],temp_array[1], temp_array[2], temp_array[3] )
 
 
 def __pox_round_apply_prime(temp_array: __array) -> None:
@@ -316,12 +324,14 @@ def __pox_process_block(factor_array: __array, block: list[int]) -> None:
 
 
 class PoxHashTy:
+    import array as array
+    
     hexdigest: str
-    bytes: __array
-    factors: __array
+    bytes: array
+    factors: array
 
-    def __init__(self, hexdgest: str, bytes: __array,
-                 factors: __array) -> None:
+    def __init__(self, hexdgest: str, bytes: array,
+                 factors: array) -> None:
         self.hexdigest = hexdgest
         self.bytes = bytes
         self.factors = factors
