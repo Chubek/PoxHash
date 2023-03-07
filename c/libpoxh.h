@@ -24,9 +24,9 @@
 #define POX_BLOCK_NUM 64
 #define POX_8B_PRIME_NUM 54
 #define POX_PRIME_NUM 32
-#define POX_PORTION_NUM 16
+#define POX_CHUNK_NUM 16
 #define POX_ROUND_NUM 8
-#define POX_FACT_NUM 4
+#define POX_PORTION_NUM 4
 #define POX_MAGIC_NUM 2
 
 #define ONE_UPPER16 0xffff0000
@@ -115,8 +115,8 @@ static inline void *dec2hex(uint16_t dec, char out[HEX_SIZE])
 
 static inline uint16_t *copy_to_temp(uint16_t *src)
 {
-    uint16_t *dst = (uint16_t *)calloc(POX_FACT_NUM, SIZE_WORD);
-    memcpy(dst, src, SIZE_WORD_ARR(POX_FACT_NUM));
+    uint16_t *dst = (uint16_t *)calloc(POX_PORTION_NUM, SIZE_WORD);
+    memcpy(dst, src, SIZE_WORD_ARR(POX_PORTION_NUM));
     return dst;
 }
 
@@ -129,30 +129,30 @@ static inline uint16_t get_8b_prime(uint16_t num)
 static inline uint16_t sum_portion(char *arr)
 {
     uint16_t sum = 0;
-    for (int i = 0; i < POX_FACT_NUM; i++)
+    for (int i = 0; i < POX_PORTION_NUM; i++)
         sum += arr[i];
     return sum;
 }
 
-static inline uint16_t weighted_avg(uint16_t arr[POX_FACT_NUM], uint16_t weights[POX_FACT_NUM])
+static inline uint16_t weighted_avg(uint16_t arr[POX_PORTION_NUM], uint16_t weights[POX_PORTION_NUM])
 {
     uint16_t result = 0;
-    for (int i = 0; i < POX_FACT_NUM; i++)
+    for (int i = 0; i < POX_PORTION_NUM; i++)
     {
         result += arr[i] * weights[i];
     }
 
-    result /= POX_FACT_NUM;
+    result /= POX_PORTION_NUM;
     if (result > UINT16_MAX)
         result = (result & ONE_UPPER16) >> WORD_WIDTH;
 
     return (uint16_t)result;
 }
 
-static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights[POX_FACT_NUM])
+static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weights[POX_PORTION_NUM])
 {
     uint32_t result = 0;
-    for (int i = 0; i < POX_FACT_NUM; i++)
+    for (int i = 0; i < POX_PORTION_NUM; i++)
     {
         result += arr[i] * weights[i];
     }
@@ -211,7 +211,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
     do                                   \
     {                                    \
         uint16_t sum = sum_portion(arr); \
-        res = sum / POX_FACT_NUM;        \
+        res = sum / POX_PORTION_NUM;        \
     } while (0)
 
 #define MED_PORTION(arr, res)                \
@@ -224,7 +224,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
 #define MIN_ARGMIN(arr, min, minindex)              \
     min = arr[0];                                   \
     minindex = 0;                                   \
-    for (int __it = 1; __it < POX_FACT_NUM; __it++) \
+    for (int __it = 1; __it < POX_PORTION_NUM; __it++) \
     {                                               \
         if (arr[__it] < min)                        \
         {                                           \
@@ -236,7 +236,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
 #define MAX_ARGMAX(arr, max, maxindex)              \
     max = arr[0];                                   \
     maxindex = 0;                                   \
-    for (int __ir = 1; __ir < POX_FACT_NUM; __ir++) \
+    for (int __ir = 1; __ir < POX_PORTION_NUM; __ir++) \
     {                                               \
         if (arr[__ir] > max)                        \
         {                                           \
@@ -257,7 +257,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
 
 #define FACTORS_TO_HEXDIGEST(warr, digest)                                            \
     char hex[HEX_SIZE];                                                               \
-    for (int __io = 0; __io < POX_FACT_NUM; __io++)                                   \
+    for (int __io = 0; __io < POX_PORTION_NUM; __io++)                                   \
     {                                                                                 \
         dec2hex(warr[__io], hex);                                                     \
         int __kl = 0;                                                                 \
@@ -281,7 +281,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
     uint16_t dalat = (temp_array[1] ^ MASK_FZZF) % get_8b_prime(temp_array[1]);       \
     uint16_t tit = (temp_array[2] & MASK_ZFFF) % get_8b_prime(temp_array[2]);         \
     uint16_t gaman = (temp_array[3] & MASK_FFZZ) % get_8b_prime(temp_array[3]);       \
-    for (int ___qz = 0; ___qz < POX_FACT_NUM; ___qz++)                                \
+    for (int ___qz = 0; ___qz < POX_PORTION_NUM; ___qz++)                                \
     {                                                                                 \
         alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % SIZE_SD_PRIME];                     \
         BITWISE_ROTATE_LEFT(dalat, 2);                                                \
@@ -298,7 +298,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
     uint16_t tet = temp_array[2] % 2;                            \
     uint16_t gimmel = temp_array[3] % 2;                         \
     uint16_t wavg, wmed;                                         \
-    uint16_t weights[POX_FACT_NUM] = {alef, dalet, tet, gimmel}; \
+    uint16_t weights[POX_PORTION_NUM] = {alef, dalet, tet, gimmel}; \
     wavg = weighted_avg(temp_array, weights);                    \
     wmed = weighted_med(temp_array, weights);                    \
     temp_array[0] ^= ((wavg >> gimmel) ^ MASK_ZZFF) & MASK_ZZZF; \
@@ -343,9 +343,9 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
     } while (0)
 
 #define POX_ROUND_ALPHABET(temp_array) \
-    POX_ALPHA_WRAP(temp_array);  \
-    POX_DELTA_WRAP(temp_array);  \
-    POX_THETA_WRAP(temp_array);  \
+    POX_ALPHA_WRAP(temp_array);        \
+    POX_DELTA_WRAP(temp_array);        \
+    POX_THETA_WRAP(temp_array);        \
     POX_GAMMA_WRAP(temp_array);
 
 #define POX_APPLY_PRIME(temp_array, pnum) \
@@ -382,8 +382,8 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
     }
 
 #define POX_ROUND(factor_array)                                                                               \
-    uint16_t temp_array[POX_FACT_NUM] = {factor_array[0], factor_array[1], factor_array[2], factor_array[3]}; \
-    POX_ROUND_ALPHABET(temp_array);                                                                                 \
+    uint16_t temp_array[POX_PORTION_NUM] = {factor_array[0], factor_array[1], factor_array[2], factor_array[3]}; \
+    POX_ROUND_ALPHABET(temp_array);                                                                           \
     POX_ROUND_APPLY_PRIME(temp_array);                                                                        \
     POX_ROUND_APPLY_SHUFFLE(temp_array);                                                                      \
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);
@@ -415,11 +415,11 @@ static inline uint16_t weighted_med(uint16_t arr[POX_FACT_NUM], uint16_t weights
 
 #define POX_PROCESS_BLOCK(factor_array, data, block_array, portion_array, bstart, bend)             \
     COPY_WORDS_TO_SUBARRAY(data, block_array, bstart, bend);                                        \
-    for (int __ip = 0; __ip < POX_BLOCK_NUM; __ip += POX_PORTION_NUM)                               \
+    for (int __ip = 0; __ip < POX_BLOCK_NUM; __ip += POX_CHUNK_NUM)                               \
     {                                                                                               \
-        for (int __jt = __ip; __jt < __ip + POX_PORTION_NUM; __jt += POX_FACT_NUM)                  \
+        for (int __jt = __ip; __jt < __ip + POX_CHUNK_NUM; __jt += POX_PORTION_NUM)                  \
         {                                                                                           \
-            POX_PROCESS_APPLY(factor_array, block_array, portion_array, __jt, __jt + POX_FACT_NUM); \
+            POX_PROCESS_APPLY(factor_array, block_array, portion_array, __jt, __jt + POX_PORTION_NUM); \
         }                                                                                           \
     }
 
@@ -427,24 +427,35 @@ typedef struct PoxHashTy
 {
     char hexdigest[WORD_WIDTH + 1];
     uint8_t bytes[BYTE_SIZE];
-    uint16_t factors[POX_FACT_NUM];
+    uint16_t words[POX_PORTION_NUM];
 } poxhash_t;
 
 #define INIT_POXHASH(poxhash, factor_array)                      \
     memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR(WORD_WIDTH + 1)); \
     memset(poxhash.bytes, 0, SIZE_BYTE_ARR(BYTE_SIZE));          \
-    memset(poxhash.factors, 0, SIZE_WORD_ARR(POX_FACT_NUM));     \
+    memset(poxhash.words, 0, SIZE_WORD_ARR(POX_PORTION_NUM));     \
     FACTORS_TO_HEXDIGEST(factor_array, poxhash.hexdigest);       \
     FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);             \
-    memcpy(poxhash.factors, factor_array, SIZE_WORD_ARR(POX_FACT_NUM));
+    memcpy(poxhash.words, factor_array, SIZE_WORD_ARR(POX_PORTION_NUM));
 
+/**
+ * Converts the given byte array into a struct PoxHashTy (alias poxhash_t) object
+ * Parameters:
+ *      char *data
+ *
+ * Returns:
+ *      struct PoxHashTy (poxhash_t)
+ *          PoxHashTy.hexdigest: char[17] (null-terminated)
+ *          PoxHashTy.bytes: uint8_t[8]
+ *          PoxHashTy.words: uint16_t[4]
+ */
 extern inline poxhash_t pox_hash(char *data)
 {
     size_t length_data = strlen(data);
 
     char block_array[POX_BLOCK_NUM] = {0};
-    char portion_array[POX_FACT_NUM] = {0};
-    uint16_t factor_array[POX_FACT_NUM] = {
+    char portion_array[POX_PORTION_NUM] = {0};
+    uint16_t factor_array[POX_PORTION_NUM] = {
         cPOX_PRIME_A, cPOX_PRIME_B, cPOX_PRIME_C, cPOX_PRIME_D};
 
     size_t lengh_old = length_data;

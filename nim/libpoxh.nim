@@ -22,13 +22,13 @@ const POX_PRIME_D = 0xac8bu16
 const POX_BLOCK_NUM = 64
 const POX_8BPRIME_NUM = 54
 const POX_PRIME_NUM  = 32
-const POX_PORTION_NUM = 16
+const POX_CHUNK_NUM = 16
 const POX_ROUND_NUM = 8
-const POX_FACT_NUM = 4
+const POX_PORTION_NUM = 4
 
 const BIT_WORD_WIDTH_U16 = 16u16
 const BIT_WORD_WIDTH_U32 = 16u32
-const BIT_BYTE_WIDTH_u16 = 8u16
+const BIT_BYTE_WIDTH_U16 = 8u16
 const BIT_UINT16_MAX_U16 = 65535u16
 const BIT_UINT16_MAX_U32 = 65535u32
 const BIT_BYTE_ARR_SIZE  = 8
@@ -59,10 +59,10 @@ const HEX_DIGITS: array[16, char] = [
     ]
 
 type
-    FactorArray = array[POX_FACT_NUM, uint16]
+    FactorArray = array[POX_PORTION_NUM, uint16]
     BlockArray = array[POX_BLOCK_NUM, uint16]
     ByteArray = array[BIT_BYTE_ARR_SIZE, uint16]
-    PortionArray = array[POX_FACT_NUM, uint16]
+    PortionArray = array[POX_PORTION_NUM, uint16]
     InputSeq = seq[byte]
     WordSeq = seq[uint16]
 
@@ -147,7 +147,7 @@ iterator enumerate[T](sequence: seq[T]): (int, T) =
         yield (i, sequence[i])
 
 proc `+++`(arr: PortionArray): uint16 =
-    for i in ...POX_FACT_NUM:
+    for i in ...POX_PORTION_NUM:
         result += arr[i]
 
 proc `--->`(sequence: var WordSeq, len: int) = 
@@ -159,7 +159,7 @@ proc `--->`(wseq: var WordSeq, bseq: InputSeq) =
         wseq[i] = ^^b
 
 proc `--->`(arr1: FactorArray, arr2: var FactorArray) =
-    for i in ...POX_FACT_NUM:
+    for i in ...POX_PORTION_NUM:
         arr2[i] = arr1[i]
 
 proc `--->`(wseqAndStart: (WordSeq, int), blockArray: var BlockArray) =
@@ -172,7 +172,7 @@ proc `--->`(wseqAndStart: (WordSeq, int), blockArray: var BlockArray) =
 proc `--->`(barrAndStart: (BlockArray, int), portionArray: var PortionArray) =
     var startIndex = barrAndStart[1]
     var j = 0
-    for i in startIndex..+POX_FACT_NUM:
+    for i in startIndex..+POX_PORTION_NUM:
         portionArray[j] = barrAndStart[0][i]
         ++j
 
@@ -193,10 +193,10 @@ proc `+`(s1, s2: string): string =
 
 proc weightedAverage(factors: FactorArray, weights: PortionArray): uint16 =
     var wavg = 0u32
-    for i in ...POX_FACT_NUM:
+    for i in ...POX_PORTION_NUM:
         wavg += ^^^^factors[i] * ^^^^weights[i]
 
-    wavg //= POX_FACT_NUM
+    wavg //= POX_PORTION_NUM
     if wavg > BIT_UINT16_MAX_U32:
         wavg = (wavg & MASK_ONE_UPPER16) >> (BIT_WORD_WIDTH_U32)
 
@@ -204,7 +204,7 @@ proc weightedAverage(factors: FactorArray, weights: PortionArray): uint16 =
     
 proc weightedMedian(factors: FactorArray, weights: PortionArray): uint16 =
     var wmed = 0u32
-    for i in ...POX_FACT_NUM:
+    for i in ...POX_PORTION_NUM:
         wmed += ^^^^factors[i] * ^^^^weights[i]
 
     wmed = (wmed + 1) // 2
@@ -217,7 +217,7 @@ proc minAndArgMin(factors: FactorArray): (uint16, uint16) =
     var currMin = factors[0]
     var currIndex = 0u16
 
-    for i in ...POX_FACT_NUM:
+    for i in ...POX_PORTION_NUM:
         if factors[i] < currMin:
             currMin = factors[i]
             currIndex = ^^i
@@ -228,20 +228,20 @@ proc maxAndArgMax(factors: FactorArray): (uint16, uint16) =
     var currMax = factors[0]
     var currIndex = 0u16
 
-    for i in ...POX_FACT_NUM:
+    for i in ...POX_PORTION_NUM:
         if factors[i] > currMax:
             currMax = factors[i]
             currIndex = ^^i
 
     result = (currMax, currIndex)
 
-proc wordUpperBits(word: uint16): uint8 = ^((word & MASK_FFZZ) >> BIT_BYTE_WIDTH_u16)
+proc wordUpperBits(word: uint16): uint8 = ^((word & MASK_FFZZ) >> BIT_BYTE_WIDTH_U16)
 proc wordLowerBits(word: uint16): uint8 = ^(word & MASK_ZZFF)
 proc wordToByte(word: uint16): (uint8, uint8) = (wordLowerBits(word), wordUpperBits(word))
 proc factorsToByte(factors: FactorArray): ByteArray =
     var j = 0
-    for i in ...POX_FACT_NUM:
-        (result[i], result[i + 1]) = wordToByte(factors[i])
+    for i in ...POX_PORTION_NUM:
+        (result[j], result[j + 1]) = wordToByte(factors[i])
         j += 2
         
 proc decimalToHex(dec: uint16): string =
@@ -296,7 +296,7 @@ proc poxDelta(tempArray: var FactorArray) =
     tit = (tempArray[2] &  MASK_ZFFF) % :::tempArray[2]
     gaman = (tempArray[3] &  MASK_FFZZ) % :::tempArray[3]
 
-    for _ in ...POX_FACT_NUM:
+    for _ in ...POX_PORTION_NUM:
         alaf >>=  POX_SINGLE_DIGIT_PRIMES[dalat % NUM_SD_PRIME]
         dalat <<<= 2
         tit >>=  POX_SINGLE_DIGIT_PRIMES[gaman % NUM_SD_PRIME]
@@ -373,7 +373,7 @@ proc poxRoundApplyShuffle(tempArray: var FactorArray) =
         tempArray[iof] <-> tempArray[iwith]
 
 proc poxRoundApplyAddition(factorArray: var FactorArray, tempArray: FactorArray) =
-    for i in ...POX_FACT_NUM:
+    for i in ...POX_PORTION_NUM:
         factorArray += (tempArray, i)
 
 proc poxRound(factorArray: var FactorArray) = 
@@ -393,7 +393,7 @@ proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray) =
         medOddFactor: uint16
 
     sum = +++portion
-    avg = sum // POX_FACT_NUM
+    avg = sum // POX_PORTION_NUM
     med = (sum + 1) // 2
 
     avgOddFactor = BIT_UINT16_MAX_U16 * (avg % 2)
@@ -406,8 +406,8 @@ proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray) =
 
 proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
     var portion: PortionArray
-    for i in ...(POX_BLOCK_NUM, POX_PORTION_NUM):
-        for j in i...(i + POX_PORTION_NUM, POX_FACT_NUM):
+    for i in ...(POX_BLOCK_NUM, POX_CHUNK_NUM):
+        for j in i...(i + POX_CHUNK_NUM, POX_PORTION_NUM):
             (blockArray, j) ---> portion
 
             for _ in ...POX_ROUND_NUM:
@@ -416,9 +416,18 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
 
 
 type
-    PoxHashTy* = tuple[hexdigest: string, bytes: ByteArray, factors: FactorArray]
+    PoxHashTy* = tuple[hexdigest: string, bytes: ByteArray, words: FactorArray]
 
 proc PoxHash*(data: InputSeq): PoxHashTy =
+    ## Converts the given byte seq into a PoxHashTy named tuple
+    ## Parameters:
+    ##       data: seq[byte]
+    ## 
+    ## Returns:
+    ##      PoxHashTy
+    ##          PoxHashTy.hexdigest: string
+    ##          PoxHashTy.bytes: array[8, uint8]
+    ##          PoxHashTy.words: array[4, uint16]
     var padded = byteArrayToPortionArrayAndPad(data)
     var factorArray: FactorArray = [POX_PRIME_A, POX_PRIME_B, POX_PRIME_C, POX_PRIME_D]
     var blockArray: BlockArray
@@ -431,6 +440,6 @@ proc PoxHash*(data: InputSeq): PoxHashTy =
     var bytes = factorsToByte(factorArray)
 
     var ret: PoxHashTy
-    ret = (hexdigest: hexdigest, bytes: bytes, factors: factorArray)
+    ret = (hexdigest: hexdigest, bytes: bytes, words: factorArray)
 
     return ret

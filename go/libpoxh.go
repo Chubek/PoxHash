@@ -11,9 +11,9 @@ const (
 	poxBLOCK_NUM    int = 64
 	pox8B_PRIME_NUM int = 54
 	poxPRIME_NUM    int = 32
-	poxPORTION_NUM  int = 16
+	poxCHUNK_NUM    int = 16
 	poxROUND_NUM    int = 8
-	poxFACT_NUM     int = 4
+	poxPORTION_NUM  int = 4
 
 	poxPRIME_A uint16 = 0x9f91
 	poxPRIME_B uint16 = 0xdb3b
@@ -86,7 +86,7 @@ var (
 		80}
 )
 
-type factorType [poxFACT_NUM]uint16
+type factorType [poxPORTION_NUM]uint16
 type blockType [poxBLOCK_NUM]uint16
 type byteType [bitBYTE_ARR_SIZE]uint8
 
@@ -117,7 +117,7 @@ func weightedAvg(arr, weights factorType) uint16 {
 	for i, intgr := range arr {
 		wavg += uint32(intgr) * uint32(weights[i])
 	}
-	wavg /= uint32(poxFACT_NUM)
+	wavg /= uint32(poxPORTION_NUM)
 
 	if wavg > bitUINT16_MAX_U32 {
 		wavg = (wavg & maskONE_UPPER16) >> bitWORD_WIDTH_U32
@@ -294,7 +294,7 @@ func poxDelta(tempArray factorType) factorType {
 	tit = (tempArray[2] & maskZFFF) % get8BPrime(tempArray[2])
 	gaman = (tempArray[3] & maskFFZZ) % get8BPrime(tempArray[3])
 
-	for i := 0; i < poxFACT_NUM; i++ {
+	for i := 0; i < poxPORTION_NUM; i++ {
 		alaf >>= poxSINGLE_DIGIT_PRIMES[dalat%uint16(numSD_PRIME)]
 		dalat = rotateLeft(dalat, 2)
 		tit >>= poxSINGLE_DIGIT_PRIMES[gaman%uint16(numSD_PRIME)]
@@ -391,7 +391,7 @@ func poxRoundApplyShuffle(tempArray factorType) factorType {
 
 func poxRoundApplyAddition(factorArray, tempArray factorType) factorType {
 	factorArrayCpy := copyWordArray(factorArray)
-	for i := 0; i < poxFACT_NUM; i++ {
+	for i := 0; i < poxPORTION_NUM; i++ {
 		factorArrayCpy[i] = addWithOverFLow(factorArrayCpy[i], tempArray[i])
 	}
 	return factorArrayCpy
@@ -412,7 +412,7 @@ func poxApplyBytes(factorArray, portion factorType) factorType {
 	var avg, med, sum uint16 = 0, 0, 0
 
 	sum = sumWordArray(portion)
-	avg = sum / uint16(poxFACT_NUM)
+	avg = sum / uint16(poxPORTION_NUM)
 	med = (sum + 1) / 2
 	avgOddFactor := bitUINT16_MAX_U16 * (avg % 2)
 	medOddFactor := bitUINT16_MAX_U16 * (med % 2)
@@ -429,8 +429,8 @@ func poxApplyBytes(factorArray, portion factorType) factorType {
 
 func poxProcessBlock(factorArray factorType, block blockType) factorType {
 	factorArrayCpy := copyWordArray(factorArray)
-	for i := 0; i < poxBLOCK_NUM; i += poxPORTION_NUM {
-		for j := i; j < i+poxPORTION_NUM; j += poxFACT_NUM {
+	for i := 0; i < poxBLOCK_NUM; i += poxCHUNK_NUM {
+		for j := i; j < i+poxCHUNK_NUM; j += poxPORTION_NUM {
 			portion := newPortion(block, j)
 			z := poxROUND_NUM
 			for z > 0 {
@@ -444,12 +444,21 @@ func poxProcessBlock(factorArray factorType, block blockType) factorType {
 }
 
 type PoxHashTy struct {
-	Hexdigest string     `json:"hexdigest"`
-	Bytes     byteType   `json:"bytes"`
-	Factors   factorType `json:"factors"`
+	Hexdigest string    `json:"hexdigest"`
+	Bytes     [8]uint8  `json:"bytes"`
+	Words     [4]uint16 `json:"words"`
 }
 
 func PoxHash(data []byte) PoxHashTy {
+	// Converts the given data to a PoxHashTy object
+	// Parameters:
+	//		data: []byte
+	//
+	// Returns:
+	//		PoxHashTy
+	//			PoxHashTy.Hexdigest: string
+	//			PoxHashTy.Bytes: [8]uint8
+	//			PoxHashTy.Words: [4]uint16
 	padded := byteArrToWordArrAndPad(data)
 	factorArray := newFactorArray()
 
@@ -461,5 +470,5 @@ func PoxHash(data []byte) PoxHashTy {
 	hexdigest := wordArrToHexDigest(factorArray)
 	bytes := wordArrToByteArr(factorArray)
 
-	return PoxHashTy{Hexdigest: hexdigest, Bytes: bytes, Factors: factorArray}
+	return PoxHashTy{Hexdigest: hexdigest, Bytes: bytes, Words: factorArray}
 }

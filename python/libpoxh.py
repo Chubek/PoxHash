@@ -30,9 +30,9 @@ __POX_MAGIC_PRIMES = __array('H', [0x33, 0x65])
 __POX_SINGLE_DIGIT_PRIMES = __array('H', [0x3, 0x5, 0x7])
 
 __POX_BLOCK_NUM = 64
-__POX_PORTION_NUM = 16
+__POX_CHUNK_NUM = 16
 __POX_ROUND_NUM = 8
-__POX_FACT_NUM = 4
+__POX_PORTION_NUM = 4
 
 __WORD_WIDTH = 16
 __BYTE_WIDTH = 8
@@ -89,7 +89,7 @@ def __weighted_avg(ls: list[int], weights: list[int]) -> int:
     for i, w in zip(ls, weights):
         weighted_avg += i * w
 
-    weighted_avg //= __POX_FACT_NUM
+    weighted_avg //= __POX_PORTION_NUM
     if weighted_avg > __UINT16_MAX:
         weighted_avg = (weighted_avg & __ONE_UPPER16) >> __WORD_WIDTH
 
@@ -194,7 +194,7 @@ def __pox_delta(temp_array: __array) -> None:
     tit = (temp_array[2] & __MASK_ZFFF) % __get_8b_prime(temp_array[2])[0]
     gaman = (temp_array[3] & __MASK_FFZZ) % __get_8b_prime(temp_array[3])[0]
 
-    for _ in range(__POX_FACT_NUM):
+    for _ in range(__POX_PORTION_NUM):
         alaf >>= __POX_SINGLE_DIGIT_PRIMES[dalat % __NUM_SD_PRIME]
         dalat = __rotate_left(dalat, 2)[0]
         tit >>= __POX_SINGLE_DIGIT_PRIMES[gaman % __NUM_SD_PRIME]
@@ -286,7 +286,7 @@ def __pox_round(factor_array: __array) -> None:
 
 
 def __pox_apply_bytes(factor_array: __array, subportion: __array) -> None:
-    avg_subportion = sum(subportion) // __POX_FACT_NUM
+    avg_subportion = sum(subportion) // __POX_PORTION_NUM
     med_subportion = (sum(subportion) + 1) // 2
     avg_odd_factor = __UINT16_MAX * (avg_subportion % 2)
     med_odd_factor = __UINT16_MAX * (med_subportion % 2)
@@ -299,14 +299,14 @@ def __pox_apply_bytes(factor_array: __array, subportion: __array) -> None:
 
 def __pox_process_block(factor_array: __array, block: list[int]) -> None:
     portions = [
-        block[i:i + __POX_PORTION_NUM]
-        for i in range(0, __POX_BLOCK_NUM, __POX_PORTION_NUM)
+        block[i:i + __POX_CHUNK_NUM]
+        for i in range(0, __POX_BLOCK_NUM, __POX_CHUNK_NUM)
     ]
 
     for portion in portions:
         subportions = [
-            portion[j:j + __POX_FACT_NUM]
-            for j in range(0, __POX_PORTION_NUM, __POX_FACT_NUM)
+            portion[j:j + __POX_PORTION_NUM]
+            for j in range(0, __POX_CHUNK_NUM, __POX_PORTION_NUM)
         ]
 
         for k, subportion in enumerate(subportions):
@@ -320,16 +320,29 @@ class PoxHashTy:
 
     hexdigest: str
     bytes: array
-    factors: array
+    words: array
 
-    def __init__(self, hexdgest: str, bytes: array, factors: array) -> None:
+    def __init__(self, hexdgest: str, bytes: array, words: array) -> None:
         self.hexdigest = hexdgest
         self.bytes = bytes
-        self.factors = factors
+        self.words = words
 
 
-def pox_hash(to_hash: bytearray) -> any:
-    integer_list = __byte_to_array(to_hash)
+def pox_hash(data: bytearray) -> PoxHashTy:
+    """
+    Converts the given argument to a PoxHashTy object
+
+    Parametes:
+        data: bytearray
+    
+    Returns:
+        PoxHashTy
+            PoxHashTy.hexdigest: string
+            PoxHashTy.bytes: array('B')
+            PoxHashTy.words: array('H)    
+    """
+
+    integer_list = __byte_to_array(data)
     integer_list = __pad_array_with_zero(integer_list)
     blocks = [
         integer_list[i:i + __POX_BLOCK_NUM]
@@ -345,4 +358,4 @@ def pox_hash(to_hash: bytearray) -> any:
     hexdigest = __pox_factors_to_hex_digest(factor_array)
     bytes = __pox_factors_to_byte_array(factor_array)
 
-    return PoxHashTy(hexdgest=hexdigest, bytes=bytes, factors=factor_array)
+    return PoxHashTy(hexdgest=hexdigest, bytes=bytes, words=factor_array)

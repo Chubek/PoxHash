@@ -28,9 +28,9 @@ mod consts {
     pub const POX_BLOCK_NUM: usize = 64;
     pub const POX_8B_PRIME_NUM: usize = 54;
     pub const POX_PRIME_NUM: usize = 32;
-    pub const POX_PORTION_NUM: usize = 16;
+    pub const POX_CHUNK_NUM: usize = 16;
     pub const POX_ROUND_NUM: usize = 8;
-    pub const POX_FACT_NUM: usize = 4;
+    pub const POX_PORTION_NUM: usize = 4;
     pub const POX_NUM_SD_PRIME: u16 = 3;
 
     pub const UINT16_MAX_U32: u32 = 65535;
@@ -73,7 +73,7 @@ mod tools {
 
     pub fn sum_portion(arr: consts::ArrTypeRef) -> u16 {
         let mut sum = arr[0];
-        for i in 1..consts::POX_FACT_NUM {
+        for i in 1..consts::POX_PORTION_NUM {
             sum += arr[i];
         }
         sum
@@ -145,10 +145,10 @@ mod bits {
 
     pub fn weighted_average(arr: consts::ArrTypeRef, weights: &[u16]) -> u16 {
         let mut wavg = 0u32;
-        for i in 0..consts::POX_FACT_NUM {
+        for i in 0..consts::POX_PORTION_NUM {
             wavg += (arr[i] * weights[i]) as u32;
         }
-        wavg /= consts::POX_FACT_NUM as u32;
+        wavg /= consts::POX_PORTION_NUM as u32;
         if wavg > consts::UINT16_MAX_U32 {
             wavg = (wavg & consts::ONE_UPPER16) >> consts::WORD_WIDTH_U32;
         }
@@ -157,7 +157,7 @@ mod bits {
 
     pub fn weighted_median(arr: consts::ArrTypeRef, weights: &[u16]) -> u16 {
         let mut wmed = 0u32;
-        for i in 0..consts::POX_FACT_NUM {
+        for i in 0..consts::POX_PORTION_NUM {
             wmed += (arr[i] * weights[i]) as u32;
         }
         wmed = (wmed + 1) / 2;
@@ -242,7 +242,7 @@ mod alphabet {
         let mut gaman: u16 =
             (temp_array[3] & consts::MASK_FFZZ) % tools::get_8b_prime(temp_array[3]);
 
-        for _ in 0..consts::POX_FACT_NUM {
+        for _ in 0..consts::POX_PORTION_NUM {
             alaf >>= consts::POX_SINGLE_DIGIT_PRIMES[(dalat % consts::POX_NUM_SD_PRIME) as usize];
             dalat = bits::rotate_left(dalat, 2);
             tit >>= consts::POX_SINGLE_DIGIT_PRIMES[(gaman % consts::POX_NUM_SD_PRIME) as usize];
@@ -277,8 +277,8 @@ mod alphabet {
     }
 
     pub fn gamma(temp_array: consts::ArrTypeRef) -> consts::ArrType {
-        let (mmin, argmin) = tools::min_and_argmin(temp_array, consts::POX_FACT_NUM);
-        let (mmax, argmax) = tools::max_and_argmax(temp_array, consts::POX_FACT_NUM);
+        let (mmin, argmin) = tools::min_and_argmin(temp_array, consts::POX_PORTION_NUM);
+        let (mmax, argmax) = tools::max_and_argmax(temp_array, consts::POX_PORTION_NUM);
         let ay = argmin & consts::MASK_01;
         let dee = argmax ^ consts::MASK_10;
         let thorn = argmin & consts::MASK_11;
@@ -374,7 +374,7 @@ mod block {
 
     fn apply_bytes(factor_array: consts::ArrTypeRef, portion: &[u16]) -> consts::ArrType {
         let sum = tools::sum_portion(portion);
-        let avg = sum / (consts::POX_FACT_NUM as u16);
+        let avg = sum / (consts::POX_PORTION_NUM as u16);
         let med = (sum + 1) / 2;
         let avg_odd_factor = consts::UINT16_MAX_U16 * (avg % 2);
         let med_odd_factor = consts::UINT16_MAX_U16 * (med % 2);
@@ -390,8 +390,8 @@ mod block {
 
     pub fn process_block(factor_array: consts::ArrTypeRef, block: &[u16]) -> consts::ArrType {
         let mut factor_array_cpy = tools::copy_array(factor_array);
-        for i in (0..consts::POX_BLOCK_NUM).step_by(consts::POX_PORTION_NUM) {
-            for j in (i..i + consts::POX_PORTION_NUM).step_by(consts::POX_FACT_NUM) {
+        for i in (0..consts::POX_BLOCK_NUM).step_by(consts::POX_CHUNK_NUM) {
+            for j in (i..i + consts::POX_CHUNK_NUM).step_by(consts::POX_PORTION_NUM) {
                 let portion: &[u16] = &[block[j], block[j + 1], block[j + 2], block[j + 3]];
                 for _ in 0..consts::POX_ROUND_NUM {
                     factor_array_cpy = apply_bytes(&factor_array_cpy, portion);
@@ -405,11 +405,21 @@ mod block {
 
 pub struct PoxHashTy {
     pub hexdigest: String,
-    pub bytes: Vec<u8>,
-    pub factors: Vec<u16>,
+    pub bytes: [u8; 8],
+    pub words: [u16; 4],
 }
 
+#[allow(unused_doc_comments)]
 pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
+    /// Converts the given data into a PoxHashTy object
+    /// Parameters:
+    ///     data: Vec<u8>
+    ///
+    /// Returns:
+    ///     PoxHashTy
+    ///         PoxHashTy.hexdigest: String
+    ///         PoxHashTy.bytes: [u8; 8]
+    ///         PoxHashTy.words: [u16; 4]
     let padded_u16 = convert::byte_vec_to_word_vec_and_pad(data);
     let mut factor_array: consts::ArrType = [
         consts::POX_PRIME_A,
@@ -424,8 +434,18 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     }
 
     let hexdigest = convert::word_array_to_hex_digest(&factor_array);
-    let bytes = convert::word_array_to_byte_array(&factor_array);
-    let factors = vec![
+    let bytes_vec = convert::word_array_to_byte_array(&factor_array);
+    let bytes: [u8; 8] = [
+        bytes_vec[0],
+        bytes_vec[1],
+        bytes_vec[2],
+        bytes_vec[3],
+        bytes_vec[4],
+        bytes_vec[5],
+        bytes_vec[6],
+        bytes_vec[7],
+    ];
+    let words: [u16; 4] = [
         factor_array[0],
         factor_array[1],
         factor_array[2],
@@ -435,6 +455,6 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     PoxHashTy {
         hexdigest,
         bytes,
-        factors,
+        words,
     }
 }
