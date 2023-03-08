@@ -65,30 +65,34 @@ These are the primes which the factor array is instanciated with:
 #PRIME_D = 0xac8b
 
 These are bitwise contracts:
-#WORD_WIDTH = 16 -> 16 bits in a word
+@WORD_WIDTH = 16 -> 16 bits in a word
 #BYTE_WIDTH = 8 -> 8 bits in a byte
 #MAX_WORD = 0xffff -> We need this for multiplication. Equivalent of 65535u16
 
-These are the masks we will use for bitwise operations:
-#DOUBLE_WORD_4F4Z = 0xffff0000
-#DOUBLE_WORD_4Z4F = 0x0000ffff
-#WORD_FZFZ = 0xf0f0
-#WORD_ZFZF = 0x0f0f
-#WORD_FZZZ = 0xf000
-#WORD_ZZFZ = 0x00f0
-#WORD_ZZZF = 0x000f
-#WORD_ZZFF = 0x00ff
-#WORD_FFZZ = 0xff00
-#WORD_FZZF = 0xf00f
-#WORD_FFFZ = 0xfff0
-#WORD_ZFFF = 0x0fff
-#NIBBLET_01 = 0b01
-#NIBBLET_10 = 0b10
-#NIBBLET_11 = 0b11
-#NIBBLET_00 = 0b00
-
 #COMB_BIONOM_SIZE = 6 -> size of [...]COMB_BIONOM
 ```
+
+These are the masks we will use for bitwise operations. For same of clearity we will prefix masks with `@`.
+
+```
+@DOUBLE_WORD_4F4Z = 0xffff0000
+@DOUBLE_WORD_4Z4F = 0x0000ffff
+@WORD_FZFZ = 0xf0f0
+@WORD_ZFZF = 0x0f0f
+@WORD_FZZZ = 0xf000
+@WORD_ZZFZ = 0x00f0
+@WORD_ZZZF = 0x000f
+@WORD_ZZFF = 0x00ff
+@WORD_FFZZ = 0xff00
+@WORD_FZZF = 0xf00f
+@WORD_FFFZ = 0xfff0
+@WORD_ZFFF = 0x0fff
+@NIBBLET_01 = 0b01
+@NIBBLET_10 = 0b10
+@NIBBLET_11 = 0b11
+@NIBBLET_00 = 0b00
+```
+
 ### Collective Constants
 
 Now, the collective constants are:
@@ -103,7 +107,7 @@ These are the random prime numbers that will be used in Apply Prime operation du
 ]
 
 These are the 8-bit primes, which are used in alphabet operations
-[...]8B_PRIMS = [
+[...]8B_PRIMES = [
     0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
     0x2b, 0x2f, 0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61,
     0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d,
@@ -146,6 +150,8 @@ We define the following arithmetic operations:
 ($a, $b: Numeric)MUL = $a * $b
 ($a, $b: Numeric)INTDIV = floor($a / $b)
 ($a, $b: Numeric)MOD = $a % $b
+($a, $b: Numeric)GT = $a > $b
+($a, $b: Numeric)LT = $a < $b
 ($arr: NumericArray)SUM = $arr[0] + $arr[1] + ... + $arr[n]
 ```
 
@@ -159,7 +165,7 @@ The basic bitwise operators are defined as below. 1 and 0 are bits.
 |---------|------|------|------|
 |**Xor**|0|1|0|
 |**Or**|0|1|1|
-|**And**|0|0|1|
+|**AND**|0|0|1|
 
 **Not** is unary and is defined as `Not(1) = 0` and `Not(0) = 1`.
 
@@ -167,8 +173,8 @@ There's two bitwise operations that operate on on number given an amount. They a
 
 
 ```
-Shl(0b0011, 1) -> 0b0110
-Shr(0b110, 1) -> 0b0011
+SHL(0b0011, 1) -> 0b0110
+SHR(0b110, 1) -> 0b0011
 ```
 
 ### Compound
@@ -176,9 +182,9 @@ Shr(0b110, 1) -> 0b0011
 We defne the following bitwise operations that we will later use. Operations will be denoted by `(*params: <paramtype>)`. When we refer to these operations, we will omit the params.
 
 ```
-($a: DoubleWord)OMEGA = Shr(And($a, #DOUBLE_WORD_4F4Z), #WORD_WIDTH)
-($a: DoubleWord)EPSILON = And($a, #DOUBLE_WORD_4Z4F)
-($a: DoubleWord, $by: Numeric)LAMED = Or(Shl($a, $by), Shr($a, (#WORD_WIDTH - $by)))
+($a: DoubleWord)OMEGA = SHR(AND($a, @DOUBLE_WORD_4F4Z), @WORD_WIDTH)
+($a: DoubleWord)EPSILON = AND($a, @DOUBLE_WORD_4Z4F)
+($a: DoubleWord, $by: Numeric)LAMED = Or(SHL($a, $by), SHR($a, (@WORD_WIDTH - $by)))
 ```
 (Lamed is a Phonecian letter name)
 
@@ -205,17 +211,17 @@ We hereby define these operatios:
 ($arr: WordArray, $weights: NumericArray)AVERAGE_WEIGHTED = 
         $wavg: DoubleWord = 0
         for $i in 0...#PORTION_NUM:
-            ADD($wavg, $arr[$i] * $weights[$i])
+            ADD($wavg, MUL($arr[$i], $weights[$i]))
         INTDIV($wavg, #PORTION_NUM)
-        OMEGA($wavg) only if $wavg > #MAX_WORD
+        OMEGA($wavg) only if GT($wavg, #MAX_WORD)
         return $wavg as Word
 
 ($arr: WordArray, $weights: NumericArray)AVERAGE_WEIGHTED = 
         $wmed: DoubleWord = 0
         for $i in 0...#PORTION_NUM:
-            ADD($wmed, $arr[$i] * $weights[$i])
-        INTDIV($wmed + 1, 2)
-        EPSILON($wmed) only if $wmed > #MAX_WORD
+            ADD($wmed, MUL($arr[$i], $weights[$i]))
+        INTDIV(ADD($wmed, 1), 2)
+        EPSILON($wmed) only if GT($wmed, #MAX_WORD)
         return $wmed as Word
 ```
 
@@ -227,9 +233,60 @@ During the rounds, we apply the round ot a temporary copy of the factors array. 
 ($a: Word, $b: Word)SPECIAL_ADD =
         $aa = $a as DoubleWord
         $bb = $b as DoubleWord
-        $sum: DoubleWord = $aa + $bb
+        $sum: DoubleWord = ADD($aa, $bb)
         EPSILON($sum) only if $sum > #MAX_WORD
         return $sum as Word
 ```
 
+## Index Operations
+
+We define the operation `GET_8B_PRIME` as:
+
+```
+($i: Numeric)GET_8B_PRIME = [...]8B_PRIMES[MOD($i, #8B_PRIME_NUM)]
+
+```
+
 ## Alphabet Operations
+
+Alphabet operations are the bread and butter of PoxHash. There are four operations named after Greek alphabet letters and each of them have properties named after the corresponding letters in other Phoenician-derived alphabets.
+
+There are four main operations, Alpha, Delta, Theta and Gamma.
+
+All these operations modify a temporary copy of the factors object. We hereby denote this object as `$tmpF`. This object is created at the beginning of each round, and `SPECIAL_ADD`'d with the main factors object at the end of the round. But we'll talk about this aspect later.
+
+### Alpha
+
+Alpha operation is defined as below.
+
+```
+($tmpF: WordArray)ALPHA =
+        $aleph = AND(XOR($tmpF[0], $tmpF[1]), @WORD_ZZFF)
+        $theh = AND(XOR($tmpF[2], $tmpF[3]), @WORD_FFZZ)
+        $daal = MOD(OR($aleph, $theh), #8B_PRIMES[0])
+        $gaaf = MOD(XOR($aleph, $theh), #8B_PRIMES[1])
+
+        $tmpF[0] = SHR($tmpF[0], $daal)
+        $tmpF[1] = SHR($tmpF[0], ADD(MOD(ADD(daal, gaaf), 2), 1))
+        $tmpF[2] = SHR($tmpF[0], gaaf)
+```
+
+### Delta
+
+Delta operation is defined as below.
+
+```
+($tmpF: WordArray)DELTA =
+        $alaf = MOD(XOR($tmpF[0], @WORD_FFFZ), GET_8B_PRIME($tmpF[0]))
+        $dalat = MOD(XOR($tmpF[1], @WORD_FZZF), GET_8B_PRIME($tmpF[1]))
+        $tit = MOD(AND($tmpF[2], @WORD_ZFFF), GET_8B_PRIME($tmpF[2]))
+        $gaman = MOD(AND($tmpF[3], @WORD_FFZZ), GET_8B_PRIME($tmpF[3]))
+
+        for #PORTION_NUM times:
+            alaf = SHR(alaf, [...]SD_PRIMES[MOD(dalat, #SD_PRIME_NUM)])
+            dalat = ROTATE_LEFT(dalat, 2)
+            tit = SHR(tit, [...]SD_PRIMES[MOD(gaman, #SD_PRIME_NUM)])
+            gaman = XOR(gaman, SHR(XOR(alaf, @WORD_ZZFF), [...]SD_PRIMES[MOD(tit, $SD_PRIME_NUM)]))
+
+        
+```
