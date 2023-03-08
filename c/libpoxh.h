@@ -99,6 +99,15 @@ static const uint16_t cPOX_PRIME_B = 0xdb3b;
 static const uint16_t cPOX_PRIME_C = 0xc091;
 static const uint16_t cPOX_PRIME_D = 0xac8b;
 
+#define OMEGA(num) \
+    num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH
+
+#define EPSILON(num) \
+    num &= MASK_DWORD_4Z4F
+
+#define LAMED(num, by) \
+    num = (num << by) | (num >> (WORD_WIDTH - by))
+
 static inline uint16_t log2n(uint16_t num)
 {
     return (num > 1) ? (1 + log2n(num / 2)) : 0;
@@ -144,7 +153,7 @@ static inline uint16_t weighted_avg(uint16_t arr[POX_PORTION_NUM], uint16_t weig
 
     result /= POX_PORTION_NUM;
     if (result > UINT16_MAX)
-        result = (result & MASK_DWORD_4F4Z) >> WORD_WIDTH;
+        OMEGA(result);
 
     return (uint16_t)result;
 }
@@ -159,7 +168,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
 
     result = (result + 1) / 2;
     if (result > UINT16_MAX)
-        result &= MASK_DWORD_4Z4F;
+        EPSILON(result);
 
     return (uint16_t)result;
 }
@@ -185,11 +194,11 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
         b = __tmp;    \
     } while (0)
 
-#define BITWISE_ROTATE_LEFT(num, by)                 \
-    num = (num << by) | (num >> (WORD_WIDTH - by));  \
-    if (num > UINT16_MAX)                            \
-    {                                                \
-        num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH; \
+#define BITWISE_ROTATE_LEFT(num, by) \
+    LAMED(num, by);                  \
+    if (num > UINT16_MAX)            \
+    {                                \
+        OMEGA(num);                  \
     }
 
 #define ADD_WITH_OVERFLOW(a, b, ptr)             \
@@ -199,7 +208,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
         uint32_t __b_ttb = (uint32_t)b;          \
         uint32_t __a_plus_b = __a_ttb + __b_ttb; \
         if (__a_plus_b > UINT16_MAX)             \
-            __a_plus_b &= MASK_DWORD_4Z4F;       \
+            EPSILON(__a_plus_b);                 \
         *ptr = (uint16_t)__a_plus_b;             \
     } while (0)
 
@@ -308,10 +317,10 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
     uint16_t mmin, argmin, mmax, argmax, ay, dee, thorn, gee;                     \
     MIN_ARGMIN(temp_array, mmin, argmin);                                         \
     MAX_ARGMAX(temp_array, mmax, argmax);                                         \
-    ay = argmin & MASK_NIBBLET_01;                                                 \
-    dee = argmax ^ MASK_NIBBLET_10;                                                \
-    thorn = argmin & MASK_NIBBLET_11;                                              \
-    gee = argmax ^ MASK_NIBBLET_00;                                                \
+    ay = argmin & MASK_NIBBLET_01;                                                \
+    dee = argmax ^ MASK_NIBBLET_10;                                               \
+    thorn = argmin & MASK_NIBBLET_11;                                             \
+    gee = argmax ^ MASK_NIBBLET_00;                                               \
     uint16_t alaph = temp_array[ay] % get_8b_prime(temp_array[thorn]);            \
     uint16_t dalath = (get_8b_prime(mmax) ^ MASK_WORD_ZFZF) % get_8b_prime(mmin); \
     uint16_t teth = mmax % get_8b_prime(mmax);                                    \

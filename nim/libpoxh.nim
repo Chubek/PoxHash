@@ -39,7 +39,7 @@ const BIT_BYTE_ARR_SIZE  = 8
 const NUM_HEX_SIZE  = 4
 
 const MASK_DWORD_4F4Z = 0xffff0000u32
-const MADK_DWORD_4Z4F = 0x0000ffffu32
+const MASK_DWORD_4Z4F = 0x0000ffffu32
 const MASK_WORD_FZFZ = 0xf0f0u16
 const MASK_WORD_ZFZF = 0x0f0fu16
 const MASK_WORD_FZZZ = 0xf000u16
@@ -91,27 +91,6 @@ proc `^^^^`[T](a: T): uint32 =  cast[uint32](a)
 proc `^^`[T](a: T): uint16 =  cast[uint16](a)
 proc `^`[T](a: T): uint8 = cast[uint8](a)
 
-proc `<<<`(num, by: uint16): uint16 =
-    var res = ^^^^num
-    res = (res << by) | (res >> (BIT_WORD_WIDTH_U32 - by))
-
-    if res > BIT_UINT16_MAX_U32:
-        res = (res & MASK_DWORD_4F4Z) >> BIT_WORD_WIDTH_U32
-
-    result = ^^res 
-
-proc `<<<=`(num: var uint16, by: uint16) = num = num <<< by
-
-proc `+=`(a: var FactorArray, b: (FactorArray, int)) =
-    var index = b[1]
-    var aa = ^^^^a[index]
-    var bb = ^^^^b[0][index]
-    var a_plus_b = aa + bb
-
-    if a_plus_b > BIT_UINT16_MAX_U32:
-        a_plus_b &= MADK_DWORD_4Z4F
-
-    a[index] = ^^a_plus_b
 proc `++`(a: var int) = inc a
 
 iterator `...`(b: int): int =
@@ -193,6 +172,33 @@ proc `+`(s1, s2: string): string =
     catAt(s2, contat, s1.len - 1)
     return contat
 
+proc omega(num: uint32): uint32 = (num & MASK_DWORD_4F4Z) >> (BIT_WORD_WIDTH_U32)
+proc epsilon(num: uint32): uint32 = num & MASK_DWORD_4Z4F
+proc lamed(num: uint32, by: uint32): uint32 = (num << by) | (num >> (BIT_WORD_WIDTH_U32 - by))
+
+proc `<<<`(num, by: uint16): uint16 =
+    var res = ^^^^num
+    var byd = ^^^^by
+    res = lamed(res, byd)
+
+    if res > BIT_UINT16_MAX_U32:
+        res = omega(res)
+
+    result = ^^res 
+
+proc `<<<=`(num: var uint16, by: uint16) = num = num <<< by
+
+proc `+=`(a: var FactorArray, b: (FactorArray, int)) =
+    var index = b[1]
+    var aa = ^^^^a[index]
+    var bb = ^^^^b[0][index]
+    var a_plus_b = aa + bb
+
+    if a_plus_b > BIT_UINT16_MAX_U32:
+        a_plus_b = epsilon(a_plus_b)
+
+    a[index] = ^^a_plus_b
+
 proc weightedAverage(factors: FactorArray, weights: PortionArray): uint16 =
     var wavg = 0u32
     for i in ...POX_PORTION_NUM:
@@ -200,7 +206,7 @@ proc weightedAverage(factors: FactorArray, weights: PortionArray): uint16 =
 
     wavg //= POX_PORTION_NUM
     if wavg > BIT_UINT16_MAX_U32:
-        wavg = (wavg & MASK_DWORD_4F4Z) >> (BIT_WORD_WIDTH_U32)
+        wavg = omega(wavg)
 
     result = ^^wavg
     
@@ -211,7 +217,7 @@ proc weightedMedian(factors: FactorArray, weights: PortionArray): uint16 =
 
     wmed = (wmed + 1) // 2
     if wmed > BIT_UINT16_MAX_U32:
-        wmed &= MADK_DWORD_4Z4F
+        wmed = epsilon(wmed)
 
     result = ^^wmed
 

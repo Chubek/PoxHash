@@ -127,11 +127,23 @@ mod tools {
 mod bits {
     use super::consts;
 
+    fn omega(num: u32) -> u32 {
+        (num & consts::MASK_DWORD_4F4Z) >> consts::WORD_WIDTH_U32
+    }
+
+    fn epsilon(num: u32) -> u32 {
+        num & consts::MASK_DWORD_4Z4F
+    }
+
+    fn lamed(num: u32, by: u32) -> u32 {
+        (num << by) | (num >> (consts::WORD_WIDTH_U32 - by))
+    }
+
     pub fn rotate_left(num: u16, by: u32) -> u16 {
         let mut res = num as u32;
-        res = (res << by) | (res >> (consts::WORD_WIDTH_U32 - by));
+        res = lamed(res, by);
         if res > consts::UINT16_MAX_U32 {
-            res = (res & consts::MASK_DWORD_4F4Z) >> consts::WORD_WIDTH_U32;
+            res = omega(res);
         }
         res as u16
     }
@@ -141,7 +153,7 @@ mod bits {
 
         let mut a_plus_b: u32 = (aa + bb) as u32;
         if a_plus_b > consts::UINT16_MAX_U32 {
-            a_plus_b &= consts::MASK_DWORD_4Z4F;
+            a_plus_b = epsilon(a_plus_b);
         }
         a_plus_b as u16
     }
@@ -153,7 +165,7 @@ mod bits {
         }
         wavg /= consts::POX_PORTION_NUM as u32;
         if wavg > consts::UINT16_MAX_U32 {
-            wavg = (wavg & consts::MASK_DWORD_4F4Z) >> consts::WORD_WIDTH_U32;
+            wavg = omega(wavg);
         }
         wavg as u16
     }
@@ -165,7 +177,7 @@ mod bits {
         }
         wmed = (wmed + 1) / 2;
         if wmed > consts::UINT16_MAX_U32 {
-            wmed &= consts::MASK_DWORD_4Z4F;
+            wmed = epsilon(wmed);
         }
         wmed as u16
     }

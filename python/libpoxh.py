@@ -79,13 +79,21 @@ __HEX_CHARS = [
     'F',
 ]
 
+def __omega(res_array: __array) -> None:
+    res_array[0] = (res_array[0] & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
+
+def __epsilon(res_array: __array) -> None:
+    res_array[0] &= __MASK_DWORD_4Z4F
+
+def __lamed(res_array: __array, by: int) -> None:
+    res_array[0] = (res_array[0] << by) | (res_array[0] >> (__WORD_WIDTH - by))
 
 def __rotate_left(num: int, by: int) -> __array:
     res_array = __array('I', [num])
-    res_array[0] = (res_array[0] << by) | (res_array[0] >> (__WORD_WIDTH - by))
+    __lamed(res_array, by)
 
     if res_array[0] > __UINT16_MAX:
-        res_array[0] = (res_array[0] & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
+        __omega(res_array)
 
     res_uint16 = __array('H', res_array.tolist())
 
@@ -93,38 +101,37 @@ def __rotate_left(num: int, by: int) -> __array:
 
 
 def __add_with_overflow(arr_a: __array, arr_b: __array, ind: int):
-    uint16_a = arr_a.tolist()[ind]
-    uint16_b = arr_b.tolist()[ind]
+    a_plus_b = __array('I', [0])
 
-    a_plus_b = uint16_a + uint16_b
-    if a_plus_b > __UINT16_MAX:
-        a_plus_b &= __MASK_DWORD_4Z4F
+    a_plus_b[0] = arr_a[ind] + arr_b[ind]
+    if a_plus_b[0] > __UINT16_MAX:
+        __epsilon(a_plus_b)
 
-    arr_a[ind] = a_plus_b
+    arr_a[ind] = a_plus_b[0]
 
 
 def __weighted_avg(ls: list[int], weights: list[int]) -> int:
-    weighted_avg = 0
+    weighted_avg = __array('I', [0])
     for i, w in zip(ls, weights):
-        weighted_avg += i * w
+        weighted_avg[0] += i * w
 
-    weighted_avg //= __POX_PORTION_NUM
-    if weighted_avg > __UINT16_MAX:
-        weighted_avg = (weighted_avg & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
+    weighted_avg[0] //= __POX_PORTION_NUM
+    if weighted_avg[0] > __UINT16_MAX:
+        __omega(weighted_avg)
 
-    return weighted_avg
+    return weighted_avg.tolist()[0]
 
 
 def __weighted_med(ls: list[int], weights: list[int]) -> int:
-    weighted_med = 0
+    weighted_med = __array('I', [0])
     for i, w in zip(ls, weights):
-        weighted_med += i * w
+        weighted_med[0] += i * w
 
-    weighted_med = (weighted_med + 1) // 2
-    if weighted_med > __UINT16_MAX:
-        weighted_med &= __MASK_DWORD_4Z4F
+    weighted_med[0] = (weighted_med[0] + 1) // 2
+    if weighted_med[0] > __UINT16_MAX:
+        __epsilon(weighted_med)
 
-    return weighted_med
+    return weighted_med.tolist()[0]
 
 
 def __max_and_argmax(ls: __array) -> __array:

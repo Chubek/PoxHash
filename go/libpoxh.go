@@ -91,12 +91,24 @@ type factorType [poxPORTION_NUM]uint16
 type blockType [poxBLOCK_NUM]uint16
 type byteType [bitBYTE_ARR_SIZE]uint8
 
+func omega(num uint32) uint32 {
+	return (num & maskDWORD_4F4Z) >> bitWORD_WIDTH_U32
+}
+
+func epsilon(num uint32) uint32 {
+	return num & maskDWORD_4Z4F
+}
+
+func lamed(num, by uint32) uint32 {
+	return (num << by) | (num >> (bitWORD_WIDTH_U32 - by))
+}
+
 func rotateLeft(num uint16, by uint32) uint16 {
 	var res uint32 = uint32(num)
-	res = (res << by) | (res >> (bitWORD_WIDTH_U32 - by))
+	res = lamed(res, by)
 
 	if res > bitUINT16_MAX_U32 {
-		res = (res & maskDWORD_4F4Z) >> bitWORD_WIDTH_U32
+		res = omega(res)
 	}
 
 	return uint16(res)
@@ -107,7 +119,7 @@ func addWithOverFLow(a, b uint16) uint16 {
 	a_plus_b := aa + bb
 
 	if a_plus_b > bitUINT16_MAX_U32 {
-		a_plus_b &= maskDWORD_4Z4F
+		a_plus_b = epsilon(a_plus_b)
 	}
 
 	return uint16(a_plus_b)
@@ -121,7 +133,7 @@ func weightedAvg(arr, weights factorType) uint16 {
 	wavg /= uint32(poxPORTION_NUM)
 
 	if wavg > bitUINT16_MAX_U32 {
-		wavg = (wavg & maskDWORD_4F4Z) >> bitWORD_WIDTH_U32
+		wavg = omega(wavg)
 	}
 
 	return uint16(wavg)
@@ -135,7 +147,7 @@ func weightedMed(arr, weights factorType) uint16 {
 	wmed = (wmed + 1) / 2
 
 	if wmed > bitUINT16_MAX_U32 {
-		wmed &= maskDWORD_4Z4F
+		wmed = epsilon(wmed)
 	}
 
 	return uint16(wmed)

@@ -89,12 +89,24 @@ const iDiv = (a, b) => {
   return ~~(a / b);
 };
 
+const omega = (dwArr) => {
+  dwArr[0] = (dwArr[0] & cMASK_DWORD_4F4Z) >> cWORD_WIDTH;
+};
+
+const epsilon = (dwArr) => {
+  dwArr[0] &= cMASK_DWORD_4Z4F;
+};
+
+const lamed = (dwArr, by) => {
+  dwArr[0] = (dwArr[0] << by) | (dwArr[0] >> (cWORD_WIDTH - by));
+};
+
 const rotateLeft = (num, by) => {
   let resUint32 = new Uint32Array([num]);
-  resUint32[0] = (resUint32[0] << by) | (resUint32[0] >> (cWORD_WIDTH - by));
+  lamed(resUint32);
 
   if (resUint32[0] > cUINT16_MAX) {
-    resUint32[0] = (resUint32[0] & cMASK_DWORD_4F4Z) >> cWORD_WIDTH;
+    omega(resUint32);
   }
 
   const resUint16 = new Uint16Array([resUint32[0]]);
@@ -106,35 +118,35 @@ const addWithOverflow = (arrayA, arrayB, index) => {
   resUint32[0] = arrayA[index] + arrayB[index];
 
   if (resUint32[0] > cUINT16_MAX) {
-    resUint32[0] &= cMASK_DWORD_4Z4F;
+    epsilon(resUint32);
   }
 
   arrayA[index] = resUint32[0];
 };
 
 const weightedAvg = (ls, weights) => {
-  let weightedAvg = 0;
+  let weightedAvg = new Uint32Array([0]);
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
-    weightedAvg += ls[i] * weights[i];
+    weightedAvg[0] += ls[i] * weights[i];
   }
 
-  weightedAvg = iDiv(weightedAvg, cPOX_PORTION_NUM);
-  if (weightedAvg > cUINT16_MAX) {
-    weightedAvg = (weightedAvg & cMASK_DWORD_4F4Z) >> cWORD_WIDTH;
+  weightedAvg[0] = iDiv(weightedAvg[0], cPOX_PORTION_NUM);
+  if (weightedAvg[0] > cUINT16_MAX) {
+    omega(weightedAvg);
   }
 
-  return weightedAvg;
+  return weightedAvg[0];
 };
 
 const weightedMed = (ls, weights) => {
-  let weightedMed = 0;
+  let weightedMed = new Uint32Array([0]);
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
-    weightedMed += ls[i] * weights[i];
+    weightedMed[0] += ls[i] * weights[i];
   }
 
-  weightedMed = iDiv(weightedMed + 1, 2);
-  if (weightedMed > cUINT16_MAX) {
-    weightedMed &= cMASK_DWORD_4Z4F;
+  weightedMed[0] = iDiv(weightedMed[0] + 1, 2);
+  if (weightedMed[0] > cUINT16_MAX) {
+    epsilon(weightedMed);
   }
 
   return weightedMed;
