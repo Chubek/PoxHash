@@ -137,6 +137,18 @@ Byte -> 8bits
 
 We will also use the term *nibblet* to refer to 2bits. *Nibbles*, on the other hand, are 4bits. We have no use for quads or nibbles.
 
+### Basic Arithmetic Operations
+
+We define the following arithmetic operations:
+
+```
+($a, $b: Numeric)ADD = $a + $b
+($a, $b: Numeric)MUL = $a * $b
+($a, $b: Numeric)INTDIV = floor($a / $b)
+($a, $b: Numeric)MOD = $a % $b
+($arr: NumericArray)SUM = $arr[0] + $arr[1] + ... + $arr[n]
+```
+
 ### Bitwise Operations
 
 #### Basic
@@ -166,15 +178,58 @@ We defne the following bitwise operations that we will later use. Operations wil
 ```
 ($a: DoubleWord)OMEGA = Shr(And($a, #DOUBLE_WORD_4F4Z), #WORD_WIDTH)
 ($a: DoubleWord)EPSILON = And($a, #DOUBLE_WORD_4Z4F)
-($a: DoubleWord)LAMED = Or(Shl($a, by), Shr($a, (#WORD_WIDTH - by)))
+($a: DoubleWord, $by: Numeric)LAMED = Or(Shl($a, $by), Shr($a, (#WORD_WIDTH - $by)))
 ```
+(Lamed is a Phonecian letter name)
 
-Now let's define our custom rotate bits function, with a twist.
+Now let's define our custom rotate-bits-left function, with a twist.
 
 ```
 ($num: Word, $by: Numeric)ROTATE_LEFT =
         $tmpDouble = $num as DoubleWord
         $tmpDouble = LAMED($tmpDouble)
-        $tmpDOuble = OMEGA($mpDuble)
-        return $tmpDouble
+        $tmpDOuble = OMEGA($mpDuble) only if $tmpDouble > #MAX_WORD
+        return $tmpDouble as Word
 ```
+
+## Statistical Operations
+
+To make the hash irreversible, pox applies four statistical accumulators at two sages of the operation. Average and median, applied when portions are applied to the factor array (as we'll see!) and their weighted counteparts, during the alphabet operations.
+
+We hereby define these operatios:
+
+```
+($arr: WordArray)AVERAGE = INTDIV(SUM(arr), #PORTION_NUM)
+($arr: WordArray)MEDIAN = INTDIV(SUM(arr) + 1, 2)
+
+($arr: WordArray, $weights: NumericArray)AVERAGE_WEIGHTED = 
+        $wavg: DoubleWord = 0
+        for $i in 0...#PORTION_NUM:
+            ADD($wavg, $arr[$i] * $weights[$i])
+        INTDIV($wavg, #PORTION_NUM)
+        OMEGA($wavg) only if $wavg > #MAX_WORD
+        return $wavg as Word
+
+($arr: WordArray, $weights: NumericArray)AVERAGE_WEIGHTED = 
+        $wmed: DoubleWord = 0
+        for $i in 0...#PORTION_NUM:
+            ADD($wmed, $arr[$i] * $weights[$i])
+        INTDIV($wmed + 1, 2)
+        EPSILON($wmed) only if $wmed > #MAX_WORD
+        return $wmed as Word
+```
+
+## Compound Arithmetic Operations
+
+During the rounds, we apply the round ot a temporary copy of the factors array. We need to add it up at the end. We use a special arithmetic operation for it.
+
+```
+($a: Word, $b: Word)SPECIAL_ADD =
+        $aa = $a as DoubleWord
+        $bb = $b as DoubleWord
+        $sum: DoubleWord = $aa + $bb
+        EPSILON($sum) only if $sum > #MAX_WORD
+        return $sum as Word
+```
+
+## Alphabet Operations
