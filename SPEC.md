@@ -124,3 +124,57 @@ Let's get to the next section wherein we explain our operetional contracts.
 
 We need to set an standard for the operations we're going to use. These operations indclude bitwise, statistical and calculative operations. We will also define a few terms.
 
+### Bit Size Terminology
+
+In this document we will use the x86-64 word size as the size of our words, that is, 16bits. So we will have:
+
+```
+Quad Word -> 64bits
+Double WOrd -> 32bits
+Word -> 16bits
+Byte -> 8bits
+```
+
+We will also use the term *nibblet* to refer to 2bits. *Nibbles*, on the other hand, are 4bits. We have no use for quads or nibbles.
+
+### Bitwise Operations
+
+#### Basic
+
+The basic bitwise operators are defined as below. 1 and 0 are bits.
+
+|Operation|(0, 0)|(0, 1)|(1, 1)|
+|---------|------|------|------|
+|**Xor**|0|1|0|
+|**Or**|0|1|1|
+|**And**|0|0|1|
+
+**Not** is unary and is defined as `Not(1) = 0` and `Not(0) = 1`.
+
+There's two bitwise operations that operate on on number given an amount. They are **Left Shift** and **Right Shift**. They shift the bits to left and right given a number as the amount. They replace the bits that were shifted with 0.
+
+
+```
+Shl(0b0011, 1) -> 0b0110
+Shr(0b110, 1) -> 0b0011
+```
+
+### Compound
+
+We defne the following bitwise operations that we will later use. Operations will be denoted by `(*params: <paramtype>)`. When we refer to these operations, we will omit the params.
+
+```
+($a: DoubleWord)OMEGA = Shr(And($a, #DOUBLE_WORD_4F4Z), #WORD_WIDTH)
+($a: DoubleWord)EPSILON = And($a, #DOUBLE_WORD_4Z4F)
+($a: DoubleWord)LAMED = Or(Shl($a, by), Shr($a, (#WORD_WIDTH - by)))
+```
+
+Now let's define our custom rotate bits function, with a twist.
+
+```
+($num: Word, $by: Numeric)ROTATE_LEFT =
+        $tmpDouble = $num as DoubleWord
+        $tmpDouble = LAMED($tmpDouble)
+        $tmpDOuble = OMEGA($mpDuble)
+        return $tmpDouble
+```
