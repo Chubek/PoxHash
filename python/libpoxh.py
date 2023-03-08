@@ -1,9 +1,9 @@
-##############################################
-##      PoxHash v1                          ##
-##      Implementation in Python			##
-##      By Chubak Bidpaa - March 2023       ##
-##      License: GPLv3                      ##
-##############################################
+##########################################
+##      PoxHash v1                      ##
+##      Implementation in Python        ##
+##      By Chubak Bidpaa - March 2023   ##
+##      License: GPLv3                  ##
+##########################################
 
 from array import array as __array
 

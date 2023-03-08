@@ -1,3 +1,10 @@
+##########################################
+##      PoxHash v1                      ##
+##      Implementation in Nim           ##
+##      By Chubak Bidpaa - March 2023   ##
+##      License: GPLv3                  ##
+##########################################
+
 const POX_PRIMES: array[32, uint16] = [
     0xe537u16, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
     0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
