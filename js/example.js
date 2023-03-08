@@ -1,6 +1,6 @@
 const libpoxh = require("./libpoxh.js");
 
-console.log("Pox (JS) hashes for passed strings in hexdigest, byte and word form:");
+console.log("Pox (JS) hashes for passed strings in various forms:");
 const args = process.argv.slice(2);
 args.forEach((val, index) => {
     const hash = libpoxh.poxHash(val);

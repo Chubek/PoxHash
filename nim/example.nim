@@ -10,7 +10,7 @@ template print(s: varargs[string, `$`]) =
     stdout.write x
 
 var cmdParams = os.commandLineParams()
-echo "Pox (Nim) hashes for passed strings in hexdigest form:"
+echo "Pox (Nim) hashes for passed strings in various forms:"
 
 var i = 1
 for arg in cmdParams:

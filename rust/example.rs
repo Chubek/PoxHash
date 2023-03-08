@@ -3,7 +3,7 @@ use libpoxh::pox_hash;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    println!("Pox (Rust) hashes for passed strings in hexdigest, byte and word form:");
+    println!("Pox (Rust) hashes for passed strings in various forms:");
     for (i, arg) in (&args[1..]).to_vec().into_iter().enumerate() {
         let hash = pox_hash(arg.as_bytes().to_vec());
         let hexdigest = hash.hexdigest;

@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv)
 {
-    printf("Pox (Header-Only C) hashes for passed strings in hexdigest, byte and word form::\n");
+    printf("Pox (Header-Only C) hashes for passed strings in various forms:\n");
     for (int i = 1; i < argc; i++)
     {
         poxhash_t hash = pox_hash(argv[i]);

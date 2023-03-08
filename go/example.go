@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Pox (Go) hashes for passed strings in hexdigest, byte and word form:")
+	fmt.Println("Pox (Go) hashes for passed strings in various forms:")
 	for i, arg := range os.Args[1:] {
 		hash := libpoxh.PoxHash([]byte(arg))
 		hexdigest := hash.Hexdigest
