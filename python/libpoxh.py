@@ -79,14 +79,18 @@ __HEX_CHARS = [
     'F',
 ]
 
+
 def __omega(res_array: __array) -> None:
     res_array[0] = (res_array[0] & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
+
 
 def __epsilon(res_array: __array) -> None:
     res_array[0] &= __MASK_DWORD_4Z4F
 
+
 def __lamed(res_array: __array, by: int) -> None:
     res_array[0] = (res_array[0] << by) | (res_array[0] >> (__WORD_WIDTH - by))
+
 
 def __rotate_left(num: int, by: int) -> __array:
     res_array = __array('I', [num])
@@ -184,6 +188,30 @@ def __word_to_byte(word: int) -> tuple[int, int]:
     upper = (word & __MASK_WORD_FFZZ) >> __BYTE_WIDTH
 
     return (lower, upper)
+
+
+def __word_to_doubles(w1: int, w2: int, darr: __array, index: int) -> None:
+    word_to_double = __array('I', [w1, w2])
+    darr[index] |= word_to_double[0]
+    darr[index] |= word_to_double[1] << 16
+
+
+def __pox_factors_to_doubles(warr: __array) -> __array:
+    double_arr = __array('I', [0, 0])
+    __word_to_doubles(warr[0], warr[1], double_arr, 0)
+    __word_to_doubles(warr[2], warr[3], double_arr, 1)
+
+    return double_arr
+
+
+def __pox_factor_doubles_to_quad(darr: __array) -> __array:
+    double_quad_arr = __array('Q', darr)
+    quad = __array('Q', [0])
+
+    quad[0] |= double_quad_arr[0]
+    quad[0] |= double_quad_arr[1] << 32
+
+    return quad
 
 
 def __dec_to_hex(dec: int) -> str:
@@ -362,11 +390,16 @@ class PoxHashTy:
     hexdigest: str
     bytes: array
     words: array
+    doubles: array
+    quad: array
 
-    def __init__(self, hexdgest: str, bytes: array, words: array) -> None:
+    def __init__(self, hexdgest: str, bytes: array, words: array,
+                 doubles: array, quad: array) -> None:
         self.hexdigest = hexdgest
         self.bytes = bytes
         self.words = words
+        self.doubles = doubles
+        self.quad = quad
 
 
 def pox_hash(data: bytearray) -> PoxHashTy:
@@ -379,8 +412,10 @@ def pox_hash(data: bytearray) -> PoxHashTy:
     Returns:
         PoxHashTy
             PoxHashTy.hexdigest: string
-            PoxHashTy.bytes: array('B')
-            PoxHashTy.words: array('H)    
+            PoxHashTy.bytes: array.array('B', 8)
+            PoxHashTy.words: array.array('H', 4)
+            PoxHashTy.doubles: array.array('I', 2)
+            PoxHashTy.quad: array.array('Q', 1)    
     """
 
     integer_list = __byte_to_array(data)
@@ -398,5 +433,11 @@ def pox_hash(data: bytearray) -> PoxHashTy:
 
     hexdigest = __pox_factors_to_hex_digest(factor_array)
     bytes = __pox_factors_to_byte_array(factor_array)
+    doubles = __pox_factors_to_doubles(factor_array)
+    quad = __pox_factor_doubles_to_quad(doubles)
 
-    return PoxHashTy(hexdgest=hexdigest, bytes=bytes, words=factor_array)
+    return PoxHashTy(hexdgest=hexdigest,
+                     bytes=bytes,
+                     words=factor_array,
+                     doubles=doubles,
+                     quad=quad)

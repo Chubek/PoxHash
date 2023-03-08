@@ -186,6 +186,40 @@ func wordToByte(word uint16) (uint8, uint8) {
 	return uint8(lower), uint8(upper)
 }
 
+func wordToDouble(wordA, wordB uint16) uint32 {
+	var res uint32 = 0
+	aDouble := uint32(wordA)
+	bDouble := uint32(wordB)
+
+	res |= aDouble
+	res |= (bDouble << 16)
+
+	return res
+}
+
+func wordArrayToDoubleArray(warr factorType) [2]uint32 {
+	lower := wordToDouble(warr[0], warr[1])
+	upper := wordToDouble(warr[2], warr[3])
+
+	return [2]uint32{lower, upper}
+}
+
+func wordToQuad(wordA, wordB, wordC, wordD uint16) uint64 {
+	var res uint64 = 0
+	aQuad := uint64(wordA)
+	bQuad := uint64(wordB)
+	cQuad := uint64(wordC)
+	dQuad := uint64(wordD)
+
+	res |= aQuad
+	res |= (bQuad << 16)
+	res |= (cQuad << 32)
+	res |= (dQuad << 48)
+
+	return res
+	
+}
+
 func wordArrToByteArr(wordarr factorType) byteType {
 	var bytearr byteType
 	z := 0
@@ -460,6 +494,8 @@ type PoxHashTy struct {
 	Hexdigest string    `json:"hexdigest"`
 	Bytes     [8]uint8  `json:"bytes"`
 	Words     [4]uint16 `json:"words"`
+	Doubles   [2]uint32 `json:"doubles"`
+	Quad	  uint64	`json:"quad"`
 }
 
 func PoxHash(data []byte) PoxHashTy {
@@ -472,6 +508,8 @@ func PoxHash(data []byte) PoxHashTy {
 	//			PoxHashTy.Hexdigest: string
 	//			PoxHashTy.Bytes: [8]uint8
 	//			PoxHashTy.Words: [4]uint16
+	//			PoxHashTy.Doubles [2]uint32
+	//			PoxHashTy.Quad 	uint64
 	padded := byteArrToWordArrAndPad(data)
 	factorArray := newFactorArray()
 
@@ -482,6 +520,14 @@ func PoxHash(data []byte) PoxHashTy {
 
 	hexdigest := wordArrToHexDigest(factorArray)
 	bytes := wordArrToByteArr(factorArray)
+	doubles := wordArrayToDoubleArray(factorArray)
+	quad := wordToQuad(factorArray[0], factorArray[1], factorArray[2], factorArray[3])
 
-	return PoxHashTy{Hexdigest: hexdigest, Bytes: bytes, Words: factorArray}
+	return PoxHashTy{
+		Hexdigest: hexdigest, 
+		Bytes: bytes, 
+		Words: factorArray,
+		Doubles: doubles,
+		Quad: quad,		
+	}
 }

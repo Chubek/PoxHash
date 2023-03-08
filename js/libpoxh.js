@@ -207,6 +207,26 @@ const wordArrayToByteArray = (wordarray) => {
   return byteArray;
 };
 
+const wordToDouble = (wordA, wordB, dArr, index) => {
+    const wArrD = new Uint32Array([wordA, wordB]);
+    dArr[index] |= wArrD[0];
+    dArr[index] |= wArrD[1] << 16;
+}
+
+const wordArrayToDoubleArray = (wArray) => {
+  let dArr = new Uint32Array(2);
+  wordToDouble(wArray[0], wArray[1], dArr, 0);
+  wordToDouble(wArray[2], wArray[3], dArr, 1);
+  return dArr;
+}
+
+const doubleArrayToQuad = (dArr) => {
+  let quad = BigInt("0x0000000000000000");
+  quad |= BigInt(dArr[0]);
+  quad |= BigInt(dArr[1]) << BigInt(32);
+  return BigInt.asUintN(64, quad);
+}
+
 const byteArrayToWordArrayAndPad = (bytearr) => {
   let size = bytearr.length;
   while (size % cPOX_BLOCK_NUM != 0) {
@@ -424,10 +444,12 @@ const poxProcessBlock = (factorArray, blockArray) => {
   }
 };
 
-function PoxHashTy(hexdigest, bytes, words) {
+function PoxHashTy(hexdigest, bytes, words, doubles, quad) {
   this.hexdigest = hexdigest;
   this.bytes = bytes;
   this.words = words;
+  this.doubles = doubles;
+  this.quad = quad;
 }
 
 poxHash = (data) => {
@@ -441,6 +463,8 @@ poxHash = (data) => {
    *          PoxHashTy.hexdigest: string
    *          PoxHashTy.bytes: Uint8Array[8]
    *          PoxHashTy.factors: Uint16Array[4]
+   *          PoxHashTy.doubles: Uint32Array[2]
+   *          PoxHashTy.quad: BigInt.asUintN(64)
    */
   const processedInput = processInput(data);
   if (processInput == null) {
@@ -463,8 +487,10 @@ poxHash = (data) => {
 
   const hexdigest = wordArrayToHex(factorArray);
   const bytes = wordArrayToByteArray(factorArray);
+  const doubles = wordArrayToDoubleArray(factorArray);
+  const quad = doubleArrayToQuad(doubles);
 
-  return new PoxHashTy(hexdigest, bytes, factorArray);
+  return new PoxHashTy(hexdigest, bytes, factorArray, doubles, quad);
 };
 
 exports.poxHash = poxHash;

@@ -276,6 +276,20 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
         }                                                                             \
     }
 
+#define WORD_TO_DOUBLE_WORD(w1, w2, d) \
+    d |= (uint32_t)w1;                          \
+    d |= ((uint32_t) w2) << 16;
+
+#define FACTORS_TO_DOUBLEARR(warr, darr)            \
+    WORD_TO_DOUBLE_WORD(warr[0], warr[1], darr[0]); \
+    WORD_TO_DOUBLE_WORD(warr[2], warr[3], darr[1]);
+
+#define FACTPRS_TO_QUAD(warr, quad) \
+    quad |= (uint64_t)warr[0];                    \
+    quad |= ((uint64_t)warr[1]) << 16;              \
+    quad |= ((uint64_t)warr[2]) << 32;              \
+    quad |= ((uint64_t)warr[3]) << 48;
+
 #define POX_ALPHA(temp_array)                                          \
     uint16_t aleph = (temp_array[0] ^ temp_array[1]) & MASK_WORD_ZZFF; \
     uint16_t theh = (temp_array[2] ^ temp_array[3]) & MASK_WORD_FFZZ;  \
@@ -437,14 +451,20 @@ typedef struct PoxHashTy
     char hexdigest[WORD_WIDTH + 1];
     uint8_t bytes[BYTE_SIZE];
     uint16_t words[POX_PORTION_NUM];
+    uint32_t doubles[POX_PORTION_NUM / 2];
+    uint64_t quad;
 } poxhash_t;
 
 #define INIT_POXHASH(poxhash, factor_array)                      \
     memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR(WORD_WIDTH + 1)); \
     memset(poxhash.bytes, 0, SIZE_BYTE_ARR(BYTE_SIZE));          \
     memset(poxhash.words, 0, SIZE_WORD_ARR(POX_PORTION_NUM));    \
+    memset(poxhash.doubles, 0, sizeof(uint32_t) * 2);              \
+    poxhash.quad = 0;   \
     FACTORS_TO_HEXDIGEST(factor_array, poxhash.hexdigest);       \
     FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);             \
+    FACTORS_TO_DOUBLEARR(factor_array, poxhash.doubles);         \
+    FACTPRS_TO_QUAD(factor_array, poxhash.quad);                 \
     memcpy(poxhash.words, factor_array, SIZE_WORD_ARR(POX_PORTION_NUM));
 
 /**
@@ -457,6 +477,8 @@ typedef struct PoxHashTy
  *          PoxHashTy.hexdigest: char[17] (null-terminated)
  *          PoxHashTy.bytes: uint8_t[8]
  *          PoxHashTy.words: uint16_t[4]
+ *          PoxHashTy.doubles uint32_t[2]
+ *          PoxHashTy.quad  uint64_t
  */
 extern inline poxhash_t pox_hash(char *data)
 {

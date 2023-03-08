@@ -202,12 +202,37 @@ mod convert {
         String::from_utf8(hex).unwrap()
     }
 
-    pub fn word_array_to_byte_array(word_array: consts::ArrTypeRef) -> Vec<u8> {
+    fn word_to_double(w1: u16, w2: u16) -> u32 {
+        let mut res = 0u32;
+        res |= w1 as u32;
+        res |= (w2 as u32) << 16;
+
+        res
+    }
+
+    pub fn word_array_to_byte_array(word_array: consts::ArrTypeRef) -> [u8; 8] {
         let (b0, b1) = single_word_to_byte(word_array[0]);
         let (b2, b3) = single_word_to_byte(word_array[1]);
         let (b4, b5) = single_word_to_byte(word_array[2]);
         let (b6, b7) = single_word_to_byte(word_array[3]);
-        vec![b0, b1, b2, b3, b4, b5, b6, b7]
+        [b0, b1, b2, b3, b4, b5, b6, b7]
+    }
+
+    pub fn word_array_to_double_array(word_array: consts::ArrTypeRef) -> [u32; 2] {
+        let lower = word_to_double(word_array[0], word_array[1]);
+        let upper = word_to_double(word_array[2], word_array[3]);
+        [lower, upper]
+    }
+
+    pub fn word_array_to_quad(word_array: consts::ArrTypeRef) -> u64 {
+        let mut quad = 0u64;
+        
+        quad |= word_array[0] as u64;
+        quad |= (word_array[1] as u64) << 16;
+        quad |= (word_array[2] as u64) << 32;
+        quad |= (word_array[3] as u64) << 48;
+
+        quad
     }
 
     pub fn word_array_to_hex_digest(word_array: consts::ArrTypeRef) -> String {
@@ -426,6 +451,8 @@ pub struct PoxHashTy {
     pub hexdigest: String,
     pub bytes: [u8; 8],
     pub words: [u16; 4],
+    pub doubles: [u32; 2],
+    pub quad: u64,
 }
 
 #[allow(unused_doc_comments)]
@@ -439,6 +466,8 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     ///         PoxHashTy.hexdigest: String
     ///         PoxHashTy.bytes: [u8; 8]
     ///         PoxHashTy.words: [u16; 4]
+    ///         PoxHashTy.doubles: [u32, 2]
+    ///         PoxHashTy.quad: u64
     let padded_u16 = convert::byte_vec_to_word_vec_and_pad(data);
     let mut factor_array: consts::ArrType = [
         consts::POX_PRIME_A,
@@ -453,27 +482,21 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     }
 
     let hexdigest = convert::word_array_to_hex_digest(&factor_array);
-    let bytes_vec = convert::word_array_to_byte_array(&factor_array);
-    let bytes: [u8; 8] = [
-        bytes_vec[0],
-        bytes_vec[1],
-        bytes_vec[2],
-        bytes_vec[3],
-        bytes_vec[4],
-        bytes_vec[5],
-        bytes_vec[6],
-        bytes_vec[7],
-    ];
+    let bytes = convert::word_array_to_byte_array(&factor_array);
     let words: [u16; 4] = [
         factor_array[0],
         factor_array[1],
         factor_array[2],
         factor_array[3],
     ];
+    let doubles = convert::word_array_to_double_array(&factor_array);
+    let quad = convert::word_array_to_quad(&factor_array);
 
     PoxHashTy {
         hexdigest,
         bytes,
         words,
+        doubles,
+        quad,
     }
 }

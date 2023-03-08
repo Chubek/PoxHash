@@ -34,7 +34,6 @@ const BIT_WORD_WIDTH_U32 = 16u32
 const BIT_BYTE_WIDTH_U16 = 8u16
 const BIT_UINT16_MAX_U16 = 65535u16
 const BIT_UINT16_MAX_U32 = 65535u32
-const BIT_BYTE_ARR_SIZE  = 8
 
 const NUM_HEX_SIZE  = 4
 
@@ -63,7 +62,6 @@ const HEX_DIGITS: array[16, char] = [
 type
     FactorArray = array[POX_PORTION_NUM, uint16]
     BlockArray = array[POX_BLOCK_NUM, uint16]
-    ByteArray = array[BIT_BYTE_ARR_SIZE, uint16]
     PortionArray = array[POX_PORTION_NUM, uint16]
     InputSeq = seq[byte]
     WordSeq = seq[uint16]
@@ -86,7 +84,9 @@ proc `//=`[T](a: var T, b: T) = a = a // b
 proc `>>=`[T](a: var T, b: T) = a = a >> b
 proc `&=`[T](a: var T, b: T) = a = a & b
 proc `^=`[T](a: var T, b: T) = a = a ^ b
+proc `|=`[T](a: var T, b: T) = a = a | b
 
+proc `^^^^*`[T](a: T): uint64 =  cast[uint64](a)
 proc `^^^^`[T](a: T): uint32 =  cast[uint32](a)
 proc `^^`[T](a: T): uint16 =  cast[uint16](a)
 proc `^`[T](a: T): uint8 = cast[uint8](a)
@@ -246,12 +246,25 @@ proc maxAndArgMax(factors: FactorArray): (uint16, uint16) =
 proc wordUpperBits(word: uint16): uint8 = ^((word & MASK_WORD_FFZZ) >> BIT_BYTE_WIDTH_U16)
 proc wordLowerBits(word: uint16): uint8 = ^(word & MASK_WORD_ZZFF)
 proc wordToByte(word: uint16): (uint8, uint8) = (wordLowerBits(word), wordUpperBits(word))
-proc factorsToByte(factors: FactorArray): ByteArray =
+proc factorsToByte(factors: FactorArray): array[8, uint8] =
     var j = 0
     for i in ...POX_PORTION_NUM:
         (result[j], result[j + 1]) = wordToByte(factors[i])
         j += 2
-        
+
+proc wordToDouble(w1, w2: uint16): uint32 =
+    result |= ^^^^w1
+    result |= (^^^^w2) << 16
+proc wordArrToDoubleArr(warr: FactorArray): array[2, uint32] =
+    result[0] = wordToDouble(warr[0], warr[1])
+    result[1] = wordToDouble(warr[2], warr[3]) 
+
+proc wordArrToQuad(warr: FactorArray): uint64 =
+    result |= ^^^^*warr[0]
+    result |= (^^^^*warr[1]) << 16
+    result |= (^^^^*warr[2]) << 32
+    result |= (^^^^*warr[3]) << 48
+
 proc decimalToHex(dec: uint16): string =
     result = newString(NUM_HEX_SIZE)
     var decCpy = dec
@@ -424,10 +437,15 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
 
 
 type
-    PoxHashTy* = tuple[hexdigest: string, bytes: ByteArray, words: FactorArray]
+    PoxHashTy* = object
+        hexdigest*: string
+        bytes*: array[8, uint8]
+        words*: array[4, uint16]
+        doubles*: array[2, uint32]
+        quad*: uint64
 
 proc PoxHash*(data: InputSeq): PoxHashTy =
-    ## Converts the given byte seq into a PoxHashTy named tuple
+    ## Converts the given byte seq into a PoxHashTy object
     ## Parameters:
     ##       data: seq[byte]
     ## 
@@ -436,6 +454,8 @@ proc PoxHash*(data: InputSeq): PoxHashTy =
     ##          PoxHashTy.hexdigest: string
     ##          PoxHashTy.bytes: array[8, uint8]
     ##          PoxHashTy.words: array[4, uint16]
+    ##          PoxHashTy.doubles: array[2, uint32]
+    ##          PoxHashTy.quad: uint64
     var padded = byteArrayToPortionArrayAndPad(data)
     var factorArray: FactorArray = [POX_PRIME_A, POX_PRIME_B, POX_PRIME_C, POX_PRIME_D]
     var blockArray: BlockArray
@@ -446,8 +466,16 @@ proc PoxHash*(data: InputSeq): PoxHashTy =
 
     var hexdigest = factorArrayToHexDigest(factorArray)
     var bytes = factorsToByte(factorArray)
+    var doubles = wordArrToDoubleArr(factorArray)
+    var quad = wordArrToQuad(factorArray)
 
     var ret: PoxHashTy
-    ret = (hexdigest: hexdigest, bytes: bytes, words: factorArray)
+    ret = PoxHashTy(
+            hexdigest: hexdigest, 
+            bytes: bytes, 
+            words: factorArray, 
+            doubles: doubles, 
+            quad: quad
+        )
 
     return ret
