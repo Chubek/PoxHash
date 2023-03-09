@@ -5,7 +5,7 @@
 ##      License: GPLv3                  ##
 ##########################################
 
-const POX_PRIMES: array[32, uint16] = [
+const POX_ROUND_PRIMES: array[32, uint16] = [
     0xe537u16, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
     0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
     0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
@@ -21,14 +21,14 @@ const POX_8B_PRIMES: array[54, uint16] = [
 const POX_MAGIC_PRIMES: array[2, uint16] = [0x33u16, 0x65]
 const POX_SINGLE_DIGIT_PRIMES: array[3, uint16] = [0x3u16, 0x5, 0x7]
 
-const POX_PRIME_A = 0x9f91u16
-const POX_PRIME_B = 0xdb3bu16
-const POX_PRIME_C = 0xc091u16
-const POX_PRIME_D = 0xac8bu16
+const POX_PRIME_INIT_A = 0x9f91u16
+const POX_PRIME_INIT_B = 0xdb3bu16
+const POX_PRIME_INIT_C = 0xc091u16
+const POX_PRIME_INIT_D = 0xac8bu16
 
 const POX_BLOCK_NUM = 64
 const POX_8BPRIME_NUM = 54
-const POX_PRIME_NUM  = 32
+const POX_PRIME_INIT_NUM  = 32
 const POX_CHUNK_NUM = 16
 const POX_ROUND_NUM = 8
 const POX_PORTION_NUM = 4
@@ -455,11 +455,11 @@ proc poxRoundApplyAlphabet(tempArray: var FactorArray) =
     poxGamma(tempArray)
 
 proc poxRoundApplyPrime(tempArray: var FactorArray) =
-    for i in ...POX_PRIME_NUM:
-        tempArray[0] ^= POX_PRIMES[i]
-        tempArray[1] &= POX_PRIMES[i]
-        tempArray[2] ^= POX_PRIMES[i]
-        tempArray[3] &= POX_PRIMES[i]
+    for i in ...POX_PRIME_INIT_NUM:
+        tempArray[0] ^= POX_ROUND_PRIMES[i]
+        tempArray[1] &= POX_ROUND_PRIMES[i]
+        tempArray[2] ^= POX_ROUND_PRIMES[i]
+        tempArray[3] &= POX_ROUND_PRIMES[i]
 
 proc poxRoundApplyShuffle(tempArray: var FactorArray) =
     for (iof, iwith) in ...COMB_BIONOM:
@@ -534,7 +534,7 @@ proc PoxHash*(data: ByteSeq): PoxHashTy =
     ##          PoxHashTy.doubles: array[2, uint32]
     ##          PoxHashTy.quad: uint64
     var padded = byteArrayToPortionArrayAndPad(data)
-    var factorArray: FactorArray = [POX_PRIME_A, POX_PRIME_B, POX_PRIME_C, POX_PRIME_D]
+    var factorArray: FactorArray = [POX_PRIME_INIT_A, POX_PRIME_INIT_B, POX_PRIME_INIT_C, POX_PRIME_INIT_D]
     var blockArray: BlockArray
 
     for i in ...(padded.len, POX_BLOCK_NUM):

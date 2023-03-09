@@ -9,14 +9,14 @@ mod consts {
 
     pub const POX_BLOCK_NUM: usize = 64;
     pub const POX_8B_PRIME_NUM: usize = 54;
-    pub const POX_PRIME_NUM: usize = 32;
+    pub const POX_PRIME_INIT_NUM: usize = 32;
     pub const POX_CHUNK_NUM: usize = 16;
     pub const POX_ROUND_NUM: usize = 8;
     pub const POX_PORTION_NUM: usize = 4;
     pub const POX_SD_PRIME_NUM: usize = 3;
     pub const POX_MAGIC_PRIME_NUM: usize = 2;
 
-    pub const POX_PRIMES: [u16; POX_PRIME_NUM] = [
+    pub const POX_ROUND_PRIMES: [u16; POX_PRIME_INIT_NUM] = [
         0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed, 0xfc4f, 0x9787,
         0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d, 0xd4e1, 0x9ea1, 0xee49, 0x97cd,
         0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3, 0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549,
@@ -30,10 +30,10 @@ mod consts {
     pub const POX_SINGLE_DIGIT_PRIMES: [u16; POX_SD_PRIME_NUM] = [0x3, 0x5, 0x7];
     pub const POX_MAGIC_PRIMES: [u16; POX_MAGIC_PRIME_NUM] = [0x33, 0x65];
 
-    pub const POX_PRIME_A: u16 = 0x9f91;
-    pub const POX_PRIME_B: u16 = 0xdb3b;
-    pub const POX_PRIME_C: u16 = 0xc091;
-    pub const POX_PRIME_D: u16 = 0xac8b;
+    pub const POX_PRIME_INIT_A: u16 = 0x9f91;
+    pub const POX_PRIME_INIT_B: u16 = 0xdb3b;
+    pub const POX_PRIME_INIT_C: u16 = 0xc091;
+    pub const POX_PRIME_INIT_D: u16 = 0xac8b;
 
     pub const UINT16_MAX_U32: u32 = 65535;
     pub const UINT16_MAX_U16: u16 = 65535;
@@ -477,11 +477,11 @@ mod round {
 
     fn apply_prime(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
-        for i in 0..consts::POX_PRIME_NUM {
-            temp_array_cpy[0] ^= consts::POX_PRIMES[i];
-            temp_array_cpy[1] &= consts::POX_PRIMES[i];
-            temp_array_cpy[2] ^= consts::POX_PRIMES[i];
-            temp_array_cpy[3] &= consts::POX_PRIMES[i];
+        for i in 0..consts::POX_PRIME_INIT_NUM {
+            temp_array_cpy[0] ^= consts::POX_ROUND_PRIMES[i];
+            temp_array_cpy[1] &= consts::POX_ROUND_PRIMES[i];
+            temp_array_cpy[2] ^= consts::POX_ROUND_PRIMES[i];
+            temp_array_cpy[3] &= consts::POX_ROUND_PRIMES[i];
         }
         temp_array_cpy
     }
@@ -588,10 +588,10 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     ///         PoxHashTy.quad: u64
     let padded_u16 = convert::byte_vec_to_word_vec_and_pad(data);
     let mut factor_array: types::ArrType = [
-        consts::POX_PRIME_A,
-        consts::POX_PRIME_B,
-        consts::POX_PRIME_C,
-        consts::POX_PRIME_D,
+        consts::POX_PRIME_INIT_A,
+        consts::POX_PRIME_INIT_B,
+        consts::POX_PRIME_INIT_C,
+        consts::POX_PRIME_INIT_D,
     ];
 
     for i in (0..padded_u16.len()).step_by(consts::POX_BLOCK_NUM) {

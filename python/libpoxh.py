@@ -7,17 +7,17 @@
 
 from array import array as __array
 
-__POX_PRIMES = __array('H', [
+__POX_ROUND_PRIMES = __array('H', [
     0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
     0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
     0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
     0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549
 ])
 
-__POX_PRIME_A = 0x9f91
-__POX_PRIME_B = 0xdb3b
-__POX_PRIME_C = 0xc091
-__POX_PRIME_D = 0xac8b
+__POX_PRIME_INIT_A = 0x9f91
+__POX_PRIME_INIT_B = 0xdb3b
+__POX_PRIME_INIT_C = 0xc091
+__POX_PRIME_INIT_D = 0xac8b
 
 __POX_8B_PRIMES = __array('H', [
     0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
@@ -455,7 +455,7 @@ def __pox_round_apply_alphabet(temp_array: __array) -> None:
 
 
 def __pox_round_apply_prime(temp_array: __array) -> None:
-    for pnum in __POX_PRIMES:
+    for pnum in __POX_ROUND_PRIMES:
         temp_array[0] ^= pnum
         temp_array[1] &= pnum
         temp_array[2] ^= pnum
@@ -573,7 +573,7 @@ def pox_hash(data: bytearray) -> PoxHashTy:
     ]
 
     factor_array = __array(
-        'H', [__POX_PRIME_A, __POX_PRIME_B, __POX_PRIME_C, __POX_PRIME_D])
+        'H', [__POX_PRIME_INIT_A, __POX_PRIME_INIT_B, __POX_PRIME_INIT_C, __POX_PRIME_INIT_D])
 
     for block in blocks:
         __pox_process_block(factor_array, block)

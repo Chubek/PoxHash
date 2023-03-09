@@ -23,7 +23,7 @@
 
 #define POX_BLOCK_NUM 64
 #define POX_8B_PRIME_NUM 54
-#define POX_PRIME_NUM 32
+#define POX_PRIME_INIT_NUM 32
 #define POX_CHUNK_NUM 16
 #define POX_ROUND_NUM 8
 #define POX_PORTION_NUM 4
@@ -69,7 +69,7 @@
 #define SIZE_BYTE_ARR(num) sizeof(char) * num
 #define SIZE_BYTE sizeof(char)
 
-static const uint16_t cPOX_PRIMES[POX_PRIME_NUM] = {
+static const uint16_t cPOX_ROUND_PRIMES[POX_PRIME_INIT_NUM] = {
     0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
     0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
     0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
@@ -190,10 +190,10 @@ static const char cBIN_CHARS[2] = {'0', '1'};
 static const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
 static const size_t cCOMB_BIONOM[6][2] = {
     {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}};
-static const uint16_t cPOX_PRIME_A = 0x9f91;
-static const uint16_t cPOX_PRIME_B = 0xdb3b;
-static const uint16_t cPOX_PRIME_C = 0xc091;
-static const uint16_t cPOX_PRIME_D = 0xac8b;
+static const uint16_t cPOX_PRIME_INIT_A = 0x9f91;
+static const uint16_t cPOX_PRIME_INIT_B = 0xdb3b;
+static const uint16_t cPOX_PRIME_INIT_C = 0xc091;
+static const uint16_t cPOX_PRIME_INIT_D = 0xac8b;
 
 static inline uint16_t log2n(uint16_t num)
 {
@@ -508,9 +508,9 @@ static inline uint16_t get_8b_prime(uint16_t num)
     } while (0)
 
 #define POX_ROUND_APPLY_PRIME(temp_array)               \
-    for (int __iw = 0; __iw < POX_PRIME_NUM; __iw++)    \
+    for (int __iw = 0; __iw < POX_PRIME_INIT_NUM; __iw++)    \
     {                                                   \
-        POX_APPLY_PRIME(temp_array, cPOX_PRIMES[__iw]); \
+        POX_APPLY_PRIME(temp_array, cPOX_ROUND_PRIMES[__iw]); \
     }
 
 #define POX_ADD_TEMP_TO_FACT_INDEX(factor_array, temp_array, index)         \
@@ -638,7 +638,7 @@ extern inline poxhash_t pox_hash(char *data)
     char block_array[POX_BLOCK_NUM] = {0};
     char portion_array[POX_PORTION_NUM] = {0};
     uint16_t factor_array[POX_PORTION_NUM] = {
-        cPOX_PRIME_A, cPOX_PRIME_B, cPOX_PRIME_C, cPOX_PRIME_D};
+        cPOX_PRIME_INIT_A, cPOX_PRIME_INIT_B, cPOX_PRIME_INIT_C, cPOX_PRIME_INIT_D};
 
     size_t lengh_old = length_data;
     PAD_SIZE(length_data);

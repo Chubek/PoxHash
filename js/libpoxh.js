@@ -5,7 +5,7 @@
 //      License: GPLv3                      //
 //////////////////////////////////////////////
 
-const cPOX_PRIMES = new Uint16Array([
+const cPOX_ROUND_PRIMES = new Uint16Array([
   0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
   0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
   0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
@@ -20,10 +20,10 @@ const cPOX_8B_PRIMES = new Uint16Array([
 ]);
 const cPOX_MAGIC_PRIMES = new Uint16Array([0x33, 0x65]);
 const cPOX_SINGLE_DIGIT_PRIMES = new Uint16Array([0x3, 0x5, 0x7]);
-const cPOX_PRIME_A = 0x9f91;
-const cPOX_PRIME_B = 0xdb3b;
-const cPOX_PRIME_C = 0xc091;
-const cPOX_PRIME_D = 0xac8b;
+const cPOX_PRIME_INIT_A = 0x9f91;
+const cPOX_PRIME_INIT_B = 0xdb3b;
+const cPOX_PRIME_INIT_C = 0xc091;
+const cPOX_PRIME_INIT_D = 0xac8b;
 
 const cPOX_BLOCK_NUM = 64;
 const cPOX_NUM_8B_PRIME = 54;
@@ -495,10 +495,10 @@ const poxRoundApplyAlphabet = (tempArray) => {
 
 const poxRoundApplyPrime = (tempArray) => {
   for (let i = 0; i < cPOX_NUM_PRIME; i++) {
-    tempArray[0] ^= cPOX_PRIMES[i];
-    tempArray[1] &= cPOX_PRIMES[i];
-    tempArray[2] ^= cPOX_PRIMES[i];
-    tempArray[3] &= cPOX_PRIMES[i];
+    tempArray[0] ^= cPOX_ROUND_PRIMES[i];
+    tempArray[1] &= cPOX_ROUND_PRIMES[i];
+    tempArray[2] ^= cPOX_ROUND_PRIMES[i];
+    tempArray[3] &= cPOX_ROUND_PRIMES[i];
   }
 };
 
@@ -604,10 +604,10 @@ poxHash = (data) => {
     return null;
   }
   let factorArray = new Uint16Array([
-    cPOX_PRIME_A,
-    cPOX_PRIME_B,
-    cPOX_PRIME_C,
-    cPOX_PRIME_D,
+    cPOX_PRIME_INIT_A,
+    cPOX_PRIME_INIT_B,
+    cPOX_PRIME_INIT_C,
+    cPOX_PRIME_INIT_D,
   ]);
 
   for (let i = 0; i < processedInput.length; i += cPOX_BLOCK_NUM) {

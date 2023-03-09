@@ -10,17 +10,17 @@ package libpoxh
 const (
 	poxBLOCK_NUM       int = 64
 	pox8B_PRIME_NUM        = 54
-	poxPRIME_NUM           = 32
+	poxPRIME_INIT_NUM           = 32
 	poxCHUNK_NUM           = 16
 	poxROUND_NUM           = 8
 	poxPORTION_NUM         = 4
 	poxSD_PRIME_NUM        = 3
 	poxMAGIC_PRIME_NUM     = 2
 
-	poxPRIME_A uint16 = 0x9f91
-	poxPRIME_B        = 0xdb3b
-	poxPRIME_C        = 0xc091
-	poxPRIME_D        = 0xac8b
+	poxPRIME_INIT_A uint16 = 0x9f91
+	poxPRIME_INIT_B        = 0xdb3b
+	poxPRIME_INIT_C        = 0xc091
+	poxPRIME_INIT_D        = 0xac8b
 
 	bitWORD_WIDTH_U16 uint16 = 16
 	bitBYTE_WIDTH_u16        = 8
@@ -62,7 +62,7 @@ const (
 )
 
 var (
-	poxPRIMES = [poxPRIME_NUM]uint16{0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
+	poxROUND_PRIMES = [poxPRIME_INIT_NUM]uint16{0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
 		0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
 		0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
 		0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549}
@@ -411,10 +411,10 @@ func newBlock(data []uint16, start int) blockType {
 
 func newFactorArray() factorType {
 	var ret factorType
-	ret[0] = poxPRIME_A
-	ret[1] = poxPRIME_B
-	ret[2] = poxPRIME_C
-	ret[3] = poxPRIME_D
+	ret[0] = poxPRIME_INIT_A
+	ret[1] = poxPRIME_INIT_B
+	ret[2] = poxPRIME_INIT_C
+	ret[3] = poxPRIME_INIT_D
 	return ret
 }
 
@@ -515,11 +515,11 @@ func poxRoundApplyAlphabet(tempArray factorType) factorType {
 
 func poxRoundApplyPrime(tempArray factorType) factorType {
 	tempArrayCpy := copyWordArray(tempArray)
-	for i := 0; i < poxPRIME_NUM; i++ {
-		tempArrayCpy[0] ^= poxPRIMES[i]
-		tempArrayCpy[1] &= poxPRIMES[i]
-		tempArrayCpy[2] ^= poxPRIMES[i]
-		tempArrayCpy[3] &= poxPRIMES[i]
+	for i := 0; i < poxPRIME_INIT_NUM; i++ {
+		tempArrayCpy[0] ^= poxROUND_PRIMES[i]
+		tempArrayCpy[1] &= poxROUND_PRIMES[i]
+		tempArrayCpy[2] ^= poxROUND_PRIMES[i]
+		tempArrayCpy[3] &= poxROUND_PRIMES[i]
 	}
 
 	return tempArrayCpy
