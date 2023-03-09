@@ -31,7 +31,15 @@ const (
 
 	numCOMB_BIONOM = 6
 	numRANGE_ZTF   = 4
-	numHEX_SIZE    = 4
+
+	baseHEX_SIZE int    = 4
+	baseDUO_SIZE        = 5
+	baseOCT_SIZE        = 6
+	baseBIN_SIZE        = 16
+	baseHEX_NUM  uint16 = 16
+	baseDUO_NUM         = 12
+	baseOCT_NUM         = 8
+	baseBIN_NUM         = 2
 
 	maskDWORD_4F4Z uint32 = 0xffff0000
 	maskDWORD_4Z4F        = 0x0000ffff
@@ -68,7 +76,8 @@ var (
 	iterRANGE_ZTF   = [numRANGE_ZTF]int{0, 1, 2, 3}
 
 	byteZERO_CHAR byte = 48
-	byteHEX            = [bitUINT16_MAX_U32]byte{
+
+	bytesCHAR_HEX = [16]byte{
 		48,
 		49,
 		50,
@@ -85,6 +94,30 @@ var (
 		68,
 		69,
 		70}
+	bytesCHAR_DUO = [12]byte{
+		48,
+		49,
+		50,
+		51,
+		52,
+		53,
+		54,
+		55,
+		56,
+		57,
+		42,
+		35}
+	bytesCHAR_OCT = [8]byte{
+		48,
+		49,
+		50,
+		51,
+		52,
+		53,
+		54,
+		55,
+	}
+	bytesCHAR_BIN = [2]byte{48, 49}
 )
 
 type factorType [poxPORTION_NUM]uint16
@@ -217,7 +250,7 @@ func wordToQuad(wordA, wordB, wordC, wordD uint16) uint64 {
 	res |= (dQuad << 48)
 
 	return res
-	
+
 }
 
 func wordArrToByteArr(wordarr factorType) byteType {
@@ -244,21 +277,43 @@ func byteArrToWordArrAndPad(bytearr []byte) []uint16 {
 	return padded
 }
 
-func decimalToHex(dec uint16) string {
-	hex := []byte{byteZERO_CHAR, byteZERO_CHAR, byteZERO_CHAR, byteZERO_CHAR}
-	for i := 0; i < numHEX_SIZE; i++ {
-		hex[numHEX_SIZE-i-1] = byteHEX[dec%bitWORD_WIDTH_U16]
-		dec /= bitWORD_WIDTH_U16
+func decimalToBase(base, dec uint16, size, offset int, chars, res []byte) {
+	for i := ((offset * size) + size) - 1; i >= offset*size; i-- {
+		res[i] = chars[dec%base]
+		dec /= base
 	}
-	return string(hex)
 }
 
 func wordArrToHexDigest(wordarr factorType) string {
-	hex_a := decimalToHex(wordarr[0])
-	hex_b := decimalToHex(wordarr[1])
-	hex_c := decimalToHex(wordarr[2])
-	hex_d := decimalToHex(wordarr[3])
-	return hex_a + hex_b + hex_c + hex_d
+	var hex [baseHEX_SIZE * poxPORTION_NUM]byte
+	for i, word := range wordarr {
+		decimalToBase(baseHEX_NUM, word, baseHEX_SIZE, i, bytesCHAR_HEX[:], hex[:])
+	}
+	return string(hex[:])
+}
+
+func wordArrToDuoDigest(wordarr factorType) string {
+	var duo [baseDUO_SIZE * poxPORTION_NUM]byte
+	for i, word := range wordarr {
+		decimalToBase(baseDUO_NUM, word, baseDUO_SIZE, i, bytesCHAR_DUO[:], duo[:])
+	}
+	return string(duo[:])
+}
+
+func wordArrToOctDigest(wordarr factorType) string {
+	var oct [baseOCT_SIZE * poxPORTION_NUM]byte
+	for i, word := range wordarr {
+		decimalToBase(baseOCT_NUM, word, baseOCT_SIZE, i, bytesCHAR_OCT[:], oct[:])
+	}
+	return string(oct[:])
+}
+
+func wordArrToBinDigest(wordarr factorType) string {
+	var bin [baseBIN_SIZE * poxPORTION_NUM]byte
+	for i, word := range wordarr {
+		decimalToBase(baseBIN_NUM, word, baseBIN_SIZE, i, bytesCHAR_BIN[:], bin[:])
+	}
+	return string(bin[:])
 }
 
 func get8BPrime(num uint16) uint16 {
@@ -455,7 +510,7 @@ func poxRound(factorArray factorType) factorType {
 	return additionResult
 }
 
-func poxApplyBytes(factorArray, portion factorType) factorType {
+func poxApplyBytes(factorArray, portion factorType, index uint16) factorType {
 	var avg, med, sum uint16 = 0, 0, 0
 
 	sum = sumWordArray(portion)
@@ -464,12 +519,17 @@ func poxApplyBytes(factorArray, portion factorType) factorType {
 	avgOddFactor := bitUINT16_MAX_U16 * (avg % 2)
 	medOddFactor := bitUINT16_MAX_U16 * (med % 2)
 
+	ng := (portion[0] + index) % poxPORTION_NUM
+	chu := (portion[1] + index) % poxPORTION_NUM
+	yo := (portion[2] + index) % poxPORTION_NUM
+	eo := (portion[3] + index) % poxPORTION_NUM
+
 	factorArrayCpy := copyWordArray(factorArray)
 
-	factorArrayCpy[0] ^= (portion[0] + avg) ^ medOddFactor
-	factorArrayCpy[1] ^= (portion[1] + med) ^ avgOddFactor
-	factorArrayCpy[2] ^= (portion[2] + avg) ^ medOddFactor
-	factorArrayCpy[3] ^= (portion[3] + med) ^ avgOddFactor
+	factorArrayCpy[ng] ^= (portion[eo] + avg) ^ medOddFactor
+	factorArrayCpy[chu] ^= (portion[yo] + med) ^ avgOddFactor
+	factorArrayCpy[yo] ^= (portion[chu] + avg) ^ medOddFactor
+	factorArrayCpy[eo] ^= (portion[ng] + med) ^ avgOddFactor
 
 	return factorArrayCpy
 }
@@ -479,11 +539,11 @@ func poxProcessBlock(factorArray factorType, block blockType) factorType {
 	for i := 0; i < poxBLOCK_NUM; i += poxCHUNK_NUM {
 		for j := i; j < i+poxCHUNK_NUM; j += poxPORTION_NUM {
 			portion := newPortion(block, j)
-			z := poxROUND_NUM
-			for z > 0 {
-				factorArrayCpy = poxApplyBytes(factorArrayCpy, portion)
+			var z uint16 = 0
+			for z < poxROUND_NUM {
+				factorArrayCpy = poxApplyBytes(factorArrayCpy, portion, z)
 				factorArrayCpy = poxRound(factorArrayCpy)
-				z--
+				z++
 			}
 		}
 	}
@@ -492,10 +552,13 @@ func poxProcessBlock(factorArray factorType, block blockType) factorType {
 
 type PoxHashTy struct {
 	Hexdigest string    `json:"hexdigest"`
+	Duodigest string    `json:"duodigest"`
+	Octdigest string    `json:"octdigest"`
+	Bindigest string    `json:"bindigest"`
 	Bytes     [8]uint8  `json:"bytes"`
 	Words     [4]uint16 `json:"words"`
 	Doubles   [2]uint32 `json:"doubles"`
-	Quad	  uint64	`json:"quad"`
+	Quad      uint64    `json:"quad"`
 }
 
 func PoxHash(data []byte) PoxHashTy {
@@ -519,15 +582,21 @@ func PoxHash(data []byte) PoxHashTy {
 	}
 
 	hexdigest := wordArrToHexDigest(factorArray)
+	duodigest := wordArrToDuoDigest(factorArray)
+	octdigest := wordArrToOctDigest(factorArray)
+	bindigest := wordArrToBinDigest(factorArray)
 	bytes := wordArrToByteArr(factorArray)
 	doubles := wordArrayToDoubleArray(factorArray)
 	quad := wordToQuad(factorArray[0], factorArray[1], factorArray[2], factorArray[3])
 
 	return PoxHashTy{
-		Hexdigest: hexdigest, 
-		Bytes: bytes, 
-		Words: factorArray,
-		Doubles: doubles,
-		Quad: quad,		
+		Hexdigest: hexdigest,
+		Duodigest: duodigest,
+		Octdigest: octdigest,
+		Bindigest: bindigest,
+		Bytes:     bytes,
+		Words:     factorArray,
+		Doubles:   doubles,
+		Quad:      quad,
 	}
 }

@@ -42,8 +42,6 @@ const BIT_BYTE_WIDTH_U16 = 8u16
 const BIT_UINT16_MAX_U16 = 65535u16
 const BIT_UINT16_MAX_U32 = 65535u32
 
-const NUM_HEX_SIZE  = 4
-
 const MASK_DWORD_4F4Z = 0xffff0000u32
 const MASK_DWORD_4Z4F = 0x0000ffffu32
 const MASK_WORD_FZFZ = 0xf0f0u16
@@ -62,9 +60,28 @@ const MASK_WORD_11 = 0b11u16
 const MASK_WORD_00 = 0b00u16
 
 const COMB_BIONOM = @[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-const HEX_DIGITS: array[16, char] = [
+
+const HEX_CHARS: array[16, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     ]
+const DUO_CHARS: array[12, char] = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#',
+    ]
+const OCT_CHARS: array[8, char] = [
+        '0', '1', '2', '3', '4', '5', '6', '7',
+    ]
+const BIN_CHARS: array[2, char] = [
+    '0', '1',
+    ]
+
+const HEX_SIZE = 4
+const DUO_SIZE = 5
+const OCT_SIZE = 6
+const BIN_SIZE = 16
+const HEX_BASE: uint16 = 16
+const DUO_BASE: uint16 = 12
+const OCT_BASE: uint16 = 8
+const BIN_BASE: uint16 = 2
 
 type
     FactorArray = array[POX_PORTION_NUM, uint16]
@@ -99,6 +116,8 @@ proc `^^`[T](a: T): uint16 =  cast[uint16](a)
 proc `^`[T](a: T): uint8 = cast[uint8](a)
 
 proc `++`(a: var int) = inc a
+proc `--`(a: var int) = dec a
+
 
 iterator `...`(b: int): int =
     var i = 0
@@ -111,6 +130,16 @@ iterator `...`(a, b: int): int =
     while i < b:
         yield i
         ++i
+
+iterator `<...`(a, b: int): int =
+    var i = b - 1
+    while i >= a:
+        yield i
+        --i
+
+iterator `<..+`(a, b: int): int =
+    for i in a<...(a + b):
+        yield i
 
 iterator `...`(a: int, b: (int, int)): int =
     var i = a
@@ -167,17 +196,11 @@ proc `--->`(barrAndStart: (BlockArray, int), portionArray: var PortionArray) =
 proc `:::`(num: uint16): uint16 =
     return POX_8B_PRIMES[num % POX_8BPRIME_NUM]
 
-proc catAt(stringA: string, stringB: var string, start: int) =
-    var j = start
-    for i in ...stringA.len:
-        stringB[j] = stringA[i]
-        ++j
-
-proc `+`(s1, s2: string): string =
-    var contat = newString(s1.len + s2.len)
-    catAt(s1, contat, 0)
-    catAt(s2, contat, s1.len - 1)
-    return contat
+template convertBasesFromDecimal(base, size, chars, decimal, res, offset: untyped): untyped =
+    var dec = decimal
+    for i in (offset * size)<..+size:
+        res[i] = chars[dec % base]
+        dec //= base
 
 proc omega(num: uint32): uint32 = (num & MASK_DWORD_4F4Z) >> (BIT_WORD_WIDTH_U32)
 proc epsilon(num: uint32): uint32 = num & MASK_DWORD_4Z4F
@@ -272,20 +295,33 @@ proc wordArrToQuad(warr: FactorArray): uint64 =
     result |= (^^^^*warr[2]) << 32
     result |= (^^^^*warr[3]) << 48
 
-proc decimalToHex(dec: uint16): string =
-    result = newString(NUM_HEX_SIZE)
-    var decCpy = dec
-    for i in ...NUM_HEX_SIZE:
-        result[NUM_HEX_SIZE - i - 1] = HEX_DIGITS[decCpy % BIT_WORD_WIDTH_U16]
-        decCpy //= BIT_WORD_WIDTH_U16
+proc wordArrayToHexDigest(warr: FactorArray): string =
+    var hex = newString(HEX_SIZE * POX_PORTION_NUM)
+    for i in ...POX_PORTION_NUM:
+        var word = warr[i]
+        convertBasesFromDecimal(HEX_BASE, HEX_SIZE, HEX_CHARS, word, hex, i)
+    return hex
 
-proc factorArrayToHexDigest(warr: FactorArray): string =
-    var hex1 = decimalToHex(warr[0])
-    var hex2 = decimalToHex(warr[1])
-    var hex3 = decimalToHex(warr[2])
-    var hex4 = decimalToHex(warr[3])
-    
-    result = hex1 + hex2 + hex3 + hex4
+proc wordArrayToDuoDigest(warr: FactorArray): string =
+    var duo = newString(DUO_SIZE * POX_PORTION_NUM)
+    for i in ...POX_PORTION_NUM:
+        var word = warr[i]
+        convertBasesFromDecimal(DUO_BASE, DUO_SIZE, DUO_CHARS, word, duo, i)
+    return duo
+
+proc wordArrayToOctDigest(warr: FactorArray): string =
+    var oct = newString(OCT_SIZE * POX_PORTION_NUM)
+    for i in ...POX_PORTION_NUM:
+        var word = warr[i]
+        convertBasesFromDecimal(OCT_BASE, OCT_SIZE, OCT_CHARS, word, oct, i)
+    return oct
+
+proc wordArrayToBinDigest(warr: FactorArray): string =
+    var bin = newString(BIN_SIZE * POX_PORTION_NUM)
+    for i in ...POX_PORTION_NUM:
+        var word = warr[i]
+        convertBasesFromDecimal(BIN_BASE, BIN_SIZE, BIN_CHARS, word, bin, i)
+    return bin
 
 proc byteArrayToPortionArrayAndPad(barray: InputSeq): WordSeq =
     var length = barray.len
@@ -412,7 +448,7 @@ proc poxRound(factorArray: var FactorArray) =
     poxRoundApplyShuffle(tempArray)
     poxRoundApplyAddition(factorArray, tempArray)
 
-proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray) =
+proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray, index: uint16) =
     var 
         avg: uint16
         med: uint16
@@ -426,11 +462,16 @@ proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray) =
 
     avgOddFactor = BIT_UINT16_MAX_U16 * (avg % 2)
     medOddFactor = BIT_UINT16_MAX_U16 * (med % 2)    
-   
-    factorArray[0] ^= (portion[0] + avg) ^ medOddFactor
-    factorArray[1] ^= (portion[1] + med) ^ avgOddFactor
-    factorArray[2] ^= (portion[2] + avg) ^ medOddFactor
-    factorArray[3] ^= (portion[3] + med) ^ avgOddFactor
+
+    var ng = (portion[0] + index) % POX_PORTION_NUM
+    var chu = (portion[1] + index) % POX_PORTION_NUM
+    var yo = (portion[2] + index) % POX_PORTION_NUM
+    var eo = (portion[3] + index) % POX_PORTION_NUM 
+
+    factorArray[ng] ^= (portion[eo] + avg) ^ medOddFactor
+    factorArray[chu] ^= (portion[yo] + med) ^ avgOddFactor
+    factorArray[yo] ^= (portion[chu] + avg) ^ medOddFactor
+    factorArray[eo] ^= (portion[ng] + med) ^ avgOddFactor
 
 proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
     var portion: PortionArray
@@ -438,14 +479,17 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
         for j in i...(i + POX_CHUNK_NUM, POX_PORTION_NUM):
             (blockArray, j) ---> portion
 
-            for _ in ...POX_ROUND_NUM:
-                poxApplyByte(factorArray, portion)
+            for m in ...POX_ROUND_NUM:
+                poxApplyByte(factorArray, portion, ^^m)
                 poxRound(factorArray)
 
 
 type
     PoxHashTy* = object
         hexdigest*: string
+        duodigest*: string
+        octdigest*: string
+        bindigest*: string
         bytes*: array[8, uint8]
         words*: array[4, uint16]
         doubles*: array[2, uint32]
@@ -471,7 +515,10 @@ proc PoxHash*(data: InputSeq): PoxHashTy =
         (padded, i) ---> blockArray
         poxProcessBlock(factorArray, blockArray)
 
-    var hexdigest = factorArrayToHexDigest(factorArray)
+    var hexdigest = wordArrayToHexDigest(factorArray)
+    var duodigest = wordArrayToDuoDigest(factorArray)
+    var octdigest = wordArrayToOctDigest(factorArray)
+    var bindigest = wordArrayToBinDigest(factorArray)
     var bytes = factorsToByte(factorArray)
     var doubles = wordArrToDoubleArr(factorArray)
     var quad = wordArrToQuad(factorArray)
@@ -479,6 +526,9 @@ proc PoxHash*(data: InputSeq): PoxHashTy =
     var ret: PoxHashTy
     ret = PoxHashTy(
             hexdigest: hexdigest, 
+            duodigest: duodigest,
+            octdigest: octdigest,
+            bindigest: bindigest,
             bytes: bytes, 
             words: factorArray, 
             doubles: doubles, 

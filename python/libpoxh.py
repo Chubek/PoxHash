@@ -40,7 +40,6 @@ __POX_MAGIC_PRIME_NUM = 2
 __WORD_WIDTH = 16
 __BYTE_WIDTH = 8
 __UINT16_MAX = 2**16 - 1
-__HEX_SIZE = 4
 
 __MASK_DWORD_4F4Z = 0xffff0000
 __MASK_DWORD_4Z4F = 0x0000ffff
@@ -78,6 +77,33 @@ __HEX_CHARS = [
     'E',
     'F',
 ]
+
+__OCT_CHARS = ['0', '1', '2', '3', '4', '5', '6', '7']
+__DUO_CHARS = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '*',
+    '#',
+]
+__BIN_CHARS = ['0', '1']
+
+__HEX_SIZE = 4
+__DUO_SIZE = 5
+__OCT_SIZE = 6
+__BIN_SIZE = 16
+
+__HEX_BASE = 16
+__DUO_BASE = 12
+__OCT_BASE = 8
+__BIN_BASE = 2
 
 
 def __omega(res_array: __array) -> None:
@@ -213,29 +239,44 @@ def __pox_factor_doubles_to_quad(darr: __array) -> __array:
 
     return quad
 
+def __dec_to_base(
+        size: int, base: int, chars: list[str], 
+        res: list[str], dec: int, offset: int) -> None:
+    for i in reversed(range(offset * size, size + (offset * size))):
+        res[i] = chars[dec % base]
+        dec //= base
 
-def __dec_to_hex(dec: int) -> str:
-    hex = ['0', '0', '0', '0']
-    for i in reversed(range(__HEX_SIZE)):
-        hex[i] = __HEX_CHARS[dec % __WORD_WIDTH]
-        dec //= __WORD_WIDTH
-    return "".join(hex)
+def __pox_factors_to_bin_digest(factor_array: __array) -> str:
+    bin = ['0'] * (__BIN_SIZE * __POX_PORTION_NUM)
+    for i, factor in enumerate(factor_array):
+        __dec_to_base(__BIN_SIZE, __BIN_BASE, __BIN_CHARS, bin, factor, i)
+    return ''.join(bin)
+
+
+def __pox_factors_to_oct_digest(factor_array: __array) -> str:
+    oct = ['0'] * (__OCT_SIZE * __POX_PORTION_NUM)
+    for i, factor in enumerate(factor_array):
+        __dec_to_base(__OCT_SIZE, __OCT_BASE, __OCT_CHARS, oct, factor, i)
+    return ''.join(oct)
+
+def __pox_factors_to_duo_digest(factor_array: __array) -> str:
+    duo = ['0'] * (__DUO_SIZE * __POX_PORTION_NUM)
+    for i, factor in enumerate(factor_array):
+        __dec_to_base(__DUO_SIZE, __DUO_BASE, __DUO_CHARS, duo, factor, i)
+    return ''.join(duo)
 
 
 def __pox_factors_to_hex_digest(factor_array: __array) -> str:
-    hex_str_a = __dec_to_hex(factor_array[0])
-    hex_str_b = __dec_to_hex(factor_array[1])
-    hex_str_c = __dec_to_hex(factor_array[2])
-    hex_str_d = __dec_to_hex(factor_array[3])
-
-    return hex_str_a + hex_str_b + hex_str_c + hex_str_d
+    hex = ['0'] * (__HEX_SIZE * __POX_PORTION_NUM)
+    for i, factor in enumerate(factor_array):
+        __dec_to_base(__HEX_SIZE, __HEX_BASE, __HEX_CHARS, hex, factor, i)
+    return ''.join(hex)
 
 
 def __pox_factors_to_byte_array(factor_array: __array) -> __array:
     ret = []
     for word in factor_array:
         ret.extend(__word_to_byte(word))
-
     return __array('B', ret)
 
 
@@ -354,16 +395,22 @@ def __pox_round(factor_array: __array) -> None:
     __pox_round_add_tmp_to_facts(factor_array, temporary_array)
 
 
-def __pox_apply_bytes(factor_array: __array, subportion: __array) -> None:
+def __pox_apply_bytes(factor_array: __array, subportion: __array,
+                      index: int) -> None:
     avg_subportion = sum(subportion) // __POX_PORTION_NUM
     med_subportion = (sum(subportion) + 1) // 2
     avg_odd_factor = __UINT16_MAX * (avg_subportion % 2)
     med_odd_factor = __UINT16_MAX * (med_subportion % 2)
 
-    factor_array[0] ^= (subportion[0] + avg_subportion) ^ med_odd_factor
-    factor_array[1] ^= (subportion[1] + med_subportion) ^ avg_odd_factor
-    factor_array[2] ^= (subportion[2] + avg_subportion) ^ med_odd_factor
-    factor_array[3] ^= (subportion[3] + med_subportion) ^ avg_odd_factor
+    ng = (subportion[0] + index) % __POX_PORTION_NUM
+    chu = (subportion[1] + index) % __POX_PORTION_NUM
+    yo = (subportion[2] + index) % __POX_PORTION_NUM
+    eo = (subportion[3] + index) % __POX_PORTION_NUM
+
+    factor_array[ng] ^= (subportion[eo] + avg_subportion) ^ med_odd_factor
+    factor_array[chu] ^= (subportion[yo] + med_subportion) ^ avg_odd_factor
+    factor_array[yo] ^= (subportion[chu] + avg_subportion) ^ med_odd_factor
+    factor_array[eo] ^= (subportion[ng] + med_subportion) ^ avg_odd_factor
 
 
 def __pox_process_block(factor_array: __array, block: list[int]) -> None:
@@ -380,7 +427,7 @@ def __pox_process_block(factor_array: __array, block: list[int]) -> None:
 
         for k, subportion in enumerate(subportions):
             for i in range(__POX_ROUND_NUM):
-                __pox_apply_bytes(factor_array, subportion)
+                __pox_apply_bytes(factor_array, subportion, i)
                 __pox_round(factor_array)
 
 
@@ -388,14 +435,21 @@ class PoxHashTy:
     import array as array
 
     hexdigest: str
+    duodigest: str
+    octdigest: str
+    bindigest: str
     bytes: array
     words: array
     doubles: array
     quad: array
 
-    def __init__(self, hexdgest: str, bytes: array, words: array,
-                 doubles: array, quad: array) -> None:
+    def __init__(self, hexdgest: str, duodigest: str, octdigest: str,
+                 bindigest: str, bytes: array, words: array, doubles: array,
+                 quad: array) -> None:
         self.hexdigest = hexdgest
+        self.duodigest = duodigest
+        self.octdigest = octdigest
+        self.bindigest = bindigest
         self.bytes = bytes
         self.words = words
         self.doubles = doubles
@@ -432,11 +486,17 @@ def pox_hash(data: bytearray) -> PoxHashTy:
         __pox_process_block(factor_array, block)
 
     hexdigest = __pox_factors_to_hex_digest(factor_array)
+    duodigest = __pox_factors_to_duo_digest(factor_array)
+    octdigest = __pox_factors_to_oct_digest(factor_array)
+    bindigest = __pox_factors_to_bin_digest(factor_array)
     bytes = __pox_factors_to_byte_array(factor_array)
     doubles = __pox_factors_to_doubles(factor_array)
     quad = __pox_factor_doubles_to_quad(doubles)
 
     return PoxHashTy(hexdgest=hexdigest,
+                     duodigest=duodigest,
+                     octdigest=octdigest,
+                     bindigest=bindigest,
                      bytes=bytes,
                      words=factor_array,
                      doubles=doubles,

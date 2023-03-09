@@ -40,8 +40,6 @@ mod consts {
     pub const WORD_WIDTH_U32: u32 = 16;
     pub const WORD_WIDTH_U16: u16 = 16;
     pub const BYTE_WIDTH_U16: u16 = 8;
-    pub const HEX_SIZE: usize = 4;
-
 
     pub const MASK_DWORD_4F4Z: u32 = 0xffff0000;
     pub const MASK_DWORD_4Z4F: u32 = 0x0000ffff;
@@ -63,18 +61,34 @@ mod consts {
     pub const COMB_BIONOM: &'static [(usize, usize)] =
         &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
     pub const SIZE_BIONOM: usize = 6;
+
+    pub const HEX_SIZE: usize = 4;
+    pub const DUO_SIZE: usize = 5;
+    pub const OCT_SIZE: usize = 6;
+    pub const BIN_SIZE: usize = 16;
+    pub const HEX_BASE: u16 = 16;
+    pub const DUO_BASE: u16 = 12;
+    pub const OCT_BASE: u16 = 8;
+    pub const BIN_BASE: u16 = 2;
+
     pub const HEX_CHARS: &'static [char] = &[
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     ];
+    pub const DUO_CHARS: &'static [char] =
+        &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#'];
+    pub const OCT_CHARS: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7'];
+    pub const BIN_CHARS: &'static [char] = &['0', '1'];
+}
 
+mod types {
     pub type ArrTypeRef<'a> = &'a [u16];
     pub type ArrType = [u16; 4];
 }
 
 mod tools {
-    use super::consts;
+    use super::{consts, types};
 
-    pub fn sum_portion(arr: consts::ArrTypeRef) -> u16 {
+    pub fn sum_portion(arr: types::ArrTypeRef) -> u16 {
         let mut sum = arr[0];
         for i in 1..consts::POX_PORTION_NUM {
             sum += arr[i];
@@ -82,7 +96,7 @@ mod tools {
         sum
     }
 
-    pub fn max_and_argmax(arr: consts::ArrTypeRef, size_arr: usize) -> (u16, usize) {
+    pub fn max_and_argmax(arr: types::ArrTypeRef, size_arr: usize) -> (u16, usize) {
         let mut curr_max = arr[0];
         let mut curr_index = 0usize;
         for i in 1..size_arr {
@@ -94,7 +108,7 @@ mod tools {
         (curr_max, curr_index)
     }
 
-    pub fn min_and_argmin(arr: consts::ArrTypeRef, size_arr: usize) -> (u16, usize) {
+    pub fn min_and_argmin(arr: types::ArrTypeRef, size_arr: usize) -> (u16, usize) {
         let mut curr_min = arr[0];
         let mut curr_index = 0usize;
         for i in 1..size_arr {
@@ -118,14 +132,14 @@ mod tools {
         }
     }
 
-    pub fn copy_array(arr: consts::ArrTypeRef) -> consts::ArrType {
-        let ret: consts::ArrType = [arr[0], arr[1], arr[2], arr[3]];
+    pub fn copy_array(arr: types::ArrTypeRef) -> types::ArrType {
+        let ret: types::ArrType = [arr[0], arr[1], arr[2], arr[3]];
         ret
     }
 }
 
 mod bits {
-    use super::consts;
+    use super::{consts, types};
 
     fn omega(num: u32) -> u32 {
         (num & consts::MASK_DWORD_4F4Z) >> consts::WORD_WIDTH_U32
@@ -158,7 +172,7 @@ mod bits {
         a_plus_b as u16
     }
 
-    pub fn weighted_average(arr: consts::ArrTypeRef, weights: &[u16]) -> u16 {
+    pub fn weighted_average(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
         let mut wavg = 0u32;
         for i in 0..consts::POX_PORTION_NUM {
             wavg += (arr[i] * weights[i]) as u32;
@@ -170,7 +184,7 @@ mod bits {
         wavg as u16
     }
 
-    pub fn weighted_median(arr: consts::ArrTypeRef, weights: &[u16]) -> u16 {
+    pub fn weighted_median(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
         let mut wmed = 0u32;
         for i in 0..consts::POX_PORTION_NUM {
             wmed += (arr[i] * weights[i]) as u32;
@@ -184,22 +198,22 @@ mod bits {
 }
 
 mod convert {
-    use super::consts;
+    use super::{consts, types};
+
+    macro_rules! convert_decimal_to_base {
+        ($base: path, $size: path, $chars: path, $res: ident, $dec: ident, $offset: ident) => {{
+            let mut decimal = $dec;
+            for i in ($offset * $size..($offset * $size) + $size).rev() {
+                $res[i] = $chars[(decimal % $base) as usize];
+                decimal /= $base;
+            }
+        }};
+    }
 
     fn single_word_to_byte(word: u16) -> (u8, u8) {
         let lower: u8 = (word & consts::MASK_WORD_ZZFF) as u8;
         let upper: u8 = ((word & consts::MASK_WORD_FFZZ) >> consts::BYTE_WIDTH_U16) as u8;
         (lower, upper)
-    }
-
-    fn decimal_to_hex(dec: u16) -> String {
-        let mut hex = vec!['0' as u8; consts::HEX_SIZE];
-        let mut dec_mut = dec;
-        hex.iter_mut().rev().for_each(|c| {
-            *c = consts::HEX_CHARS[(dec_mut % consts::WORD_WIDTH_U16) as usize] as u8;
-            dec_mut /= consts::WORD_WIDTH_U16;
-        });
-        String::from_utf8(hex).unwrap()
     }
 
     fn word_to_double(w1: u16, w2: u16) -> u32 {
@@ -210,7 +224,7 @@ mod convert {
         res
     }
 
-    pub fn word_array_to_byte_array(word_array: consts::ArrTypeRef) -> [u8; 8] {
+    pub fn word_array_to_byte_array(word_array: types::ArrTypeRef) -> [u8; 8] {
         let (b0, b1) = single_word_to_byte(word_array[0]);
         let (b2, b3) = single_word_to_byte(word_array[1]);
         let (b4, b5) = single_word_to_byte(word_array[2]);
@@ -218,29 +232,85 @@ mod convert {
         [b0, b1, b2, b3, b4, b5, b6, b7]
     }
 
-    pub fn word_array_to_double_array(word_array: consts::ArrTypeRef) -> [u32; 2] {
+    pub fn word_array_to_double_array(word_array: types::ArrTypeRef) -> [u32; 2] {
         let lower = word_to_double(word_array[0], word_array[1]);
         let upper = word_to_double(word_array[2], word_array[3]);
         [lower, upper]
     }
 
-    pub fn word_array_to_quad(word_array: consts::ArrTypeRef) -> u64 {
+    pub fn word_array_to_hex_digest(word_array: types::ArrTypeRef) -> String {
+        let mut digest = vec!['0'; consts::HEX_SIZE * consts::POX_PORTION_NUM];
+        for i in 0..consts::POX_PORTION_NUM {
+            let word = word_array[i];
+            convert_decimal_to_base! {
+                consts::HEX_BASE,
+                consts::HEX_SIZE,
+                consts::HEX_CHARS,
+                digest,
+                word,
+                i
+            }
+        }
+        return digest.into_iter().collect();
+    }
+
+    pub fn word_array_to_duo_digest(word_array: types::ArrTypeRef) -> String {
+        let mut digest = vec!['0'; consts::DUO_SIZE * consts::POX_PORTION_NUM];
+        for i in 0..consts::POX_PORTION_NUM {
+            let word = word_array[i];
+            convert_decimal_to_base! {
+                consts::DUO_BASE,
+                consts::DUO_SIZE,
+                consts::DUO_CHARS,
+                digest,
+                word,
+                i
+            }
+        }
+        return digest.into_iter().collect();
+    }
+
+    pub fn word_array_to_oct_digest(word_array: types::ArrTypeRef) -> String {
+        let mut digest = vec!['0'; consts::OCT_SIZE * consts::POX_PORTION_NUM];
+        for i in 0..consts::POX_PORTION_NUM {
+            let word = word_array[i];
+            convert_decimal_to_base! {
+                consts::OCT_BASE,
+                consts::OCT_SIZE,
+                consts::OCT_CHARS,
+                digest,
+                word,
+                i
+            }
+        }
+        return digest.into_iter().collect();
+    }
+
+    pub fn word_array_to_bin_digest(word_array: types::ArrTypeRef) -> String {
+        let mut digest = vec!['0'; consts::BIN_SIZE * consts::POX_PORTION_NUM];
+        for i in 0..consts::POX_PORTION_NUM {
+            let word = word_array[i];
+            convert_decimal_to_base! {
+                consts::BIN_BASE,
+                consts::BIN_SIZE,
+                consts::BIN_CHARS,
+                digest,
+                word,
+                i
+            }
+        }
+        return digest.into_iter().collect();
+    }
+
+    pub fn word_array_to_quad(word_array: types::ArrTypeRef) -> u64 {
         let mut quad = 0u64;
-        
+
         quad |= word_array[0] as u64;
         quad |= (word_array[1] as u64) << 16;
         quad |= (word_array[2] as u64) << 32;
         quad |= (word_array[3] as u64) << 48;
 
         quad
-    }
-
-    pub fn word_array_to_hex_digest(word_array: consts::ArrTypeRef) -> String {
-        let hex_a = decimal_to_hex(word_array[0]);
-        let hex_b = decimal_to_hex(word_array[1]);
-        let hex_c = decimal_to_hex(word_array[2]);
-        let hex_d = decimal_to_hex(word_array[3]);
-        format!("{}{}{}{}", hex_a, hex_b, hex_c, hex_d)
     }
 
     pub fn byte_vec_to_word_vec_and_pad(byte_array: Vec<u8>) -> Vec<u16> {
@@ -256,9 +326,9 @@ mod convert {
 }
 
 mod alphabet {
-    use super::{bits, consts, tools};
+    use super::{bits, consts, tools, types};
 
-    pub fn alpha(temp_array: consts::ArrTypeRef) -> consts::ArrType {
+    pub fn alpha(temp_array: types::ArrTypeRef) -> types::ArrType {
         let aleph: u16 = (temp_array[0] ^ temp_array[1]) & consts::MASK_WORD_ZZFF;
         let theh: u16 = (temp_array[2] ^ temp_array[3]) & consts::MASK_WORD_FFZZ;
         let daal: u16 = (aleph | theh) % consts::POX_8B_PRIMES[0];
@@ -273,12 +343,13 @@ mod alphabet {
         temp_array_cpy
     }
 
-    pub fn delta(temp_array: consts::ArrTypeRef) -> consts::ArrType {
+    pub fn delta(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut alaf: u16 =
             (temp_array[0] ^ consts::MASK_WORD_FFFZ) % tools::get_8b_prime(temp_array[0]);
         let mut dalat: u16 =
             (temp_array[1] ^ consts::MASK_WORD_FZZF) % tools::get_8b_prime(temp_array[1]);
-        let mut tit: u16 = (temp_array[2] & consts::MASK_WORD_ZFFF) % tools::get_8b_prime(temp_array[2]);
+        let mut tit: u16 =
+            (temp_array[2] & consts::MASK_WORD_ZFFF) % tools::get_8b_prime(temp_array[2]);
         let mut gaman: u16 =
             (temp_array[3] & consts::MASK_WORD_FFZZ) % tools::get_8b_prime(temp_array[3]);
 
@@ -303,7 +374,7 @@ mod alphabet {
         temp_array_cpy
     }
 
-    pub fn theta(temp_array: consts::ArrTypeRef) -> consts::ArrType {
+    pub fn theta(temp_array: types::ArrTypeRef) -> types::ArrType {
         let alef: u16 = temp_array[0] % 2;
         let dalet: u16 = temp_array[1] % 2;
         let tet: u16 = temp_array[2] % 2;
@@ -314,13 +385,15 @@ mod alphabet {
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[0] ^= ((weighted_avg >> gimmel) ^ consts::MASK_WORD_ZZFF) & consts::MASK_WORD_ZZZF;
-        temp_array_cpy[3] ^= ((weighted_med << alef) ^ consts::MASK_WORD_FZFZ) & consts::MASK_WORD_FZZZ;
+        temp_array_cpy[0] ^=
+            ((weighted_avg >> gimmel) ^ consts::MASK_WORD_ZZFF) & consts::MASK_WORD_ZZZF;
+        temp_array_cpy[3] ^=
+            ((weighted_med << alef) ^ consts::MASK_WORD_FZFZ) & consts::MASK_WORD_FZZZ;
 
         temp_array_cpy
     }
 
-    pub fn gamma(temp_array: consts::ArrTypeRef) -> consts::ArrType {
+    pub fn gamma(temp_array: types::ArrTypeRef) -> types::ArrType {
         let (mmin, argmin) = tools::min_and_argmin(temp_array, consts::POX_PORTION_NUM);
         let (mmax, argmax) = tools::max_and_argmax(temp_array, consts::POX_PORTION_NUM);
         let ay = argmin & consts::MASK_NIBBLET_01;
@@ -346,7 +419,7 @@ mod alphabet {
 }
 
 mod round {
-    use super::{alphabet, bits, consts, tools};
+    use super::{alphabet, bits, consts, tools, types};
 
     macro_rules! swap {
         ($arr: ident, $indexof: ident, $indexwith: ident) => {{
@@ -356,7 +429,7 @@ mod round {
         }};
     }
 
-    fn apply_alphabet_operation(temp_array: consts::ArrTypeRef) -> consts::ArrType {
+    fn apply_alphabet_operation(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
         temp_array_cpy = alphabet::alpha(&temp_array_cpy);
         temp_array_cpy = alphabet::delta(&temp_array_cpy);
@@ -365,7 +438,7 @@ mod round {
         temp_array_cpy
     }
 
-    fn apply_prime(temp_array: consts::ArrTypeRef) -> consts::ArrType {
+    fn apply_prime(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
         for i in 0..consts::POX_PRIME_NUM {
             temp_array_cpy[0] ^= consts::POX_PRIMES[i];
@@ -377,9 +450,9 @@ mod round {
     }
 
     fn apply_add_temp_to_facts(
-        factor_array: consts::ArrTypeRef,
-        temp_array: consts::ArrTypeRef,
-    ) -> consts::ArrType {
+        factor_array: types::ArrTypeRef,
+        temp_array: types::ArrTypeRef,
+    ) -> types::ArrType {
         let mut factor_array_cpy = tools::copy_array(factor_array);
         factor_array_cpy[0] = bits::add_with_overflow(factor_array_cpy[0], temp_array[0]);
         factor_array_cpy[1] = bits::add_with_overflow(factor_array_cpy[1], temp_array[1]);
@@ -388,7 +461,7 @@ mod round {
         factor_array_cpy
     }
 
-    fn apply_shuffle(temp_array: consts::ArrTypeRef) -> consts::ArrType {
+    fn apply_shuffle(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
         for i in 0..consts::SIZE_BIONOM {
             let (iof, iwith) = consts::COMB_BIONOM[i];
@@ -397,8 +470,8 @@ mod round {
         temp_array_cpy
     }
 
-    pub fn one_round(factor_array: consts::ArrTypeRef) -> consts::ArrType {
-        let mut temp_array: consts::ArrType = [
+    pub fn one_round(factor_array: types::ArrTypeRef) -> types::ArrType {
+        let mut temp_array: types::ArrType = [
             factor_array[0],
             factor_array[1],
             factor_array[2],
@@ -414,31 +487,36 @@ mod round {
 }
 
 mod block {
-    use super::{consts, round, tools};
+    use super::{consts, round, tools, types};
 
-    fn apply_bytes(factor_array: consts::ArrTypeRef, portion: &[u16]) -> consts::ArrType {
+    fn apply_bytes(factor_array: types::ArrTypeRef, portion: &[u16], index: u16) -> types::ArrType {
         let sum = tools::sum_portion(portion);
         let avg = sum / (consts::POX_PORTION_NUM as u16);
         let med = (sum + 1) / 2;
         let avg_odd_factor = consts::UINT16_MAX_U16 * (avg % 2);
         let med_odd_factor = consts::UINT16_MAX_U16 * (med % 2);
 
+        let ng = ((portion[0] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
+        let chu = ((portion[1] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
+        let yo = ((portion[2] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
+        let eo = ((portion[3] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
+
         let mut factor_array_cpy = tools::copy_array(factor_array);
-        factor_array_cpy[0] ^= (portion[0] + avg) ^ med_odd_factor;
-        factor_array_cpy[1] ^= (portion[1] + med) ^ avg_odd_factor;
-        factor_array_cpy[2] ^= (portion[2] + avg) ^ med_odd_factor;
-        factor_array_cpy[3] ^= (portion[3] + med) ^ avg_odd_factor;
+        factor_array_cpy[ng] ^= (portion[eo] + avg) ^ med_odd_factor;
+        factor_array_cpy[chu] ^= (portion[yo] + med) ^ avg_odd_factor;
+        factor_array_cpy[yo] ^= (portion[chu] + avg) ^ med_odd_factor;
+        factor_array_cpy[eo] ^= (portion[ng] + med) ^ avg_odd_factor;
 
         factor_array_cpy
     }
 
-    pub fn process_block(factor_array: consts::ArrTypeRef, block: &[u16]) -> consts::ArrType {
+    pub fn process_block(factor_array: types::ArrTypeRef, block: &[u16]) -> types::ArrType {
         let mut factor_array_cpy = tools::copy_array(factor_array);
         for i in (0..consts::POX_BLOCK_NUM).step_by(consts::POX_CHUNK_NUM) {
             for j in (i..i + consts::POX_CHUNK_NUM).step_by(consts::POX_PORTION_NUM) {
                 let portion: &[u16] = &[block[j], block[j + 1], block[j + 2], block[j + 3]];
-                for _ in 0..consts::POX_ROUND_NUM {
-                    factor_array_cpy = apply_bytes(&factor_array_cpy, portion);
+                for m in 0..consts::POX_ROUND_NUM {
+                    factor_array_cpy = apply_bytes(&factor_array_cpy, portion, m as u16);
                     factor_array_cpy = round::one_round(&factor_array_cpy);
                 }
             }
@@ -449,6 +527,9 @@ mod block {
 
 pub struct PoxHashTy {
     pub hexdigest: String,
+    pub duodigest: String,
+    pub octdigest: String,
+    pub bindigest: String,
     pub bytes: [u8; 8],
     pub words: [u16; 4],
     pub doubles: [u32; 2],
@@ -469,7 +550,7 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     ///         PoxHashTy.doubles: [u32, 2]
     ///         PoxHashTy.quad: u64
     let padded_u16 = convert::byte_vec_to_word_vec_and_pad(data);
-    let mut factor_array: consts::ArrType = [
+    let mut factor_array: types::ArrType = [
         consts::POX_PRIME_A,
         consts::POX_PRIME_B,
         consts::POX_PRIME_C,
@@ -482,6 +563,9 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     }
 
     let hexdigest = convert::word_array_to_hex_digest(&factor_array);
+    let duodigest = convert::word_array_to_duo_digest(&factor_array);
+    let octdigest = convert::word_array_to_oct_digest(&factor_array);
+    let bindigest = convert::word_array_to_bin_digest(&factor_array);
     let bytes = convert::word_array_to_byte_array(&factor_array);
     let words: [u16; 4] = [
         factor_array[0],
@@ -494,6 +578,9 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
 
     PoxHashTy {
         hexdigest,
+        duodigest,
+        octdigest,
+        bindigest,
         bytes,
         words,
         doubles,

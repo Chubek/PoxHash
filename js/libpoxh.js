@@ -37,7 +37,6 @@ const cPOX_MAGIC_PRIME_NUM = 2;
 const cWORD_WIDTH = 16;
 const cBYTE_WIDTH = 8;
 const cUINT16_MAX = 2 ** 16 - 1;
-const cHEX_SIZE = 4;
 
 const cMASK_DWORD_4F4Z = 0xffff0000;
 const cMASK_DWORD_4Z4F = 0x0000ffff;
@@ -83,6 +82,17 @@ const cHEX_CHARS = [
   "E",
   "F",
 ];
+const cDUO_CHARS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "#"];
+const cOCT_CHARS = ["0", "1", "2", "3", "4", "5", "6", "7"];
+const cBIN_CHARS = ["0", "1", "2"];
+const cHEX_SIZE = 4;
+const cDUO_SIZE = 5;
+const cOCT_SIZE = 6;
+const cBIN_SIZE = 16;
+const cHEX_BASE = 16;
+const cDUO_BASE = 12;
+const cOCT_BASE = 8;
+const cBIN_BASE = 2;
 const cBIONOM_SIZE = 6;
 
 const iDiv = (a, b) => {
@@ -208,24 +218,24 @@ const wordArrayToByteArray = (wordarray) => {
 };
 
 const wordToDouble = (wordA, wordB, dArr, index) => {
-    const wArrD = new Uint32Array([wordA, wordB]);
-    dArr[index] |= wArrD[0];
-    dArr[index] |= wArrD[1] << 16;
-}
+  const wArrD = new Uint32Array([wordA, wordB]);
+  dArr[index] |= wArrD[0];
+  dArr[index] |= wArrD[1] << 16;
+};
 
 const wordArrayToDoubleArray = (wArray) => {
   let dArr = new Uint32Array(2);
   wordToDouble(wArray[0], wArray[1], dArr, 0);
   wordToDouble(wArray[2], wArray[3], dArr, 1);
   return dArr;
-}
+};
 
 const doubleArrayToQuad = (dArr) => {
   let quad = BigInt("0x0000000000000000");
   quad |= BigInt(dArr[0]);
   quad |= BigInt(dArr[1]) << BigInt(32);
   return BigInt.asUintN(64, quad);
-}
+};
 
 const byteArrayToWordArrayAndPad = (bytearr) => {
   let size = bytearr.length;
@@ -267,23 +277,43 @@ const processInput = (input) => {
   return null;
 };
 
-const decimalToHex = (num) => {
-  let ret = "0000";
-  for (let i = 0; i < cHEX_SIZE; i++) {
-    ret = setCharAt(ret, cHEX_SIZE - i - 1, cHEX_CHARS[num % cWORD_WIDTH]);
-    num = iDiv(num, cWORD_WIDTH);
+const convertBaseFromDecimal = (base, size, chars, res, dec, offset) => {
+  for (let i = (size * offset) + size; i >= size * offset; i--) {
+    res[i] = chars[dec % base];
+    dec = iDiv(dec, base);
   }
-
-  return ret;
 };
 
-const wordArrayToHex = (wordarr) => {
-  const hexA = decimalToHex(wordarr[0]);
-  const hexB = decimalToHex(wordarr[1]);
-  const hexC = decimalToHex(wordarr[2]);
-  const hexD = decimalToHex(wordarr[3]);
+const convertWordsToHexDigest = (words) => {
+  let hex = "0".repeat(cHEX_SIZE * cPOX_PORTION_NUM).split('');
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    convertBaseFromDecimal(cHEX_BASE, cHEX_SIZE, cHEX_CHARS, hex, words[i], i);
+  }
+  return hex.join('');
+};
 
-  return `${hexA}${hexB}${hexC}${hexD}`;
+const convertWordsToDuoDigest = (words) => {
+  let duo = "0".repeat(cDUO_SIZE * cPOX_PORTION_NUM).split('');
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    convertBaseFromDecimal(cDUO_BASE, cDUO_SIZE, cDUO_CHARS, duo, words[i], i);
+  }
+  return duo.join('');
+};
+
+const convertWordsToOctDigest = (words) => {
+  let oct = "0".repeat(cOCT_SIZE * cPOX_PORTION_NUM).split('');
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    convertBaseFromDecimal(cOCT_BASE, cOCT_SIZE, cOCT_CHARS, oct, words[i], i);
+  }
+  return oct.join('');
+};
+
+const convertWordsToBinDigest = (words) => {
+  let bin = "0".repeat(cBIN_SIZE * cPOX_PORTION_NUM).split('');
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    convertBaseFromDecimal(cBIN_BASE, cBIN_SIZE, cBIN_CHARS, bin, words[i], i);
+  }
+  return bin.join('');
 };
 
 const get8BPrime = (num) => {
@@ -420,32 +450,49 @@ const poxRound = (factorArray) => {
   poxRoundAddTempsToFacts(factorArray, tempArray);
 };
 
-const poxApplySubportion = (factorArray, subportion) => {
+const poxApplySubportion = (factorArray, subportion, index) => {
   const avgSubportion = iDiv(sumArray(subportion), cPOX_PORTION_NUM);
   const medSubportion = iDiv(sumArray(subportion) + 1, 2);
   const avgOddFactor = cUINT16_MAX * (avgSubportion % 2);
   const medOddFactor = cUINT16_MAX * (medSubportion % 2);
 
-  factorArray[0] ^= (subportion[0] + avgSubportion) ^ medOddFactor;
-  factorArray[1] ^= (subportion[1] + medSubportion) ^ avgOddFactor;
-  factorArray[2] ^= (subportion[2] + avgSubportion) ^ medOddFactor;
-  factorArray[3] ^= (subportion[3] + medSubportion) ^ avgOddFactor;
+  const ng = (subportion[0] + index) % cPOX_PORTION_NUM;
+  const chu = (subportion[1] + index) % cPOX_PORTION_NUM;
+  const yo = (subportion[2] + index) % cPOX_PORTION_NUM;
+  const eo = (subportion[3] + index) % cPOX_PORTION_NUM;
+
+  factorArray[ng] ^= (subportion[eo] + avgSubportion) ^ medOddFactor;
+  factorArray[chu] ^= (subportion[yo] + medSubportion) ^ avgOddFactor;
+  factorArray[yo] ^= (subportion[chu] + avgSubportion) ^ medOddFactor;
+  factorArray[eo] ^= (subportion[ng] + medSubportion) ^ avgOddFactor;
 };
 
 const poxProcessBlock = (factorArray, blockArray) => {
   for (let i = 0; i < cPOX_BLOCK_NUM; i += cPOX_CHUNK_NUM) {
     for (let j = i; j < i + cPOX_CHUNK_NUM; j += cPOX_PORTION_NUM) {
       let subportion = blockArray.subarray(j, j + cPOX_PORTION_NUM);
-      for (let _m = 0; _m < cPOX_ROUND_NUM; _m++) {
-        poxApplySubportion(factorArray, subportion);
+      for (let m = 0; m < cPOX_ROUND_NUM; m++) {
+        poxApplySubportion(factorArray, subportion, m);
         poxRound(factorArray);
       }
     }
   }
 };
 
-function PoxHashTy(hexdigest, bytes, words, doubles, quad) {
+function PoxHashTy(
+  hexdigest,
+  duodigest,
+  octdigest,
+  bindigest,
+  bytes,
+  words,
+  doubles,
+  quad
+) {
   this.hexdigest = hexdigest;
+  this.octdigest = duodigest;
+  this.duodigest = octdigest;
+  this.bindigest = bindigest;
   this.bytes = bytes;
   this.words = words;
   this.doubles = doubles;
@@ -485,12 +532,24 @@ poxHash = (data) => {
     poxProcessBlock(factorArray, portion);
   }
 
-  const hexdigest = wordArrayToHex(factorArray);
+  const hexdigest = convertWordsToHexDigest(factorArray);
+  const duodigest = convertWordsToDuoDigest(factorArray);
+  const octdigest = convertWordsToOctDigest(factorArray);
+  const bindigest = convertWordsToBinDigest(factorArray);
   const bytes = wordArrayToByteArray(factorArray);
   const doubles = wordArrayToDoubleArray(factorArray);
   const quad = doubleArrayToQuad(doubles);
 
-  return new PoxHashTy(hexdigest, bytes, factorArray, doubles, quad);
+  return new PoxHashTy(
+    hexdigest,
+    duodigest,
+    octdigest,
+    bindigest,
+    bytes,
+    factorArray,
+    doubles,
+    quad
+  );
 };
 
 exports.poxHash = poxHash;

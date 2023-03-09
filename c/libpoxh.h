@@ -52,7 +52,14 @@
 
 #define WORD_WIDTH 16
 #define BYTE_WIDTH 8
-#define HEX_SIZE WORD_WIDTH / 4
+#define HEX_SIZE 4
+#define OCT_SIZE 6
+#define DUO_SIZE 5
+#define BIN_SIZE 16
+#define HEX_BASE 16
+#define OCT_BASE 8
+#define DUO_BASE 12
+#define BIN_BASE 2
 #define BYTE_SIZE POX_BLOCK_NUM / 8
 #define SIZE_BIONOM 6
 #define SIZE_WORD_ARR(num) sizeof(uint16_t) * num
@@ -91,6 +98,30 @@ static const char cHEX_CHARS[16] = {
     'E',
     'F',
 };
+static const char cOCT_CHARS[8] = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7'};
+static const char cDUO_CHARS[12] = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '*',
+    '#',
+};
+static const char cBIN_CHARS[2] = {'0', '1'};
 static const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
 static const size_t cCOMB_BIONOM[6][2] = {
     {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}};
@@ -111,15 +142,6 @@ static const uint16_t cPOX_PRIME_D = 0xac8b;
 static inline uint16_t log2n(uint16_t num)
 {
     return (num > 1) ? (1 + log2n(num / 2)) : 0;
-}
-
-static inline void *dec2hex(uint16_t dec, char out[HEX_SIZE])
-{
-    for (int i = 0; i < HEX_SIZE; i++)
-    {
-        out[HEX_SIZE - i - 1] = cHEX_CHARS[dec % WORD_WIDTH];
-        dec /= 16;
-    }
 }
 
 static inline uint16_t *copy_to_temp(uint16_t *src)
@@ -264,30 +286,44 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
     WORD_TO_2BYTE(warr[2], barr[4], barr[5]); \
     WORD_TO_2BYTE(warr[3], barr[6], barr[7]);
 
-#define FACTORS_TO_HEXDIGEST(warr, digest)                                            \
-    char hex[HEX_SIZE];                                                               \
-    for (int __io = 0; __io < POX_PORTION_NUM; __io++)                                \
-    {                                                                                 \
-        dec2hex(warr[__io], hex);                                                     \
-        int __kl = 0;                                                                 \
-        for (int __jo = HEX_SIZE * __io; __jo < (HEX_SIZE * __io) + HEX_SIZE; __jo++) \
-        {                                                                             \
-            digest[__jo] = hex[__kl++];                                               \
-        }                                                                             \
-    }
+#define DECIMAL_TO_BASE(base, size, chars, res, dec, offset)                         \
+    do                                                                               \
+    {                                                                                \
+        int decimal = dec;                                                           \
+        for (int __mx = ((size * offset) + size) - 1; __mx >= size * offset; __mx--) \
+        {                                                                            \
+            res[__mx] = chars[decimal % base];                                       \
+            decimal /= base;                                                         \
+        }                                                                            \
+    } while (0)
 
-#define WORD_TO_DOUBLE_WORD(w1, w2, d) \
-    d |= (uint32_t)w1;                          \
-    d |= ((uint32_t) w2) << 16;
+#define WORD_TO_BASE(words, base, size, chars, res)                     \
+    do                                                                  \
+    {                                                                   \
+        for (int __fx = 0; __fx < POX_PORTION_NUM; __fx++)              \
+        {                                                               \
+            DECIMAL_TO_BASE(base, size, chars, res, words[__fx], __fx); \
+        }                                                               \
+    } while (0)
 
-#define FACTORS_TO_DOUBLEARR(warr, darr)            \
-    WORD_TO_DOUBLE_WORD(warr[0], warr[1], darr[0]); \
-    WORD_TO_DOUBLE_WORD(warr[2], warr[3], darr[1]);
+#define FACTORS_TO_BASEDIGEST(warr, hexdigest, duodigest, octdigest, bindigest) \
+    WORD_TO_BASE(warr, HEX_BASE, HEX_SIZE, cHEX_CHARS, hexdigest);              \
+    WORD_TO_BASE(warr, DUO_BASE, DUO_SIZE, cDUO_CHARS, duodigest);              \
+    WORD_TO_BASE(warr, OCT_BASE, OCT_SIZE, cOCT_CHARS, octdigest);              \
+    WORD_TO_BASE(warr, BIN_BASE, BIN_SIZE, cBIN_CHARS, bindigest);
 
-#define FACTPRS_TO_QUAD(warr, quad) \
-    quad |= (uint64_t)warr[0];                    \
-    quad |= ((uint64_t)warr[1]) << 16;              \
-    quad |= ((uint64_t)warr[2]) << 32;              \
+#define WORD_TO_DUOBLE_WORD(w1, w2, d) \
+    d |= (uint32_t)w1;                 \
+    d |= ((uint32_t)w2) << 16;
+
+#define FACTORS_TO_DUOBLEARR(warr, darr)            \
+    WORD_TO_DUOBLE_WORD(warr[0], warr[1], darr[0]); \
+    WORD_TO_DUOBLE_WORD(warr[2], warr[3], darr[1]);
+
+#define FACTPRS_TO_QUAD(warr, quad)    \
+    quad |= (uint64_t)warr[0];         \
+    quad |= ((uint64_t)warr[1]) << 16; \
+    quad |= ((uint64_t)warr[2]) << 32; \
     quad |= ((uint64_t)warr[3]) << 48;
 
 #define POX_ALPHA(temp_array)                                          \
@@ -411,29 +447,34 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
     POX_ROUND_APPLY_SHUFFLE(temp_array);                                                                         \
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);
 
-#define POX_APPLY_BYTES(factor_array, portion)                             \
-    uint16_t avg, median, odd_factor_avg, odd_factor_med;                  \
-    AVG_PORTION(portion, avg);                                             \
-    MED_PORTION(portion, median);                                          \
-    odd_factor_avg = UINT16_MAX * (avg % 2);                               \
-    odd_factor_med = UINT16_MAX * (median % 2);                            \
-    factor_array[0] ^= (((uint16_t)portion[0]) + avg) ^ odd_factor_med;    \
-    factor_array[1] ^= (((uint16_t)portion[1]) + median) ^ odd_factor_avg; \
-    factor_array[2] ^= (((uint16_t)portion[2]) + avg) ^ odd_factor_med;    \
-    factor_array[3] ^= (((uint16_t)portion[3]) + median) ^ odd_factor_avg;
+#define POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index)        \
+    uint16_t avg, median, odd_factor_avg, odd_factor_med;                     \
+    AVG_PORTION(portion, avg);                                                \
+    MED_PORTION(portion, median);                                             \
+    odd_factor_avg = UINT16_MAX * (avg % 2);                                  \
+    odd_factor_med = UINT16_MAX * (median % 2);                               \
+    ng = (portion[0] + index) % POX_PORTION_NUM;                              \
+    chu = (portion[1] + index) % POX_PORTION_NUM;                             \
+    yo = (portion[2] + index) % POX_PORTION_NUM;                              \
+    eo = (portion[3] + index) % POX_PORTION_NUM;                              \
+    factor_array[ng] ^= (((uint16_t)portion[eo]) + avg) ^ odd_factor_med;     \
+    factor_array[chu] ^= (((uint16_t)portion[yo]) + median) ^ odd_factor_avg; \
+    factor_array[yo] ^= (((uint16_t)portion[chu]) + avg) ^ odd_factor_med;    \
+    factor_array[eo] ^= (((uint16_t)portion[ng]) + median) ^ odd_factor_avg;
 
-#define POX_ROUND_ACTION(factor_array, portion) \
-    POX_APPLY_BYTES(factor_array, portion);     \
+#define POX_ROUND_ACTION(factor_array, portion, ng, chu, yo, eo, index) \
+    POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index);     \
     POX_ROUND(factor_array);
 
-#define POX_PROCESS_APPLY(factor_arry, block_array, portion_array, pstart, pend) \
-    do                                                                           \
-    {                                                                            \
-        COPY_WORDS_TO_SUBARRAY(block_array, portion_array, pstart, pend);        \
-        for (int __ie = 0; __ie < POX_ROUND_NUM; __ie++)                         \
-        {                                                                        \
-            POX_ROUND_ACTION(factor_array, portion_array);                       \
-        }                                                                        \
+#define POX_PROCESS_APPLY(factor_arry, block_array, portion_array, pstart, pend)  \
+    do                                                                            \
+    {                                                                             \
+        int ng, chu, yo, eo;                                                      \
+        COPY_WORDS_TO_SUBARRAY(block_array, portion_array, pstart, pend);         \
+        for (int __ie = 0; __ie < POX_ROUND_NUM; __ie++)                          \
+        {                                                                         \
+            POX_ROUND_ACTION(factor_array, portion_array, ng, chu, yo, eo, __ie); \
+        }                                                                         \
     } while (0)
 
 #define POX_PROCESS_BLOCK(factor_array, data, block_array, portion_array, bstart, bend)                \
@@ -448,23 +489,29 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
 
 typedef struct PoxHashTy
 {
-    char hexdigest[WORD_WIDTH + 1];
+    char hexdigest[(HEX_SIZE * 4) + 1];
+    char duodigest[(DUO_SIZE * 4) + 1];
+    char octdigest[(OCT_SIZE * 4) + 1];
+    char bindigest[(BIN_SIZE * 4) + 1];
     uint8_t bytes[BYTE_SIZE];
     uint16_t words[POX_PORTION_NUM];
     uint32_t doubles[POX_PORTION_NUM / 2];
     uint64_t quad;
 } poxhash_t;
 
-#define INIT_POXHASH(poxhash, factor_array)                      \
-    memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR(WORD_WIDTH + 1)); \
-    memset(poxhash.bytes, 0, SIZE_BYTE_ARR(BYTE_SIZE));          \
-    memset(poxhash.words, 0, SIZE_WORD_ARR(POX_PORTION_NUM));    \
-    memset(poxhash.doubles, 0, sizeof(uint32_t) * 2);              \
-    poxhash.quad = 0;   \
-    FACTORS_TO_HEXDIGEST(factor_array, poxhash.hexdigest);       \
-    FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);             \
-    FACTORS_TO_DOUBLEARR(factor_array, poxhash.doubles);         \
-    FACTPRS_TO_QUAD(factor_array, poxhash.quad);                 \
+#define INIT_POXHASH(poxhash, factor_array)                                                                          \
+    memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR((HEX_SIZE * 4) + 1));                                                 \
+    memset(poxhash.duodigest, 0, SIZE_BYTE_ARR((DUO_SIZE * 4) + 1));                                                 \
+    memset(poxhash.octdigest, 0, SIZE_BYTE_ARR((OCT_SIZE * 4) + 1));                                                 \
+    memset(poxhash.bindigest, 0, SIZE_BYTE_ARR((BIN_SIZE * 4) + 1));                                                 \
+    memset(poxhash.bytes, 0, SIZE_BYTE_ARR(BYTE_SIZE));                                                              \
+    memset(poxhash.words, 0, SIZE_WORD_ARR(POX_PORTION_NUM));                                                        \
+    memset(poxhash.doubles, 0, sizeof(uint32_t) * 2);                                                                \
+    poxhash.quad = 0;                                                                                                \
+    FACTORS_TO_BASEDIGEST(factor_array, poxhash.hexdigest, poxhash.duodigest, poxhash.octdigest, poxhash.bindigest); \
+    FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);                                                                 \
+    FACTORS_TO_DUOBLEARR(factor_array, poxhash.doubles);                                                             \
+    FACTPRS_TO_QUAD(factor_array, poxhash.quad);                                                                     \
     memcpy(poxhash.words, factor_array, SIZE_WORD_ARR(POX_PORTION_NUM));
 
 /**
@@ -475,6 +522,9 @@ typedef struct PoxHashTy
  * Returns:
  *      struct PoxHashTy (poxhash_t)
  *          PoxHashTy.hexdigest: char[17] (null-terminated)
+ *          PoxHashTy.duodigest: char[21] (null-terminated)
+ *          PoxHashTy.octdigest: char[25] (null-terminated)
+ *          PoxHashTy.bindigest: char[65] (null-terminated)
  *          PoxHashTy.bytes: uint8_t[8]
  *          PoxHashTy.words: uint16_t[4]
  *          PoxHashTy.doubles uint32_t[2]
