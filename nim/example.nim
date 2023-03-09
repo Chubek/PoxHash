@@ -15,6 +15,7 @@ echo "Pox (Nim) hashes for passed strings in various forms:"
 var i = 1
 for arg in cmdParams:
   var hash = PoxHash(*arg)
+  var sexdigest = hash.sexdigest
   var hexdigest = hash.hexdigest
   var duodigest = hash.duodigest
   var octdigest = hash.octdigest
@@ -25,6 +26,7 @@ for arg in cmdParams:
   var quad = hash.quad
   print("\n")
   print("\tArg #", i, " as follows\n")
+  print("\t\tsexdigest: ", sexdigest, "\n")
   print("\t\thexdigest: ", hexdigest, "\n")
   print("\t\tduoigest: ", duodigest, "\n")
   print("\t\toctdigest: ", octdigest, "\n")

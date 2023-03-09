@@ -4,6 +4,7 @@ console.log("Pox (JS) hashes for passed strings in various forms:");
 const args = process.argv.slice(2);
 args.forEach((val, index) => {
     const hash = libpoxh.poxHash(val);
+    const sexdigest = hash.sexdigest;
     const hexdigest = hash.hexdigest;
     const duodigest = hash.duodigest;
     const octdigest = hash.octdigest;
@@ -14,6 +15,7 @@ args.forEach((val, index) => {
     const quad = hash.quad;
     console.log("\n");
     console.log(`\tArg #${index + 1} as follows`);
+    console.log(`\t\tsexdigest: ${sexdigest}`);
     console.log(`\t\thexdigest: ${hexdigest}`);
     console.log(`\t\tduodigest: ${duodigest}`);
     console.log(`\t\toctdigest: ${octdigest}`);

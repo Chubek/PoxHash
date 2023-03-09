@@ -5,6 +5,7 @@ if __name__ == "__main__":
     print("Pox (Python) hashes for passed strings in various forms:")
     for i, arg in enumerate(sys.argv[1:]):
         hash = pox_hash(arg.encode())
+        sexdigest = hash.sexdigest
         hexdigest = hash.hexdigest
         duodigest = hash.duodigest
         octdigest = hash.octdigest
@@ -17,6 +18,7 @@ if __name__ == "__main__":
         quad = hash.quad[0]
         print("\n")
         print(f"\tArg #{i + 1} as follows")
+        print(f"\t\tsexdigest: {sexdigest}")
         print(f"\t\thexdigest: {hexdigest}")
         print(f"\t\tduodigest: {duodigest}")
         print(f"\t\toctdigest: {octdigest}")

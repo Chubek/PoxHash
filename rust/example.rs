@@ -6,6 +6,7 @@ fn main() {
     println!("Pox (Rust) hashes for passed strings in various forms:");
     for (i, arg) in (&args[1..]).to_vec().into_iter().enumerate() {
         let hash = pox_hash(arg.as_bytes().to_vec());
+        let sexdigest = hash.sexdigest;
         let hexdigest = hash.hexdigest;
         let duodigest = hash.duodigest;
         let octdigest = hash.octdigest;
@@ -16,6 +17,7 @@ fn main() {
         let quad = hash.quad;
         println!("\n");
         println!("\tArg #{i} as follows");
+        println!("\t\tsexdigest: {sexdigest}");
         println!("\t\thexdigest: {hexdigest}");
         println!("\t\tduodigest: {duodigest}");
         println!("\t\toctdigest: {octdigest}");

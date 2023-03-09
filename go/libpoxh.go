@@ -32,11 +32,13 @@ const (
 	numCOMB_BIONOM = 6
 	numRANGE_ZTF   = 4
 
-	baseHEX_SIZE int    = 4
+	baseSEX_SIZE int    = 3
+	baseHEX_SIZE        = 4
 	baseDUO_SIZE        = 5
 	baseOCT_SIZE        = 6
 	baseBIN_SIZE        = 16
-	baseHEX_NUM  uint16 = 16
+	baseSEX_NUM  uint16 = 60
+	baseHEX_NUM         = 16
 	baseDUO_NUM         = 12
 	baseOCT_NUM         = 8
 	baseBIN_NUM         = 2
@@ -77,6 +79,15 @@ var (
 
 	byteZERO_CHAR byte = 48
 
+	bytesCHAR_SEX = [60]byte{
+		48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+		65, 66, 67, 68, 69, 70, 71, 72, 73, 74,
+		75, 76, 77, 78, 79, 80, 81, 82, 83, 84,
+		85, 86, 87, 88, 89, 90, 97, 98, 99, 100,
+		101, 102, 103, 104, 105, 106, 107, 108,
+		109, 110, 111, 112, 113, 114, 115, 116,
+		117, 118, 119, 120,
+	}
 	bytesCHAR_HEX = [16]byte{
 		48,
 		49,
@@ -310,6 +321,14 @@ func decimalToBase(base, dec uint16, size, offset int, chars, res []byte) {
 		res[i] = chars[dec%base]
 		dec /= base
 	}
+}
+
+func wordArrToSexDigest(wordarr factorType) string {
+	var sex [baseSEX_SIZE * poxPORTION_NUM]byte
+	for i, word := range wordarr {
+		decimalToBase(baseSEX_NUM, word, baseSEX_SIZE, i, bytesCHAR_SEX[:], sex[:])
+	}
+	return string(sex[:])
 }
 
 func wordArrToHexDigest(wordarr factorType) string {
@@ -578,6 +597,7 @@ func poxProcessBlock(factorArray factorType, block blockType) factorType {
 }
 
 type PoxHashTy struct {
+	Sexdigest string    `json:"sexdigest"`
 	Hexdigest string    `json:"hexdigest"`
 	Duodigest string    `json:"duodigest"`
 	Octdigest string    `json:"octdigest"`
@@ -608,6 +628,7 @@ func PoxHash(data []byte) PoxHashTy {
 		factorArray = poxProcessBlock(factorArray, block)
 	}
 
+	sexdigest := wordArrToSexDigest(factorArray)
 	hexdigest := wordArrToHexDigest(factorArray)
 	duodigest := wordArrToDuoDigest(factorArray)
 	octdigest := wordArrToOctDigest(factorArray)
@@ -617,6 +638,7 @@ func PoxHash(data []byte) PoxHashTy {
 	quad := wordToQuad(factorArray[0], factorArray[1], factorArray[2], factorArray[3])
 
 	return PoxHashTy{
+		Sexdigest: sexdigest,
 		Hexdigest: hexdigest,
 		Duodigest: duodigest,
 		Octdigest: octdigest,

@@ -7,6 +7,7 @@ int main(int argc, char **argv)
     for (int i = 1; i < argc; i++)
     {
         poxhash_t hash = pox_hash(argv[i]);
+        char *sexdigest = hash.sexdigest;
         char *hexdigest = hash.hexdigest;
         char *duodigest = hash.duodigest;
         char *octdigest = hash.octdigest;
@@ -17,6 +18,7 @@ int main(int argc, char **argv)
         uint64_t quad = hash.quad;
         printf("\n");
         printf("\tArg #%u as follows\n", i);
+        printf("\t\tsexdigest: %s\n", sexdigest);
         printf("\t\thexdigest: %s\n", hexdigest);
         printf("\t\tduodigest: %s\n", duodigest);
         printf("\t\toctdigest: %s\n", octdigest);

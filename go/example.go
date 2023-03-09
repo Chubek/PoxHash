@@ -10,6 +10,7 @@ func main() {
 	fmt.Println("Pox (Go) hashes for passed strings in various forms:")
 	for i, arg := range os.Args[1:] {
 		hash := libpoxh.PoxHash([]byte(arg))
+		sexdigest := hash.Sexdigest
 		hexdigest := hash.Hexdigest
 		duodigest := hash.Duodigest
 		octdigest := hash.Octdigest
@@ -20,6 +21,7 @@ func main() {
 		quad := hash.Quad
 		fmt.Printf("\n")
         fmt.Printf("\tArg #%d as follows\n", i + 1)
+		fmt.Printf("\t\tsexdigest: %s\n", sexdigest)
         fmt.Printf("\t\thexdigest: %s\n", hexdigest)
 		fmt.Printf("\t\tduodigest: %s\n", duodigest)
         fmt.Printf("\t\toctdigest: %s\n", octdigest)

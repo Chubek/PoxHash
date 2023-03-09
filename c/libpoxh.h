@@ -52,10 +52,12 @@
 
 #define WORD_WIDTH 16
 #define BYTE_WIDTH 8
+#define SEX_SIZE 3
 #define HEX_SIZE 4
 #define OCT_SIZE 6
 #define DUO_SIZE 5
 #define BIN_SIZE 16
+#define SEX_BASE 60
 #define HEX_BASE 16
 #define OCT_BASE 8
 #define DUO_BASE 12
@@ -121,6 +123,69 @@ static const char cDUO_CHARS[12] = {
     '*',
     '#',
 };
+static const char cSEX_CHARS[60] = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+
+};
 static const char cBIN_CHARS[2] = {'0', '1'};
 static const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
 static const size_t cCOMB_BIONOM[6][2] = {
@@ -148,15 +213,6 @@ static inline uint16_t get_8b_prime(uint16_t num)
     return cPOX_8B_PRIMES[remainder];
 }
 
-#define OMEGA(num) \
-    num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH
-
-#define EPSILON(num) \
-    num &= MASK_DWORD_4Z4F
-
-#define LAMED(num, by) \
-    num = (num << by) | (num >> (WORD_WIDTH - by))
-
 #define PAD_SIZE(strsize)                \
     while (strsize % POX_BLOCK_NUM != 0) \
     {                                    \
@@ -178,7 +234,16 @@ static inline uint16_t get_8b_prime(uint16_t num)
         b = __tmp;    \
     } while (0)
 
-#define GORGA(num, by)                     \
+#define OMEGA(num) \
+    num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH
+
+#define EPSILON(num) \
+    num &= MASK_DWORD_4Z4F
+
+#define LAMED(num, by) \
+    num = (num << by) | (num >> (WORD_WIDTH - by))
+
+#define GORDA(num, by)                     \
     do                                     \
     {                                      \
         uint32_t __numcpy = (uint32_t)num; \
@@ -329,10 +394,11 @@ static inline uint16_t get_8b_prime(uint16_t num)
         }                                                               \
     } while (0)
 
-#define FACTORS_TO_BASEDIGEST(warr, hexdigest, duodigest, octdigest, bindigest) \
-    WORD_TO_BASE(warr, HEX_BASE, HEX_SIZE, cHEX_CHARS, hexdigest);              \
-    WORD_TO_BASE(warr, DUO_BASE, DUO_SIZE, cDUO_CHARS, duodigest);              \
-    WORD_TO_BASE(warr, OCT_BASE, OCT_SIZE, cOCT_CHARS, octdigest);              \
+#define FACTORS_TO_BASEDIGEST(warr, sexdigest, hexdigest, duodigest, octdigest, bindigest) \
+    WORD_TO_BASE(warr, SEX_BASE, SEX_SIZE, cSEX_CHARS, sexdigest);                         \
+    WORD_TO_BASE(warr, HEX_BASE, HEX_SIZE, cHEX_CHARS, hexdigest);                         \
+    WORD_TO_BASE(warr, DUO_BASE, DUO_SIZE, cDUO_CHARS, duodigest);                         \
+    WORD_TO_BASE(warr, OCT_BASE, OCT_SIZE, cOCT_CHARS, octdigest);                         \
     WORD_TO_BASE(warr, BIN_BASE, BIN_SIZE, cBIN_CHARS, bindigest);
 
 #define WORD_TO_DUOBLE_WORD(w1, w2, d) \
@@ -366,7 +432,7 @@ static inline uint16_t get_8b_prime(uint16_t num)
     for (int ___qz = 0; ___qz < POX_PORTION_NUM; ___qz++)                                     \
     {                                                                                         \
         alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % POX_SD_PRIME_NUM];                          \
-        GORGA(dalat, 2);                                                                      \
+        GORDA(dalat, 2);                                                                      \
         tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % POX_SD_PRIME_NUM];                           \
         gaman ^= (alaf ^ MASK_WORD_ZZFF) >> cPOX_SINGLE_DIGIT_PRIMES[tit % POX_SD_PRIME_NUM]; \
     }                                                                                         \
@@ -472,28 +538,28 @@ static inline uint16_t get_8b_prime(uint16_t num)
     POX_ROUND_APPLY_SHUFFLE(temp_array);                                                                         \
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);
 
-#define POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index)        \
-    uint16_t portion_unsigned[POX_PORTION_NUM] = {                            \
-        (uint16_t)((uint8_t)portion[0]),                                      \
-        (uint16_t)((uint8_t)portion[1]),                                      \
-        (uint16_t)((uint8_t)portion[2]),                                      \
-        (uint16_t)((uint8_t)portion[3]),                                      \
-    };                                                                        \
-    uint16_t tmt, dca, odd_factor_tmt, odd_factor_dca;                        \
-    tmt = 0;                                                                  \
-    dca = 0;                                                                  \
-    TAMAAM(portion_unsigned, tmt);                                            \
-    DECA(portion_unsigned, dca);                                              \
-    odd_factor_tmt = UINT16_MAX * (tmt % 2);                                  \
-    odd_factor_dca = UINT16_MAX * (dca % 2);                                  \
-    ng = (portion_unsigned[0] + index) % POX_PORTION_NUM;                     \
-    chu = (portion_unsigned[1] + index) % POX_PORTION_NUM;                    \
-    yo = (portion_unsigned[2] + index) % POX_PORTION_NUM;                     \
-    eo = (portion_unsigned[3] + index) % POX_PORTION_NUM;                     \
-    factor_array[ng] ^= (portion_unsigned[eo] | tmt) ^ odd_factor_dca;        \
-    factor_array[chu] ^= (portion_unsigned[yo] & dca) ^ odd_factor_tmt;       \
-    factor_array[yo] ^= (portion_unsigned[chu] ^ tmt) ^ odd_factor_dca;       \
-    factor_array[eo] ^= (portion_unsigned[ng] | dca) ^ odd_factor_tmt;       
+#define POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index)  \
+    uint16_t portion_unsigned[POX_PORTION_NUM] = {                      \
+        (uint16_t)((uint8_t)portion[0]),                                \
+        (uint16_t)((uint8_t)portion[1]),                                \
+        (uint16_t)((uint8_t)portion[2]),                                \
+        (uint16_t)((uint8_t)portion[3]),                                \
+    };                                                                  \
+    uint16_t tmt, dca, odd_factor_tmt, odd_factor_dca;                  \
+    tmt = 0;                                                            \
+    dca = 0;                                                            \
+    TAMAAM(portion_unsigned, tmt);                                      \
+    DECA(portion_unsigned, dca);                                        \
+    odd_factor_tmt = UINT16_MAX * (tmt % 2);                            \
+    odd_factor_dca = UINT16_MAX * (dca % 2);                            \
+    ng = (portion_unsigned[0] + index) % POX_PORTION_NUM;               \
+    chu = (portion_unsigned[1] + index) % POX_PORTION_NUM;              \
+    yo = (portion_unsigned[2] + index) % POX_PORTION_NUM;               \
+    eo = (portion_unsigned[3] + index) % POX_PORTION_NUM;               \
+    factor_array[ng] ^= (portion_unsigned[eo] | tmt) ^ odd_factor_dca;  \
+    factor_array[chu] ^= (portion_unsigned[yo] & dca) ^ odd_factor_tmt; \
+    factor_array[yo] ^= (portion_unsigned[chu] ^ tmt) ^ odd_factor_dca; \
+    factor_array[eo] ^= (portion_unsigned[ng] | dca) ^ odd_factor_tmt;
 
 #define POX_ROUND_ACTION(factor_array, portion, ng, chu, yo, eo, index) \
     POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index);     \
@@ -522,6 +588,7 @@ static inline uint16_t get_8b_prime(uint16_t num)
 
 typedef struct PoxHashTy
 {
+    char sexdigest[(SEX_SIZE * 4) + 1];
     char hexdigest[(HEX_SIZE * 4) + 1];
     char duodigest[(DUO_SIZE * 4) + 1];
     char octdigest[(OCT_SIZE * 4) + 1];
@@ -532,19 +599,20 @@ typedef struct PoxHashTy
     uint64_t quad;
 } poxhash_t;
 
-#define INIT_POXHASH(poxhash, factor_array)                                                                          \
-    memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR((HEX_SIZE * 4) + 1));                                                 \
-    memset(poxhash.duodigest, 0, SIZE_BYTE_ARR((DUO_SIZE * 4) + 1));                                                 \
-    memset(poxhash.octdigest, 0, SIZE_BYTE_ARR((OCT_SIZE * 4) + 1));                                                 \
-    memset(poxhash.bindigest, 0, SIZE_BYTE_ARR((BIN_SIZE * 4) + 1));                                                 \
-    memset(poxhash.bytes, 0, SIZE_BYTE_ARR(BYTE_SIZE));                                                              \
-    memset(poxhash.words, 0, SIZE_WORD_ARR(POX_PORTION_NUM));                                                        \
-    memset(poxhash.doubles, 0, sizeof(uint32_t) * 2);                                                                \
-    poxhash.quad = 0;                                                                                                \
-    FACTORS_TO_BASEDIGEST(factor_array, poxhash.hexdigest, poxhash.duodigest, poxhash.octdigest, poxhash.bindigest); \
-    FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);                                                                 \
-    FACTORS_TO_DUOBLEARR(factor_array, poxhash.doubles);                                                             \
-    FACTPRS_TO_QUAD(factor_array, poxhash.quad);                                                                     \
+#define INIT_POXHASH(poxhash, factor_array)                                                                                             \
+    memset(poxhash.sexdigest, 0, SIZE_BYTE_ARR((SEX_SIZE * 4) + 1));                                                                    \
+    memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR((HEX_SIZE * 4) + 1));                                                                    \
+    memset(poxhash.duodigest, 0, SIZE_BYTE_ARR((DUO_SIZE * 4) + 1));                                                                    \
+    memset(poxhash.octdigest, 0, SIZE_BYTE_ARR((OCT_SIZE * 4) + 1));                                                                    \
+    memset(poxhash.bindigest, 0, SIZE_BYTE_ARR((BIN_SIZE * 4) + 1));                                                                    \
+    memset(poxhash.bytes, 0, SIZE_BYTE_ARR(BYTE_SIZE));                                                                                 \
+    memset(poxhash.words, 0, SIZE_WORD_ARR(POX_PORTION_NUM));                                                                           \
+    memset(poxhash.doubles, 0, sizeof(uint32_t) * 2);                                                                                   \
+    poxhash.quad = 0;                                                                                                                   \
+    FACTORS_TO_BASEDIGEST(factor_array, poxhash.sexdigest, poxhash.hexdigest, poxhash.duodigest, poxhash.octdigest, poxhash.bindigest); \
+    FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);                                                                                    \
+    FACTORS_TO_DUOBLEARR(factor_array, poxhash.doubles);                                                                                \
+    FACTPRS_TO_QUAD(factor_array, poxhash.quad);                                                                                        \
     memcpy(poxhash.words, factor_array, SIZE_WORD_ARR(POX_PORTION_NUM));
 
 /**

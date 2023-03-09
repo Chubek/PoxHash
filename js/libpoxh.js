@@ -64,6 +64,68 @@ const cCOMB_BIONOM = [
   [2, 3],
 ];
 const cRANGE_ZTG = [0, 1, 2, 3];
+const cSEX_CHARS = [
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+  "Q",
+  "R",
+  "S",
+  "T",
+  "U",
+  "V",
+  "W",
+  "X",
+  "Y",
+  "Z",
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+];
 const cHEX_CHARS = [
   "0",
   "1",
@@ -85,10 +147,12 @@ const cHEX_CHARS = [
 const cDUO_CHARS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "#"];
 const cOCT_CHARS = ["0", "1", "2", "3", "4", "5", "6", "7"];
 const cBIN_CHARS = ["0", "1", "2"];
+const cSEX_SIZE = 3;
 const cHEX_SIZE = 4;
 const cDUO_SIZE = 5;
 const cOCT_SIZE = 6;
 const cBIN_SIZE = 16;
+const cSEX_BASE = 60;
 const cHEX_BASE = 16;
 const cDUO_BASE = 12;
 const cOCT_BASE = 8;
@@ -299,10 +363,18 @@ const processInput = (input) => {
 };
 
 const convertBaseFromDecimal = (base, size, chars, res, dec, offset) => {
-  for (let i = size * offset + size; i >= size * offset; i--) {
+  for (let i = ((size * offset) + size) - 1; i >= size * offset; i--) {
     res[i] = chars[dec % base];
     dec = iDiv(dec, base);
   }
+};
+
+const convertWordsToSexDigest = (words) => {
+  let sex = "0".repeat(cSEX_SIZE * cPOX_PORTION_NUM).split("");
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    convertBaseFromDecimal(cSEX_BASE, cSEX_SIZE, cSEX_CHARS, sex, words[i], i);
+  }
+  return sex.join("");
 };
 
 const convertWordsToHexDigest = (words) => {
@@ -489,6 +561,7 @@ const poxProcessBlock = (factorArray, blockArray) => {
 };
 
 function PoxHashTy(
+  sexdigest,
   hexdigest,
   duodigest,
   octdigest,
@@ -498,6 +571,7 @@ function PoxHashTy(
   doubles,
   quad
 ) {
+  this.sexdigest = sexdigest;
   this.hexdigest = hexdigest;
   this.octdigest = duodigest;
   this.duodigest = octdigest;
@@ -540,7 +614,7 @@ poxHash = (data) => {
     const portion = processedInput.subarray(i, i + cPOX_BLOCK_NUM);
     poxProcessBlock(factorArray, portion);
   }
-
+  const sexdigest = convertWordsToSexDigest(factorArray);
   const hexdigest = convertWordsToHexDigest(factorArray);
   const duodigest = convertWordsToDuoDigest(factorArray);
   const octdigest = convertWordsToOctDigest(factorArray);
@@ -550,6 +624,7 @@ poxHash = (data) => {
   const quad = doubleArrayToQuad(doubles);
 
   return new PoxHashTy(
+    sexdigest,
     hexdigest,
     duodigest,
     octdigest,

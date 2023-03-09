@@ -62,22 +62,29 @@ mod consts {
         &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
     pub const SIZE_BIONOM: usize = 6;
 
+    pub const SEX_SIZE: usize = 3;
     pub const HEX_SIZE: usize = 4;
     pub const DUO_SIZE: usize = 5;
     pub const OCT_SIZE: usize = 6;
     pub const BIN_SIZE: usize = 16;
+    pub const SEX_BASE: u16 = 60;
     pub const HEX_BASE: u16 = 16;
     pub const DUO_BASE: u16 = 12;
     pub const OCT_BASE: u16 = 8;
     pub const BIN_BASE: u16 = 2;
 
-    pub const HEX_CHARS: &'static [char] = &[
+    pub const SEX_CHARS: [char; 60] = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x',
+    ];
+    pub const HEX_CHARS: [char; 16] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     ];
-    pub const DUO_CHARS: &'static [char] =
-        &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#'];
-    pub const OCT_CHARS: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7'];
-    pub const BIN_CHARS: &'static [char] = &['0', '1'];
+    pub const DUO_CHARS: [char; 12] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#'];
+    pub const OCT_CHARS: [char; 8] = ['0', '1', '2', '3', '4', '5', '6', '7'];
+    pub const BIN_CHARS: [char; 2] = ['0', '1'];
 }
 
 mod types {
@@ -87,7 +94,7 @@ mod types {
 
 mod tools {
     use super::{consts, types};
-  
+
     pub fn max_and_argmax(arr: types::ArrTypeRef, size_arr: usize) -> (u16, usize) {
         let mut curr_max = arr[0];
         let mut curr_index = 0usize;
@@ -254,6 +261,22 @@ mod convert {
         [lower, upper]
     }
 
+    pub fn word_array_to_sex_digest(word_array: types::ArrTypeRef) -> String {
+        let mut digest = vec!['0'; consts::SEX_SIZE * consts::POX_PORTION_NUM];
+        for i in 0..consts::POX_PORTION_NUM {
+            let word = word_array[i];
+            convert_decimal_to_base! {
+                consts::SEX_BASE,
+                consts::SEX_SIZE,
+                consts::SEX_CHARS,
+                digest,
+                word,
+                i
+            }
+        }
+        return digest.into_iter().collect();
+    }
+
     pub fn word_array_to_hex_digest(word_array: types::ArrTypeRef) -> String {
         let mut digest = vec!['0'; consts::HEX_SIZE * consts::POX_PORTION_NUM];
         for i in 0..consts::POX_PORTION_NUM {
@@ -401,10 +424,8 @@ mod alphabet {
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[0] ^=
-            ((ctm >> gimmel) ^ consts::MASK_WORD_ZZFF) & consts::MASK_WORD_ZZZF;
-        temp_array_cpy[3] ^=
-            ((stm << alef) ^ consts::MASK_WORD_FZFZ) & consts::MASK_WORD_FZZZ;
+        temp_array_cpy[0] ^= ((ctm >> gimmel) ^ consts::MASK_WORD_ZZFF) & consts::MASK_WORD_ZZZF;
+        temp_array_cpy[3] ^= ((stm << alef) ^ consts::MASK_WORD_FZFZ) & consts::MASK_WORD_FZZZ;
 
         temp_array_cpy
     }
@@ -503,13 +524,13 @@ mod round {
 }
 
 mod block {
-    use super::{consts, round, tools, types, bits};
+    use super::{bits, consts, round, tools, types};
 
     fn apply_bytes(factor_array: types::ArrTypeRef, portion: &[u16], index: u16) -> types::ArrType {
-       let tmt = bits::tamaam(portion);
-       let dca = bits::deca(portion);
-       let tmt_odd_factor = consts::UINT16_MAX_U16 * (tmt % 2);
-       let dca_odd_factor = consts::UINT16_MAX_U16 * (dca % 2);
+        let tmt = bits::tamaam(portion);
+        let dca = bits::deca(portion);
+        let tmt_odd_factor = consts::UINT16_MAX_U16 * (tmt % 2);
+        let dca_odd_factor = consts::UINT16_MAX_U16 * (dca % 2);
 
         let ng = ((portion[0] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
         let chu = ((portion[1] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
@@ -541,6 +562,7 @@ mod block {
 }
 
 pub struct PoxHashTy {
+    pub sexdigest: String,
     pub hexdigest: String,
     pub duodigest: String,
     pub octdigest: String,
@@ -577,6 +599,7 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
             block::process_block(&factor_array, &padded_u16[i..i + consts::POX_BLOCK_NUM]);
     }
 
+    let sexdigest = convert::word_array_to_sex_digest(&factor_array);
     let hexdigest = convert::word_array_to_hex_digest(&factor_array);
     let duodigest = convert::word_array_to_duo_digest(&factor_array);
     let octdigest = convert::word_array_to_oct_digest(&factor_array);
@@ -592,6 +615,7 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     let quad = convert::word_array_to_quad(&factor_array);
 
     PoxHashTy {
+        sexdigest,
         hexdigest,
         duodigest,
         octdigest,

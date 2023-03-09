@@ -59,6 +59,69 @@ __MASK_NIBBLET_11 = 0b11
 __MASK_NIBBLET_00 = 0b00
 
 __COMB_BIONOM = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+
+__SEX_CHARS = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+]
 __HEX_CHARS = [
     '0',
     '1',
@@ -95,19 +158,17 @@ __DUO_CHARS = [
 ]
 __BIN_CHARS = ['0', '1']
 
+__SEX_SIZE = 3
 __HEX_SIZE = 4
 __DUO_SIZE = 5
 __OCT_SIZE = 6
 __BIN_SIZE = 16
 
+__SEX_BASE = 60
 __HEX_BASE = 16
 __DUO_BASE = 12
 __OCT_BASE = 8
 __BIN_BASE = 2
-
-
-def __debug(array: __array):
-    print(array[0], array[1], array[2], array[3])
 
 
 def __omega(res_array: __array) -> None:
@@ -122,7 +183,7 @@ def __lamed(res_array: __array, by: int) -> None:
     res_array[0] = (res_array[0] << by) | (res_array[0] >> (__WORD_WIDTH - by))
 
 
-def __gora(num: int, by: int) -> __array:
+def __gorda(num: int, by: int) -> __array:
     res_array = __array('I', [num])
     __lamed(res_array, by)
 
@@ -303,6 +364,13 @@ def __pox_factors_to_hex_digest(factor_array: __array) -> str:
     return ''.join(hex)
 
 
+def __pox_factors_to_sex_digest(factor_array: __array) -> str:
+    sex = ['0'] * (__SEX_SIZE * __POX_PORTION_NUM)
+    for i, factor in enumerate(factor_array):
+        __dec_to_base(__SEX_SIZE, __SEX_BASE, __SEX_CHARS, sex, factor, i)
+    return ''.join(sex)
+
+
 def __pox_factors_to_byte_array(factor_array: __array) -> __array:
     ret = []
     for word in factor_array:
@@ -332,7 +400,7 @@ def __pox_delta(temp_array: __array) -> None:
 
     for _ in range(__POX_PORTION_NUM):
         alaf >>= __POX_SINGLE_DIGIT_PRIMES[dalat % __POX_SD_PRIME_NUM]
-        dalat = __gora(dalat, 2)[0]
+        dalat = __gorda(dalat, 2)[0]
         tit >>= __POX_SINGLE_DIGIT_PRIMES[gaman % __POX_SD_PRIME_NUM]
         gaman ^= (alaf ^ __MASK_WORD_ZZFF
                   ) >> __POX_SINGLE_DIGIT_PRIMES[tit % __POX_SD_PRIME_NUM]
@@ -423,22 +491,18 @@ def __pox_round(factor_array: __array) -> None:
 
 def __pox_apply_bytes(factor_array: __array, subportion: __array,
                       index: int) -> None:
-    __debug(factor_array)
     tmt = __tamaam(subportion)
     dca = __deca(subportion)
     tmt_odd_factor = __UINT16_MAX * (tmt % 2)
     dca_odd_factor = __UINT16_MAX * (dca % 2)
-    print(tmt, dca)
     ng = (subportion[0] + index) % __POX_PORTION_NUM
     chu = (subportion[1] + index) % __POX_PORTION_NUM
     yo = (subportion[2] + index) % __POX_PORTION_NUM
     eo = (subportion[3] + index) % __POX_PORTION_NUM
-    print(ng, chu, yo, eo)
     factor_array[ng] ^= (subportion[eo] | tmt) ^ dca_odd_factor
     factor_array[chu] ^= (subportion[yo] & dca) ^ tmt_odd_factor
     factor_array[yo] ^= (subportion[chu] ^ tmt) ^ dca_odd_factor
     factor_array[eo] ^= (subportion[ng] | dca) ^ tmt_odd_factor
-    __debug(factor_array)
 
 
 def __pox_process_block(factor_array: __array, block: list[int]) -> None:
@@ -471,10 +535,11 @@ class PoxHashTy:
     doubles: array
     quad: array
 
-    def __init__(self, hexdgest: str, duodigest: str, octdigest: str,
-                 bindigest: str, bytes: array, words: array, doubles: array,
-                 quad: array) -> None:
-        self.hexdigest = hexdgest
+    def __init__(self, sexdigest: str, hexdigest: str, duodigest: str,
+                 octdigest: str, bindigest: str, bytes: array, words: array,
+                 doubles: array, quad: array) -> None:
+        self.sexdigest = sexdigest
+        self.hexdigest = hexdigest
         self.duodigest = duodigest
         self.octdigest = octdigest
         self.bindigest = bindigest
@@ -513,6 +578,7 @@ def pox_hash(data: bytearray) -> PoxHashTy:
     for block in blocks:
         __pox_process_block(factor_array, block)
 
+    sexdigest = __pox_factors_to_sex_digest(factor_array)
     hexdigest = __pox_factors_to_hex_digest(factor_array)
     duodigest = __pox_factors_to_duo_digest(factor_array)
     octdigest = __pox_factors_to_oct_digest(factor_array)
@@ -521,7 +587,8 @@ def pox_hash(data: bytearray) -> PoxHashTy:
     doubles = __pox_factors_to_doubles(factor_array)
     quad = __pox_factor_doubles_to_quad(doubles)
 
-    return PoxHashTy(hexdgest=hexdigest,
+    return PoxHashTy(sexdigest=sexdigest,
+                     hexdigest=hexdigest,
                      duodigest=duodigest,
                      octdigest=octdigest,
                      bindigest=bindigest,

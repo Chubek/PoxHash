@@ -61,6 +61,9 @@ const MASK_WORD_00 = 0b00u16
 
 const COMB_BIONOM = @[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 
+const SEX_CHARS: array[60, char] = [
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
+]
 const HEX_CHARS: array[16, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     ]
@@ -74,10 +77,12 @@ const BIN_CHARS: array[2, char] = [
     '0', '1',
     ]
 
+const SEX_SIZE = 3
 const HEX_SIZE = 4
 const DUO_SIZE = 5
 const OCT_SIZE = 6
 const BIN_SIZE = 16
+const SEX_BASE: uint16 = 60
 const HEX_BASE: uint16 = 16
 const DUO_BASE: uint16 = 12
 const OCT_BASE: uint16 = 8
@@ -312,6 +317,13 @@ proc wordArrToQuad(warr: FactorArray): uint64 =
     result |= (^^^^*warr[2]) << 32
     result |= (^^^^*warr[3]) << 48
 
+proc wordArrayToSexDigest(warr: FactorArray): string =
+    var sex = newString(SEX_SIZE * POX_PORTION_NUM)
+    for i in ...POX_PORTION_NUM:
+        var word = warr[i]
+        convertBasesFromDecimal(SEX_BASE, SEX_SIZE, SEX_CHARS, word, sex, i)
+    return sex
+
 proc wordArrayToHexDigest(warr: FactorArray): string =
     var hex = newString(HEX_SIZE * POX_PORTION_NUM)
     for i in ...POX_PORTION_NUM:
@@ -499,6 +511,7 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
 
 type
     PoxHashTy* = object
+        sexdigest*: string
         hexdigest*: string
         duodigest*: string
         octdigest*: string
@@ -528,6 +541,7 @@ proc PoxHash*(data: ByteSeq): PoxHashTy =
         (padded, i) ---> blockArray
         poxProcessBlock(factorArray, blockArray)
 
+    var sexdigest = wordArrayToSexDigest(factorArray)
     var hexdigest = wordArrayToHexDigest(factorArray)
     var duodigest = wordArrayToDuoDigest(factorArray)
     var octdigest = wordArrayToOctDigest(factorArray)
@@ -538,6 +552,7 @@ proc PoxHash*(data: ByteSeq): PoxHashTy =
 
     var ret: PoxHashTy
     ret = PoxHashTy(
+            sexdigest: sexdigest,
             hexdigest: hexdigest, 
             duodigest: duodigest,
             octdigest: octdigest,
