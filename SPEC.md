@@ -3,15 +3,26 @@
 
 ## Overview
 
-PoxHash is a block hashing algorithm by the author of this document, Chubak Bidpaa (Chubak#7400 on Discord) that focuses on possible universality and irreversibility. Speed was not a factor in design of PoxHash. However the implementations in this repository are fast enough.
+PoxHash is a 64bit block hashing algorithm by the author of this document that focuses on possible universality and irreversibility. Speed was not a factor in design of PoxHash. However the implementations in this repository are fast enough.
+
 
 Pox accepts byte buffers but it operates on words. Some implementations cast the bytes into uint16 before the rounds start, but some implementations such as C cast them in-action. 
 
-There are 4 word facors at play in Pox. All the factors are initialized with 4 different randomly-chosen uint16 prime numbers. Prime numbers play a large role in Pox, as we'll see.
+Pox starts off with four randomly selected words that are prime in decimal, and continues to operate on them until these factors have been scrambled enough.
 
-A Pox round is comprised of 4 operations. The *Alphabet Operation*, the *Prime Apply Operation*, the *Shuffle Operation* and the *Addition with Special Overflow* operation. Each of these will be explained soon.
+The final digest of PoxHash can be represented as a string digest of various non-decimal bases (especially hexadecimal), 8 byte-size integers, 4 word-sized integers, 2 double-sized integers and finally a single quad-size integer.
 
-Each round is applied to each 4 byte of the passed buffer a total of 8 times. The block size is 64 bytes and each block is split into 4 portions of 16 in size. So in other words, The byte buffer (after being padded with 0s so the size would be divisible by 64) is split into blocks of 64, and each block is split into chunks of 16, and each chunk is split up into portions of 4, and each of these portions is put through the round 8 times.
+Note that integers should be treated as little-endian.
+
+The input to PoxHash can be in any bit alignment, but the implementation has to convert all given data to word-size integers, signed or unsigned (prefrably unsigned!) so there won't be any issues applying the input data to our 4 'factor' words.
+
+A Pox round is comprised of 4 operations. The *Alphabet Operation*, the *Prime Apply Operation*, the *Shuffle Operation* and the *Addition with Special Overflow* operation. Each of these will be explained soon. 
+
+Before the round starts, a *Data Application* operation takes an equally-sized portion of the block, that is, 4 bytes of 64 bytes in the block and applies to the the factors through an operation which we will explain soon.
+
+The block size is 64 bytes and each block is split into 4 portions of 16 in size. So in other words, The byte buffer (after being padded with 0s so the size would be divisible by 64) is split into blocks of 64, and each block is split into chunks of 16, and each chunk is split up into portions of 4, and each of these portions is put through the round 8 times.
+
+The padded zeros DO affect the hash in some way. Say, for example, the data you wanna hash has 61 bytes. So 3 zeros are added. Those zeros make an effect. But if you data is 57 bytes. Then, only the padding zeros from 58 to 60 affect the hash, and zeros 60 to 64 don't.
 
 Pox uses a special operation to apply byte portion to factors, as we'll see. After the blocks have ran, the factors can be converted into bytes, hexdigest, or used raw. All the implementations in this repository pass an object that has all these 3.
 
@@ -288,5 +299,35 @@ Delta operation is defined as below.
             tit = SHR(tit, [...]SD_PRIMES[MOD(gaman, #SD_PRIME_NUM)])
             gaman = XOR(gaman, SHR(XOR(alaf, @WORD_ZZFF), [...]SD_PRIMES[MOD(tit, $SD_PRIME_NUM)]))
 
-        
+        $tmpF[1] = XOR($tmpF[1], MOD($tmpF[2], [...]MAGIC_PRIMES[MOD(alaf, #MAG_PRIME_NUM)]))
+        $tmpF[2] = XOR($tmpF[2], ADD(alaf, tit))
+        $tmpF[3] = XOR($tmpF[3], ADD(tit, gaman))
+```
+
+### Theta
+
+This operation is defined as below.
+
+```
+($tmpF: WordArray)THETA =
+    $alef = MOD($tmpF[0], 2)
+    $dalet = MOD($tmpF[1], 2)
+    $tet = MOD($tmpF[2], 2)
+    $gimmel = MOD($tmpF[3], 2)
+
+    $weightedAvg = WEIGHTED_AVERAGE($tmpF.tolist(),  list of (alef, dalet, tet, gimmel))
+
+    $weightedMed = WEIGHTED_MEDIAN($tmpF.tolist(), list of (alef, dalet, tet, gimmel))
+
+    $tmpF[0] = XOR($tmpF[0], (AND(XOR(SHR($weightedAvg, gimmel)), @WORD_ZZFF)), @WORD_ZZZF))
+    $tmpF[3] = XOR($tmpF[3], (AND(XOR(SHL($weightedMed, alef)), @WORD_FZFZ)), @WORD_FZZZ)))
+```
+
+# Gamma
+
+This operation is defined as below:
+
+```
+
+
 ```
