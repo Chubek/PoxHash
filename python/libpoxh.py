@@ -380,12 +380,12 @@ def __pox_factors_to_byte_array(factor_array: __array) -> __array:
 
 def __pox_alpha(temp_array: __array) -> None:
     aleph = (temp_array[0] ^ temp_array[1]) & __MASK_WORD_ZZFF
-    theh = (temp_array[2] ^ temp_array[3]) & __MASK_WORD_FFZZ
-    daal = (aleph | theh) % __POX_8B_PRIMES[0]
-    gaaf = (aleph ^ theh) % __POX_8B_PRIMES[1]
+    daal = (temp_array[2] ^ temp_array[3]) & __MASK_WORD_FFZZ
+    theh = (aleph | daal) % __POX_8B_PRIMES[0]
+    gaaf = (aleph ^ daal) % __POX_8B_PRIMES[1]
 
-    temp_array[0] >>= daal
-    temp_array[1] >>= ((daal + gaaf) % 2) + 1
+    temp_array[0] >>= theh
+    temp_array[1] >>= ((theh + gaaf) % 2) + 1
     temp_array[2] >>= gaaf
 
 

@@ -417,11 +417,11 @@ static inline uint16_t get_8b_prime(uint16_t num)
 
 #define POX_ALPHA(temp_array)                                          \
     uint16_t aleph = (temp_array[0] ^ temp_array[1]) & MASK_WORD_ZZFF; \
-    uint16_t theh = (temp_array[2] ^ temp_array[3]) & MASK_WORD_FFZZ;  \
-    uint16_t daal = (aleph | theh) % cPOX_8B_PRIMES[0];                \
-    uint16_t gaaf = (aleph ^ theh) % cPOX_8B_PRIMES[1];                \
-    temp_array[0] >>= daal;                                            \
-    temp_array[1] >>= ((daal + gaaf) % 2) + 1;                         \
+    uint16_t daal = (temp_array[2] ^ temp_array[3]) & MASK_WORD_FFZZ;  \
+    uint16_t theh = (aleph | daal) % cPOX_8B_PRIMES[0];                \
+    uint16_t gaaf = (aleph ^ daal) % cPOX_8B_PRIMES[1];                \
+    temp_array[0] >>= theh;                                            \
+    temp_array[1] >>= ((theh + gaaf) % 2) + 1;                         \
     temp_array[2] >>= gaaf;
 
 #define POX_DELTA(temp_array)                                                                 \

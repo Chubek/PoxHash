@@ -369,14 +369,14 @@ mod alphabet {
 
     pub fn alpha(temp_array: types::ArrTypeRef) -> types::ArrType {
         let aleph: u16 = (temp_array[0] ^ temp_array[1]) & consts::MASK_WORD_ZZFF;
-        let theh: u16 = (temp_array[2] ^ temp_array[3]) & consts::MASK_WORD_FFZZ;
-        let daal: u16 = (aleph | theh) % consts::POX_8B_PRIMES[0];
-        let gaaf: u16 = (aleph ^ theh) % consts::POX_8B_PRIMES[1];
+        let daal: u16 = (temp_array[2] ^ temp_array[3]) & consts::MASK_WORD_FFZZ;
+        let theh: u16 = (aleph | daal) % consts::POX_8B_PRIMES[0];
+        let gaaf: u16 = (aleph ^ daal) % consts::POX_8B_PRIMES[1];
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[0] >>= daal;
-        temp_array_cpy[1] >>= ((daal + gaaf) % 2) + 1;
+        temp_array_cpy[0] >>= theh;
+        temp_array_cpy[1] >>= ((theh + gaaf) % 2) + 1;
         temp_array_cpy[2] >>= gaaf;
 
         temp_array_cpy

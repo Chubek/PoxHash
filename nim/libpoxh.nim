@@ -364,17 +364,17 @@ proc log2N(num: uint16): uint16 =
 proc poxAlpha(tempArray: var FactorArray) =
     var 
       aleph: uint16
-      theh: uint16
       daal: uint16
+      theh: uint16
       gaaf: uint16
 
     aleph = (tempArray[0] ^ tempArray[1]) & MASK_WORD_ZZFF
-    theh = (tempArray[2] ^ tempArray[3]) & MASK_WORD_FFZZ
-    daal = (aleph | theh) % POX_8B_PRIMES[0]
-    gaaf = (aleph ^ theh) % POX_8B_PRIMES[1]
+    daal = (tempArray[2] ^ tempArray[3]) & MASK_WORD_FFZZ
+    theh = (aleph | daal) % POX_8B_PRIMES[0]
+    gaaf = (aleph ^ daal) % POX_8B_PRIMES[1]
 
-    tempArray[0] >>= daal
-    tempArray[1] >>= ((daal + gaaf) % 2) + 1
+    tempArray[0] >>= theh
+    tempArray[1] >>= ((theh + gaaf) % 2) + 1
     tempArray[2] >>= gaaf
 
 proc poxDelta(tempArray: var FactorArray) =

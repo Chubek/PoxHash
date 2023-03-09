@@ -420,12 +420,12 @@ const log2N = (num) => {
 
 const poxAlpha = (tempArray) => {
   const aleph = (tempArray[0] ^ tempArray[1]) & cMASK_WORD_ZZFF;
-  const theh = (tempArray[2] ^ tempArray[3]) & cMASK_WORD_FFZZ;
-  const daal = (aleph | theh) % cPOX_8B_PRIMES[0];
-  const gaaf = (aleph ^ theh) % cPOX_8B_PRIMES[1];
+  const daal = (tempArray[2] ^ tempArray[3]) & cMASK_WORD_FFZZ;
+  const theh = (aleph | daal) % cPOX_8B_PRIMES[0];
+  const gaaf = (aleph ^ daal) % cPOX_8B_PRIMES[1];
 
-  tempArray[0] >>= daal;
-  tempArray[1] >>= ((daal + gaaf) % 2) + 1;
+  tempArray[0] >>= theh;
+  tempArray[1] >>= ((theh + gaaf) % 2) + 1;
   tempArray[2] >>= gaaf;
 };
 

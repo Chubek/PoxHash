@@ -419,17 +419,17 @@ func newFactorArray() factorType {
 }
 
 func poxAlpha(tempArray factorType) factorType {
-	var aleph, theh, daal, gaaf uint16 = 0, 0, 0, 0
+	var aleph, daal, theh, gaaf uint16 = 0, 0, 0, 0
 
 	aleph = (tempArray[0] ^ tempArray[1]) & maskWORD_ZZFF
-	theh = (tempArray[2] ^ tempArray[3]) & maskWORD_FFZZ
-	daal = (aleph | theh) % pox8BPRIMES[0]
-	gaaf = (aleph ^ theh) % pox8BPRIMES[1]
+	daal = (tempArray[2] ^ tempArray[3]) & maskWORD_FFZZ
+	theh = (aleph | daal) % pox8BPRIMES[0]
+	gaaf = (aleph ^ daal) % pox8BPRIMES[1]
 
 	tempArrayCpy := copyWordArray(tempArray)
 
-	tempArrayCpy[0] >>= daal
-	tempArrayCpy[1] >>= ((daal + gaaf) % 2) + 1
+	tempArrayCpy[0] >>= theh
+	tempArrayCpy[1] >>= ((theh + gaaf) % 2) + 1
 	tempArrayCpy[2] >>= gaaf
 
 	return tempArrayCpy
