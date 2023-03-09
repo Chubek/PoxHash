@@ -10,7 +10,7 @@ package libpoxh
 const (
 	poxBLOCK_NUM       int = 64
 	pox8B_PRIME_NUM        = 54
-	poxPRIME_INIT_NUM           = 32
+	poxROUND_PRIME_NUM     = 32
 	poxCHUNK_NUM           = 16
 	poxROUND_NUM           = 8
 	poxPORTION_NUM         = 4
@@ -62,7 +62,7 @@ const (
 )
 
 var (
-	poxROUND_PRIMES = [poxPRIME_INIT_NUM]uint16{0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
+	poxROUND_PRIMES = [poxROUND_PRIME_NUM]uint16{0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
 		0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
 		0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
 		0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549}
@@ -515,7 +515,7 @@ func poxRoundApplyAlphabet(tempArray factorType) factorType {
 
 func poxRoundApplyPrime(tempArray factorType) factorType {
 	tempArrayCpy := copyWordArray(tempArray)
-	for i := 0; i < poxPRIME_INIT_NUM; i++ {
+	for i := 0; i < poxROUND_PRIME_NUM; i++ {
 		tempArrayCpy[0] ^= poxROUND_PRIMES[i]
 		tempArrayCpy[1] &= poxROUND_PRIMES[i]
 		tempArrayCpy[2] ^= poxROUND_PRIMES[i]

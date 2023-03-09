@@ -23,7 +23,7 @@
 
 #define POX_BLOCK_NUM 64
 #define POX_8B_PRIME_NUM 54
-#define POX_PRIME_INIT_NUM 32
+#define POX_ROUND_PRIME_NUM 32
 #define POX_CHUNK_NUM 16
 #define POX_ROUND_NUM 8
 #define POX_PORTION_NUM 4
@@ -69,7 +69,7 @@
 #define SIZE_BYTE_ARR(num) sizeof(char) * num
 #define SIZE_BYTE sizeof(char)
 
-static const uint16_t cPOX_ROUND_PRIMES[POX_PRIME_INIT_NUM] = {
+static const uint16_t cPOX_ROUND_PRIMES[POX_ROUND_PRIME_NUM] = {
     0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
     0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
     0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
@@ -508,7 +508,7 @@ static inline uint16_t get_8b_prime(uint16_t num)
     } while (0)
 
 #define POX_ROUND_APPLY_PRIME(temp_array)               \
-    for (int __iw = 0; __iw < POX_PRIME_INIT_NUM; __iw++)    \
+    for (int __iw = 0; __iw < POX_ROUND_PRIME_NUM; __iw++)    \
     {                                                   \
         POX_APPLY_PRIME(temp_array, cPOX_ROUND_PRIMES[__iw]); \
     }

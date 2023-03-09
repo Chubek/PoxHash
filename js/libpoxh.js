@@ -26,8 +26,8 @@ const cPOX_PRIME_INIT_C = 0xc091;
 const cPOX_PRIME_INIT_D = 0xac8b;
 
 const cPOX_BLOCK_NUM = 64;
-const cPOX_NUM_8B_PRIME = 54;
-const cPOX_NUM_PRIME = 32;
+const cPOX_8B_PRIME_NUM = 54;
+const cPOX_ROUND_PRIME_NUM = 32;
 const cPOX_CHUNK_NUM = 16;
 const cPOX_ROUND_NUM = 8;
 const cPOX_PORTION_NUM = 4;
@@ -410,7 +410,7 @@ const convertWordsToBinDigest = (words) => {
 };
 
 const get8BPrime = (num) => {
-  const remainder = num % cPOX_NUM_8B_PRIME;
+  const remainder = num % cPOX_8B_PRIME_NUM;
   return cPOX_8B_PRIMES[remainder];
 };
 
@@ -494,7 +494,7 @@ const poxRoundApplyAlphabet = (tempArray) => {
 };
 
 const poxRoundApplyPrime = (tempArray) => {
-  for (let i = 0; i < cPOX_NUM_PRIME; i++) {
+  for (let i = 0; i < cPOX_ROUND_PRIME_NUM; i++) {
     tempArray[0] ^= cPOX_ROUND_PRIMES[i];
     tempArray[1] &= cPOX_ROUND_PRIMES[i];
     tempArray[2] ^= cPOX_ROUND_PRIMES[i];

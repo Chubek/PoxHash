@@ -28,7 +28,7 @@ const POX_PRIME_INIT_D = 0xac8bu16
 
 const POX_BLOCK_NUM = 64
 const POX_8BPRIME_NUM = 54
-const POX_PRIME_INIT_NUM  = 32
+const POX_ROUND_PRIME_NUM  = 32
 const POX_CHUNK_NUM = 16
 const POX_ROUND_NUM = 8
 const POX_PORTION_NUM = 4
@@ -455,7 +455,7 @@ proc poxRoundApplyAlphabet(tempArray: var FactorArray) =
     poxGamma(tempArray)
 
 proc poxRoundApplyPrime(tempArray: var FactorArray) =
-    for i in ...POX_PRIME_INIT_NUM:
+    for i in ...POX_ROUND_PRIME_NUM:
         tempArray[0] ^= POX_ROUND_PRIMES[i]
         tempArray[1] &= POX_ROUND_PRIMES[i]
         tempArray[2] ^= POX_ROUND_PRIMES[i]
