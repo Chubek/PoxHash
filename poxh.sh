@@ -25,7 +25,7 @@ help() {
 }
 
 wrong_arg() {
-    echo "${RED}Wrong argument number!${NC}"
+    echo "Wrong argument number!$"
     exit 1;
 }
 
@@ -52,7 +52,7 @@ check_language() {
 case "$#" in
     0) help;;
     1) if [[ "${1}" == "-h" ]]; then help; else wrong_arg; fi;;
-    *)
+    *)  
         language=$1 && shift
         check_language
         sudo chmod +x $language/poxh.sh && $language/poxh.sh $@
