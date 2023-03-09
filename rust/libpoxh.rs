@@ -87,15 +87,7 @@ mod types {
 
 mod tools {
     use super::{consts, types};
-
-    pub fn sum_portion(arr: types::ArrTypeRef) -> u16 {
-        let mut sum = arr[0];
-        for i in 1..consts::POX_PORTION_NUM {
-            sum += arr[i];
-        }
-        sum
-    }
-
+  
     pub fn max_and_argmax(arr: types::ArrTypeRef, size_arr: usize) -> (u16, usize) {
         let mut curr_max = arr[0];
         let mut curr_index = 0usize;
@@ -149,20 +141,20 @@ mod bits {
         num & consts::MASK_DWORD_4Z4F
     }
 
-    fn lamed(num: u32, by: u32) -> u32 {
+    fn ladca(num: u32, by: u32) -> u32 {
         (num << by) | (num >> (consts::WORD_WIDTH_U32 - by))
     }
 
-    pub fn rotate_left(num: u16, by: u32) -> u16 {
+    pub fn gorda(num: u16, by: u32) -> u16 {
         let mut res = num as u32;
-        res = lamed(res, by);
+        res = ladca(res, by);
         if res > consts::UINT16_MAX_U32 {
             res = omega(res);
         }
         res as u16
     }
 
-    pub fn add_with_overflow(a: u16, b: u16) -> u16 {
+    pub fn tasu(a: u16, b: u16) -> u16 {
         let (aa, bb) = (a as u32, b as u32);
 
         let mut a_plus_b: u32 = (aa + bb) as u32;
@@ -172,28 +164,52 @@ mod bits {
         a_plus_b as u16
     }
 
-    pub fn weighted_average(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
-        let mut wavg = 0u32;
+    pub fn centum(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
+        let mut wtmt = 0u32;
         for i in 0..consts::POX_PORTION_NUM {
-            wavg += (arr[i] * weights[i]) as u32;
+            wtmt += (arr[i] * weights[i]) as u32;
         }
-        wavg /= consts::POX_PORTION_NUM as u32;
-        if wavg > consts::UINT16_MAX_U32 {
-            wavg = omega(wavg);
+        wtmt /= consts::POX_PORTION_NUM as u32;
+        if wtmt > consts::UINT16_MAX_U32 {
+            wtmt = omega(wtmt);
         }
-        wavg as u16
+        wtmt as u16
     }
 
-    pub fn weighted_median(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
-        let mut wmed = 0u32;
+    pub fn satum(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
+        let mut wdca = 0u32;
         for i in 0..consts::POX_PORTION_NUM {
-            wmed += (arr[i] * weights[i]) as u32;
+            wdca += (arr[i] * weights[i]) as u32;
         }
-        wmed = (wmed + 1) / 2;
-        if wmed > consts::UINT16_MAX_U32 {
-            wmed = epsilon(wmed);
+        wdca = (wdca + 1) / 2;
+        if wdca > consts::UINT16_MAX_U32 {
+            wdca = epsilon(wdca);
         }
-        wmed as u16
+        wdca as u16
+    }
+
+    pub fn tamaam(arr: &[u16]) -> u16 {
+        let mut wtmt = 0u32;
+        for i in 0..consts::POX_PORTION_NUM {
+            wtmt += arr[i] as u32;
+        }
+        wtmt /= consts::POX_PORTION_NUM as u32;
+        if wtmt > consts::UINT16_MAX_U32 {
+            wtmt = omega(wtmt);
+        }
+        wtmt as u16
+    }
+
+    pub fn deca(arr: &[u16]) -> u16 {
+        let mut wdca = 0u32;
+        for i in 0..consts::POX_PORTION_NUM {
+            wdca += arr[i] as u32;
+        }
+        wdca = (wdca + 1) / 2;
+        if wdca > consts::UINT16_MAX_U32 {
+            wdca = epsilon(wdca);
+        }
+        wdca as u16
     }
 }
 
@@ -356,7 +372,7 @@ mod alphabet {
         for _ in 0..consts::POX_PORTION_NUM {
             alaf >>= consts::POX_SINGLE_DIGIT_PRIMES
                 [(dalat % (consts::POX_SD_PRIME_NUM as u16)) as usize];
-            dalat = bits::rotate_left(dalat, 2);
+            dalat = bits::gorda(dalat, 2);
             tit >>= consts::POX_SINGLE_DIGIT_PRIMES
                 [(gaman % (consts::POX_SD_PRIME_NUM as u16)) as usize];
             gaman ^= (alaf ^ consts::MASK_WORD_ZZFF)
@@ -380,15 +396,15 @@ mod alphabet {
         let tet: u16 = temp_array[2] % 2;
         let gimmel: u16 = temp_array[3] % 2;
 
-        let weighted_avg: u16 = bits::weighted_average(temp_array, &[alef, dalet, tet, gimmel]);
-        let weighted_med: u16 = bits::weighted_median(temp_array, &[alef, dalet, tet, gimmel]);
+        let ctm: u16 = bits::centum(temp_array, &[alef, dalet, tet, gimmel]);
+        let stm: u16 = bits::satum(temp_array, &[alef, dalet, tet, gimmel]);
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
         temp_array_cpy[0] ^=
-            ((weighted_avg >> gimmel) ^ consts::MASK_WORD_ZZFF) & consts::MASK_WORD_ZZZF;
+            ((ctm >> gimmel) ^ consts::MASK_WORD_ZZFF) & consts::MASK_WORD_ZZZF;
         temp_array_cpy[3] ^=
-            ((weighted_med << alef) ^ consts::MASK_WORD_FZFZ) & consts::MASK_WORD_FZZZ;
+            ((stm << alef) ^ consts::MASK_WORD_FZFZ) & consts::MASK_WORD_FZZZ;
 
         temp_array_cpy
     }
@@ -454,10 +470,10 @@ mod round {
         temp_array: types::ArrTypeRef,
     ) -> types::ArrType {
         let mut factor_array_cpy = tools::copy_array(factor_array);
-        factor_array_cpy[0] = bits::add_with_overflow(factor_array_cpy[0], temp_array[0]);
-        factor_array_cpy[1] = bits::add_with_overflow(factor_array_cpy[1], temp_array[1]);
-        factor_array_cpy[2] = bits::add_with_overflow(factor_array_cpy[2], temp_array[2]);
-        factor_array_cpy[3] = bits::add_with_overflow(factor_array_cpy[3], temp_array[3]);
+        factor_array_cpy[0] = bits::tasu(factor_array_cpy[0], temp_array[0]);
+        factor_array_cpy[1] = bits::tasu(factor_array_cpy[1], temp_array[1]);
+        factor_array_cpy[2] = bits::tasu(factor_array_cpy[2], temp_array[2]);
+        factor_array_cpy[3] = bits::tasu(factor_array_cpy[3], temp_array[3]);
         factor_array_cpy
     }
 
@@ -487,14 +503,13 @@ mod round {
 }
 
 mod block {
-    use super::{consts, round, tools, types};
+    use super::{consts, round, tools, types, bits};
 
     fn apply_bytes(factor_array: types::ArrTypeRef, portion: &[u16], index: u16) -> types::ArrType {
-        let sum = tools::sum_portion(portion);
-        let avg = sum / (consts::POX_PORTION_NUM as u16);
-        let med = (sum + 1) / 2;
-        let avg_odd_factor = consts::UINT16_MAX_U16 * (avg % 2);
-        let med_odd_factor = consts::UINT16_MAX_U16 * (med % 2);
+       let tmt = bits::tamaam(portion);
+       let dca = bits::deca(portion);
+       let tmt_odd_factor = consts::UINT16_MAX_U16 * (tmt % 2);
+       let dca_odd_factor = consts::UINT16_MAX_U16 * (dca % 2);
 
         let ng = ((portion[0] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
         let chu = ((portion[1] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
@@ -502,10 +517,10 @@ mod block {
         let eo = ((portion[3] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
 
         let mut factor_array_cpy = tools::copy_array(factor_array);
-        factor_array_cpy[ng] ^= (portion[eo] + avg) ^ med_odd_factor;
-        factor_array_cpy[chu] ^= (portion[yo] + med) ^ avg_odd_factor;
-        factor_array_cpy[yo] ^= (portion[chu] + avg) ^ med_odd_factor;
-        factor_array_cpy[eo] ^= (portion[ng] + med) ^ avg_odd_factor;
+        factor_array_cpy[ng] ^= (portion[eo] | tmt) ^ dca_odd_factor;
+        factor_array_cpy[chu] ^= (portion[yo] & dca) ^ tmt_odd_factor;
+        factor_array_cpy[yo] ^= (portion[chu] ^ tmt) ^ dca_odd_factor;
+        factor_array_cpy[eo] ^= (portion[ng] | dca) ^ tmt_odd_factor;
 
         factor_array_cpy
     }

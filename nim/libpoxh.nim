@@ -87,7 +87,7 @@ type
     FactorArray = array[POX_PORTION_NUM, uint16]
     BlockArray = array[POX_BLOCK_NUM, uint16]
     PortionArray = array[POX_PORTION_NUM, uint16]
-    InputSeq = seq[byte]
+    ByteSeq = seq[byte]
     WordSeq = seq[uint16]
 
 template `<->`(a, b: untyped): untyped =
@@ -114,6 +114,8 @@ proc `^^^^*`[T](a: T): uint64 =  cast[uint64](a)
 proc `^^^^`[T](a: T): uint32 =  cast[uint32](a)
 proc `^^`[T](a: T): uint16 =  cast[uint16](a)
 proc `^`[T](a: T): uint8 = cast[uint8](a)
+proc `^-`[T](a: T): int8 = cast[int8](a)
+
 
 proc `++`(a: var int) = inc a
 proc `--`(a: var int) = dec a
@@ -163,17 +165,13 @@ iterator enumerate[T](sequence: seq[T]): (int, T) =
     for i in ...sequence.len:
         yield (i, sequence[i])
 
-proc `+++`(arr: PortionArray): uint16 =
-    for i in ...POX_PORTION_NUM:
-        result += arr[i]
-
 proc `--->`(sequence: var WordSeq, len: int) = 
     for _ in ...len:
         sequence.add(0u16)
 
-proc `--->`(wseq: var WordSeq, bseq: InputSeq) =
+proc `--->`(wseq: var WordSeq, bseq: ByteSeq) =
     for (i, b) in enumerate(bseq):
-        wseq[i] = ^^b
+        wseq[i] = ^^(^(^-b))
 
 proc `--->`(arr1: FactorArray, arr2: var FactorArray) =
     for i in ...POX_PORTION_NUM:
@@ -182,7 +180,7 @@ proc `--->`(arr1: FactorArray, arr2: var FactorArray) =
 proc `--->`(wseqAndStart: (WordSeq, int), blockArray: var BlockArray) =
     var startIndex = wseqAndStart[1]
     var j = 0
-    for i in startIndex...POX_BLOCK_NUM:
+    for i in startIndex..+POX_BLOCK_NUM:
         blockArray[j] = wseqAndStart[0][i]
         ++j
 
@@ -204,52 +202,71 @@ template convertBasesFromDecimal(base, size, chars, decimal, res, offset: untype
 
 proc omega(num: uint32): uint32 = (num & MASK_DWORD_4F4Z) >> (BIT_WORD_WIDTH_U32)
 proc epsilon(num: uint32): uint32 = num & MASK_DWORD_4Z4F
-proc lamed(num: uint32, by: uint32): uint32 = (num << by) | (num >> (BIT_WORD_WIDTH_U32 - by))
+proc ladca(num: uint32, by: uint32): uint32 = (num << by) | (num >> (BIT_WORD_WIDTH_U32 - by))
 
-proc `<<<`(num, by: uint16): uint16 =
+proc gorda(num, by: uint16): uint16 =
     var res = ^^^^num
     var byd = ^^^^by
-    res = lamed(res, byd)
+    res = ladca(res, byd)
 
     if res > BIT_UINT16_MAX_U32:
         res = omega(res)
 
     result = ^^res 
 
-proc `<<<=`(num: var uint16, by: uint16) = num = num <<< by
-
-proc `+=`(a: var FactorArray, b: (FactorArray, int)) =
-    var index = b[1]
-    var aa = ^^^^a[index]
-    var bb = ^^^^b[0][index]
+proc tasu(factorArray: var FactorArray, tempArray: FactorArray, i: int) =
+    var aa = ^^^^factorArray[i]
+    var bb = ^^^^tempArray[i]
     var a_plus_b = aa + bb
 
     if a_plus_b > BIT_UINT16_MAX_U32:
         a_plus_b = epsilon(a_plus_b)
 
-    a[index] = ^^a_plus_b
+    factorArray[i] = ^^a_plus_b
 
-proc weightedAverage(factors: FactorArray, weights: PortionArray): uint16 =
-    var wavg = 0u32
+proc centum(factors: FactorArray, weights: PortionArray): uint16 =
+    var ctm = 0u32
     for i in ...POX_PORTION_NUM:
-        wavg += ^^^^factors[i] * ^^^^weights[i]
+        ctm += ^^^^factors[i] * ^^^^weights[i]
 
-    wavg //= POX_PORTION_NUM
-    if wavg > BIT_UINT16_MAX_U32:
-        wavg = omega(wavg)
+    ctm //= POX_PORTION_NUM
+    if ctm > BIT_UINT16_MAX_U32:
+        ctm = omega(ctm)
 
-    result = ^^wavg
+    result = ^^ctm
     
-proc weightedMedian(factors: FactorArray, weights: PortionArray): uint16 =
-    var wmed = 0u32
+proc satum(factors: FactorArray, weights: PortionArray): uint16 =
+    var stm = 0u32
     for i in ...POX_PORTION_NUM:
-        wmed += ^^^^factors[i] * ^^^^weights[i]
+        stm += ^^^^factors[i] * ^^^^weights[i]
 
-    wmed = (wmed + 1) // 2
-    if wmed > BIT_UINT16_MAX_U32:
-        wmed = epsilon(wmed)
+    stm = (stm + 1) // 2
+    if stm > BIT_UINT16_MAX_U32:
+        stm = epsilon(stm)
 
-    result = ^^wmed
+    result = ^^stm
+
+proc tamaam(factors: FactorArray): uint16 =
+    var tmt = 0u32
+    for i in ...POX_PORTION_NUM:
+        tmt += ^^^^factors[i]
+
+    tmt //= POX_PORTION_NUM
+    if tmt > BIT_UINT16_MAX_U32:
+        tmt = omega(tmt)
+
+    result = ^^tmt
+    
+proc deca(factors: FactorArray): uint16 =
+    var dca = 0u32
+    for i in ...POX_PORTION_NUM:
+        dca += ^^^^factors[i]
+
+    dca = (dca + 1) // 2
+    if dca > BIT_UINT16_MAX_U32:
+        dca = epsilon(dca)
+
+    result = ^^dca
 
 proc minAndArgMin(factors: FactorArray): (uint16, uint16) =
     var currMin = factors[0]
@@ -323,7 +340,7 @@ proc wordArrayToBinDigest(warr: FactorArray): string =
         convertBasesFromDecimal(BIN_BASE, BIN_SIZE, BIN_CHARS, word, bin, i)
     return bin
 
-proc byteArrayToPortionArrayAndPad(barray: InputSeq): WordSeq =
+proc byteArrayToPortionArrayAndPad(barray: ByteSeq): WordSeq =
     var length = barray.len
     while ^^^^length % POX_BLOCK_NUM != 0: ++length
     result ---> length
@@ -362,7 +379,7 @@ proc poxDelta(tempArray: var FactorArray) =
 
     for _ in ...POX_PORTION_NUM:
         alaf >>=  POX_SINGLE_DIGIT_PRIMES[dalat % POX_SD_PRIME_NUM]
-        dalat <<<= 2
+        dalat = gorda(dalat, 2)
         tit >>=  POX_SINGLE_DIGIT_PRIMES[gaman % POX_SD_PRIME_NUM]
         gaman ^= (alaf ^  MASK_WORD_ZZFF) >>  POX_SINGLE_DIGIT_PRIMES[tit % POX_SD_PRIME_NUM]
     
@@ -376,19 +393,19 @@ proc poxTheta(tempArray: var FactorArray) =
         dalet: uint16
         tet: uint16
         gimmel: uint16
-        wavg: uint16
-        wmed: uint16
+        ctm: uint16
+        stm: uint16
 
     alef = tempArray[0] % 2
     dalet = tempArray[1] % 2
     tet = tempArray[2] % 2
     gimmel = tempArray[3] % 2
 
-    wavg = weightedAverage(tempArray, [alef, dalet, tet, gimmel])
-    wmed = weightedMedian(tempArray, [alef, dalet, tet, gimmel])
+    ctm = centum(tempArray, [alef, dalet, tet, gimmel])
+    stm = satum(tempArray, [alef, dalet, tet, gimmel])
 
-    tempArray[0] ^= ((wavg >> gimmel) ^ MASK_WORD_ZZFF) & MASK_WORD_ZZZF
-    tempArray[3] ^= ((wmed << alef) ^ MASK_WORD_FZFZ) & MASK_WORD_FZZZ
+    tempArray[0] ^= ((ctm >> gimmel) ^ MASK_WORD_ZZFF) & MASK_WORD_ZZZF
+    tempArray[3] ^= ((stm << alef) ^ MASK_WORD_FZFZ) & MASK_WORD_FZZZ
 
 proc poxGamma(tempArray: var FactorArray) =
     var 
@@ -438,7 +455,7 @@ proc poxRoundApplyShuffle(tempArray: var FactorArray) =
 
 proc poxRoundApplyAddition(factorArray: var FactorArray, tempArray: FactorArray) =
     for i in ...POX_PORTION_NUM:
-        factorArray += (tempArray, i)
+        tasu(factorArray, tempArray, i)
 
 proc poxRound(factorArray: var FactorArray) = 
     var tempArray: FactorArray
@@ -450,28 +467,25 @@ proc poxRound(factorArray: var FactorArray) =
 
 proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray, index: uint16) =
     var 
-        avg: uint16
-        med: uint16
-        sum: uint16
-        avgOddFactor: uint16
-        medOddFactor: uint16
-
-    sum = +++portion
-    avg = sum // POX_PORTION_NUM
-    med = (sum + 1) // 2
-
-    avgOddFactor = BIT_UINT16_MAX_U16 * (avg % 2)
-    medOddFactor = BIT_UINT16_MAX_U16 * (med % 2)    
+        tmt: uint16
+        dca: uint16
+        tmtOddFactor: uint16
+        dcaOddFactor: uint16
+    
+    tmt = tamaam(portion)
+    dca = deca(portion)    
+    tmtOddFactor = BIT_UINT16_MAX_U16 * (tmt % 2)
+    dcaOddFactor = BIT_UINT16_MAX_U16 * (dca % 2)    
 
     var ng = (portion[0] + index) % POX_PORTION_NUM
     var chu = (portion[1] + index) % POX_PORTION_NUM
     var yo = (portion[2] + index) % POX_PORTION_NUM
     var eo = (portion[3] + index) % POX_PORTION_NUM 
 
-    factorArray[ng] ^= (portion[eo] + avg) ^ medOddFactor
-    factorArray[chu] ^= (portion[yo] + med) ^ avgOddFactor
-    factorArray[yo] ^= (portion[chu] + avg) ^ medOddFactor
-    factorArray[eo] ^= (portion[ng] + med) ^ avgOddFactor
+    factorArray[ng] ^= (portion[eo] | tmt) ^ dcaOddFactor
+    factorArray[chu] ^= (portion[yo] & dca) ^ tmtOddFactor
+    factorArray[yo] ^= (portion[chu] ^ tmt) ^ dcaOddFactor
+    factorArray[eo] ^= (portion[ng] | dca) ^ tmtOddFactor
 
 proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
     var portion: PortionArray
@@ -482,7 +496,6 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
             for m in ...POX_ROUND_NUM:
                 poxApplyByte(factorArray, portion, ^^m)
                 poxRound(factorArray)
-
 
 type
     PoxHashTy* = object
@@ -495,7 +508,7 @@ type
         doubles*: array[2, uint32]
         quad*: uint64
 
-proc PoxHash*(data: InputSeq): PoxHashTy =
+proc PoxHash*(data: ByteSeq): PoxHashTy =
     ## Converts the given byte seq into a PoxHashTy object
     ## Parameters:
     ##       data: seq[byte]

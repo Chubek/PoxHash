@@ -130,15 +130,6 @@ static const uint16_t cPOX_PRIME_B = 0xdb3b;
 static const uint16_t cPOX_PRIME_C = 0xc091;
 static const uint16_t cPOX_PRIME_D = 0xac8b;
 
-#define OMEGA(num) \
-    num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH
-
-#define EPSILON(num) \
-    num &= MASK_DWORD_4Z4F
-
-#define LAMED(num, by) \
-    num = (num << by) | (num >> (WORD_WIDTH - by))
-
 static inline uint16_t log2n(uint16_t num)
 {
     return (num > 1) ? (1 + log2n(num / 2)) : 0;
@@ -157,43 +148,14 @@ static inline uint16_t get_8b_prime(uint16_t num)
     return cPOX_8B_PRIMES[remainder];
 }
 
-static inline uint16_t sum_portion(char *arr)
-{
-    uint16_t sum = 0;
-    for (int i = 0; i < POX_PORTION_NUM; i++)
-        sum += arr[i];
-    return sum;
-}
+#define OMEGA(num) \
+    num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH
 
-static inline uint16_t weighted_avg(uint16_t arr[POX_PORTION_NUM], uint16_t weights[POX_PORTION_NUM])
-{
-    uint16_t result = 0;
-    for (int i = 0; i < POX_PORTION_NUM; i++)
-    {
-        result += arr[i] * weights[i];
-    }
+#define EPSILON(num) \
+    num &= MASK_DWORD_4Z4F
 
-    result /= POX_PORTION_NUM;
-    if (result > UINT16_MAX)
-        OMEGA(result);
-
-    return (uint16_t)result;
-}
-
-static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weights[POX_PORTION_NUM])
-{
-    uint32_t result = 0;
-    for (int i = 0; i < POX_PORTION_NUM; i++)
-    {
-        result += arr[i] * weights[i];
-    }
-
-    result = (result + 1) / 2;
-    if (result > UINT16_MAX)
-        EPSILON(result);
-
-    return (uint16_t)result;
-}
+#define LAMED(num, by) \
+    num = (num << by) | (num >> (WORD_WIDTH - by))
 
 #define PAD_SIZE(strsize)                \
     while (strsize % POX_BLOCK_NUM != 0) \
@@ -216,14 +178,19 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
         b = __tmp;    \
     } while (0)
 
-#define BITWISE_ROTATE_LEFT(num, by) \
-    LAMED(num, by);                  \
-    if (num > UINT16_MAX)            \
-    {                                \
-        OMEGA(num);                  \
-    }
+#define GORGA(num, by)                     \
+    do                                     \
+    {                                      \
+        uint32_t __numcpy = (uint32_t)num; \
+        LAMED(__numcpy, by);               \
+        if (__numcpy > UINT16_MAX)         \
+        {                                  \
+            OMEGA(__numcpy);               \
+        }                                  \
+        num = (uint16_t)__numcpy;          \
+    } while (0)
 
-#define ADD_WITH_OVERFLOW(a, b, ptr)             \
+#define TASU(a, b, ptr)                          \
     do                                           \
     {                                            \
         uint32_t __a_ttb = (uint32_t)a;          \
@@ -238,19 +205,75 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
     bytelow = word & MASK_WORD_ZZFF;           \
     bytehigh = (word & MASK_WORD_FFZZ) >> BYTE_WIDTH;
 
-#define AVG_PORTION(arr, res)            \
-    do                                   \
-    {                                    \
-        uint16_t sum = sum_portion(arr); \
-        res = sum / POX_PORTION_NUM;     \
+#define SUM_DOUBLE(array, double, size)         \
+    do                                          \
+    {                                           \
+        for (int __kz = 0; __kz < size; __kz++) \
+        {                                       \
+            double += array[__kz];              \
+        }                                       \
     } while (0)
 
-#define MED_PORTION(arr, res)                \
-    do                                       \
-    {                                        \
-        uint16_t sum = sum_portion(arr) + 1; \
-        res = sum / 2;                       \
-    } while (0);
+#define SUM_DOUBLE_WEIGHTS(array, weights, double, size) \
+    do                                                   \
+    {                                                    \
+        for (int __kz = 0; __kz < size; __kz++)          \
+        {                                                \
+            double += array[__kz] * weights[__kz];       \
+        }                                                \
+    } while (0)
+
+#define CENTUM(arr, weights, res)                               \
+    do                                                          \
+    {                                                           \
+        uint32_t sum = 0;                                       \
+        SUM_DOUBLE_WEIGHTS(arr, weights, sum, POX_PORTION_NUM); \
+        sum /= POX_PORTION_NUM;                                 \
+        if (sum > UINT16_MAX)                                   \
+        {                                                       \
+            OMEGA(sum);                                         \
+        }                                                       \
+        res = (uint16_t)sum;                                    \
+    } while (0)
+
+#define SATEM(arr, weights, res)                                \
+    do                                                          \
+    {                                                           \
+        uint32_t sum = 0;                                       \
+        SUM_DOUBLE_WEIGHTS(arr, weights, sum, POX_PORTION_NUM); \
+        sum = (sum + 1) / 2;                                    \
+        if (sum > UINT16_MAX)                                   \
+        {                                                       \
+            EPSILON(sum);                                       \
+        }                                                       \
+        res = (uint16_t)sum;                                    \
+    } while (0)
+
+#define TAMAAM(arr, res)                       \
+    do                                         \
+    {                                          \
+        uint32_t sum = 0;                      \
+        SUM_DOUBLE(arr, sum, POX_PORTION_NUM); \
+        sum /= POX_PORTION_NUM;                \
+        if (sum > UINT16_MAX)                  \
+        {                                      \
+            OMEGA(sum);                        \
+        }                                      \
+        res = (uint16_t)sum;                   \
+    } while (0)
+
+#define DECA(arr, res)                         \
+    do                                         \
+    {                                          \
+        uint32_t sum = 0;                      \
+        SUM_DOUBLE(arr, sum, POX_PORTION_NUM); \
+        sum = (sum + 1) / 2;                   \
+        if (sum > UINT16_MAX)                  \
+        {                                      \
+            EPSILON(sum);                      \
+        }                                      \
+        res = (uint16_t)sum;                   \
+    } while (0)
 
 #define MIN_ARGMIN(arr, min, minindex)                 \
     min = arr[0];                                      \
@@ -343,7 +366,7 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
     for (int ___qz = 0; ___qz < POX_PORTION_NUM; ___qz++)                                     \
     {                                                                                         \
         alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % POX_SD_PRIME_NUM];                          \
-        BITWISE_ROTATE_LEFT(dalat, 2);                                                        \
+        GORGA(dalat, 2);                                                                      \
         tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % POX_SD_PRIME_NUM];                           \
         gaman ^= (alaf ^ MASK_WORD_ZZFF) >> cPOX_SINGLE_DIGIT_PRIMES[tit % POX_SD_PRIME_NUM]; \
     }                                                                                         \
@@ -351,17 +374,19 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
     temp_array[2] ^= alaf + tit;                                                              \
     temp_array[3] ^= tit + gaman;
 
-#define POX_THETA(temp_array)                                              \
-    uint16_t alef = temp_array[0] % 2;                                     \
-    uint16_t dalet = temp_array[1] % 2;                                    \
-    uint16_t tet = temp_array[2] % 2;                                      \
-    uint16_t gimmel = temp_array[3] % 2;                                   \
-    uint16_t wavg, wmed;                                                   \
-    uint16_t weights[POX_PORTION_NUM] = {alef, dalet, tet, gimmel};        \
-    wavg = weighted_avg(temp_array, weights);                              \
-    wmed = weighted_med(temp_array, weights);                              \
-    temp_array[0] ^= ((wavg >> gimmel) ^ MASK_WORD_ZZFF) & MASK_WORD_ZZZF; \
-    temp_array[3] ^= ((wmed << alef) ^ MASK_WORD_FZFZ) & MASK_WORD_FZZZ;
+#define POX_THETA(temp_array)                                             \
+    uint16_t alef = temp_array[0] % 2;                                    \
+    uint16_t dalet = temp_array[1] % 2;                                   \
+    uint16_t tet = temp_array[2] % 2;                                     \
+    uint16_t gimmel = temp_array[3] % 2;                                  \
+    uint16_t ctm, sdm;                                                    \
+    uint16_t weights[POX_PORTION_NUM] = {alef, dalet, tet, gimmel};       \
+    ctm = 0;                                                              \
+    sdm = 0;                                                              \
+    CENTUM(temp_array, weights, ctm);                                     \
+    SATEM(temp_array, weights, sdm);                                      \
+    temp_array[0] ^= ((ctm >> gimmel) ^ MASK_WORD_ZZFF) & MASK_WORD_ZZZF; \
+    temp_array[3] ^= ((sdm << alef) ^ MASK_WORD_FZFZ) & MASK_WORD_FZZZ;
 
 #define POX_GAMMA(temp_array)                                                     \
     uint16_t mmin, argmin, mmax, argmax, ay, dee, thorn, gee;                     \
@@ -422,10 +447,10 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
         POX_APPLY_PRIME(temp_array, cPOX_PRIMES[__iw]); \
     }
 
-#define POX_ADD_TEMP_TO_FACT_INDEX(factor_array, temp_array, index)                      \
-    do                                                                                   \
-    {                                                                                    \
-        ADD_WITH_OVERFLOW(factor_array[index], temp_array[index], &factor_array[index]); \
+#define POX_ADD_TEMP_TO_FACT_INDEX(factor_array, temp_array, index)         \
+    do                                                                      \
+    {                                                                       \
+        TASU(factor_array[index], temp_array[index], &factor_array[index]); \
     } while (0)
 
 #define POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array) \
@@ -448,19 +473,27 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);
 
 #define POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index)        \
-    uint16_t avg, median, odd_factor_avg, odd_factor_med;                     \
-    AVG_PORTION(portion, avg);                                                \
-    MED_PORTION(portion, median);                                             \
-    odd_factor_avg = UINT16_MAX * (avg % 2);                                  \
-    odd_factor_med = UINT16_MAX * (median % 2);                               \
-    ng = (portion[0] + index) % POX_PORTION_NUM;                              \
-    chu = (portion[1] + index) % POX_PORTION_NUM;                             \
-    yo = (portion[2] + index) % POX_PORTION_NUM;                              \
-    eo = (portion[3] + index) % POX_PORTION_NUM;                              \
-    factor_array[ng] ^= (((uint16_t)portion[eo]) + avg) ^ odd_factor_med;     \
-    factor_array[chu] ^= (((uint16_t)portion[yo]) + median) ^ odd_factor_avg; \
-    factor_array[yo] ^= (((uint16_t)portion[chu]) + avg) ^ odd_factor_med;    \
-    factor_array[eo] ^= (((uint16_t)portion[ng]) + median) ^ odd_factor_avg;
+    uint16_t portion_unsigned[POX_PORTION_NUM] = {                            \
+        (uint16_t)((uint8_t)portion[0]),                                      \
+        (uint16_t)((uint8_t)portion[1]),                                      \
+        (uint16_t)((uint8_t)portion[2]),                                      \
+        (uint16_t)((uint8_t)portion[3]),                                      \
+    };                                                                        \
+    uint16_t tmt, dca, odd_factor_tmt, odd_factor_dca;                        \
+    tmt = 0;                                                                  \
+    dca = 0;                                                                  \
+    TAMAAM(portion_unsigned, tmt);                                            \
+    DECA(portion_unsigned, dca);                                              \
+    odd_factor_tmt = UINT16_MAX * (tmt % 2);                                  \
+    odd_factor_dca = UINT16_MAX * (dca % 2);                                  \
+    ng = (portion_unsigned[0] + index) % POX_PORTION_NUM;                     \
+    chu = (portion_unsigned[1] + index) % POX_PORTION_NUM;                    \
+    yo = (portion_unsigned[2] + index) % POX_PORTION_NUM;                     \
+    eo = (portion_unsigned[3] + index) % POX_PORTION_NUM;                     \
+    factor_array[ng] ^= (portion_unsigned[eo] | tmt) ^ odd_factor_dca;        \
+    factor_array[chu] ^= (portion_unsigned[yo] & dca) ^ odd_factor_tmt;       \
+    factor_array[yo] ^= (portion_unsigned[chu] ^ tmt) ^ odd_factor_dca;       \
+    factor_array[eo] ^= (portion_unsigned[ng] | dca) ^ odd_factor_tmt;       
 
 #define POX_ROUND_ACTION(factor_array, portion, ng, chu, yo, eo, index) \
     POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index);     \
@@ -469,9 +502,9 @@ static inline uint16_t weighted_med(uint16_t arr[POX_PORTION_NUM], uint16_t weig
 #define POX_PROCESS_APPLY(factor_arry, block_array, portion_array, pstart, pend)  \
     do                                                                            \
     {                                                                             \
-        int ng, chu, yo, eo;                                                      \
+        uint16_t ng, chu, yo, eo;                                                 \
         COPY_WORDS_TO_SUBARRAY(block_array, portion_array, pstart, pend);         \
-        for (int __ie = 0; __ie < POX_ROUND_NUM; __ie++)                          \
+        for (uint16_t __ie = 0; __ie < POX_ROUND_NUM; __ie++)                     \
         {                                                                         \
             POX_ROUND_ACTION(factor_array, portion_array, ng, chu, yo, eo, __ie); \
         }                                                                         \

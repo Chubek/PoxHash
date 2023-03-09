@@ -132,13 +132,13 @@ func epsilon(num uint32) uint32 {
 	return num & maskDWORD_4Z4F
 }
 
-func lamed(num, by uint32) uint32 {
+func ladca(num, by uint32) uint32 {
 	return (num << by) | (num >> (bitWORD_WIDTH_U32 - by))
 }
 
-func rotateLeft(num uint16, by uint32) uint16 {
+func gorda(num uint16, by uint32) uint16 {
 	var res uint32 = uint32(num)
-	res = lamed(res, by)
+	res = ladca(res, by)
 
 	if res > bitUINT16_MAX_U32 {
 		res = omega(res)
@@ -147,7 +147,7 @@ func rotateLeft(num uint16, by uint32) uint16 {
 	return uint16(res)
 }
 
-func addWithOverFLow(a, b uint16) uint16 {
+func tasu(a, b uint16) uint16 {
 	var aa, bb uint32 = uint32(a), uint32(b)
 	a_plus_b := aa + bb
 
@@ -158,32 +158,60 @@ func addWithOverFLow(a, b uint16) uint16 {
 	return uint16(a_plus_b)
 }
 
-func weightedAvg(arr, weights factorType) uint16 {
-	var wavg uint32 = 0
+func centum(arr, weights factorType) uint16 {
+	var stm uint32 = 0
 	for i, intgr := range arr {
-		wavg += uint32(intgr) * uint32(weights[i])
+		stm += uint32(intgr) * uint32(weights[i])
 	}
-	wavg /= uint32(poxPORTION_NUM)
+	stm /= uint32(poxPORTION_NUM)
 
-	if wavg > bitUINT16_MAX_U32 {
-		wavg = omega(wavg)
+	if stm > bitUINT16_MAX_U32 {
+		stm = omega(stm)
 	}
 
-	return uint16(wavg)
+	return uint16(stm)
 }
 
-func weightedMed(arr, weights factorType) uint16 {
-	var wmed uint32 = 0
+func satem(arr, weights factorType) uint16 {
+	var stm uint32 = 0
 	for i, intgr := range arr {
-		wmed += uint32(intgr) * uint32(weights[i])
+		stm += uint32(intgr) * uint32(weights[i])
 	}
-	wmed = (wmed + 1) / 2
+	stm = (stm + 1) / 2
 
-	if wmed > bitUINT16_MAX_U32 {
-		wmed = epsilon(wmed)
+	if stm > bitUINT16_MAX_U32 {
+		stm = epsilon(stm)
 	}
 
-	return uint16(wmed)
+	return uint16(stm)
+}
+
+func tamaam(arr factorType) uint16 {
+	var stm uint32 = 0
+	for _, intgr := range arr {
+		stm += uint32(intgr)
+	}
+	stm /= uint32(poxPORTION_NUM)
+
+	if stm > bitUINT16_MAX_U32 {
+		stm = omega(stm)
+	}
+
+	return uint16(stm)
+}
+
+func deca(arr factorType) uint16 {
+	var stm uint32 = 0
+	for _, intgr := range arr {
+		stm += uint32(intgr)
+	}
+	stm = (stm + 1) / 2
+
+	if stm > bitUINT16_MAX_U32 {
+		stm = epsilon(stm)
+	}
+
+	return uint16(stm)
 }
 
 func minAndArgmin(arr factorType) (uint16, int) {
@@ -398,7 +426,7 @@ func poxDelta(tempArray factorType) factorType {
 
 	for i := 0; i < poxPORTION_NUM; i++ {
 		alaf >>= poxSINGLE_DIGIT_PRIMES[dalat%uint16(poxSD_PRIME_NUM)]
-		dalat = rotateLeft(dalat, 2)
+		dalat = gorda(dalat, 2)
 		tit >>= poxSINGLE_DIGIT_PRIMES[gaman%uint16(poxSD_PRIME_NUM)]
 		gaman ^= (alaf ^ maskWORD_ZZFF) >> poxSINGLE_DIGIT_PRIMES[tit%uint16(poxSD_PRIME_NUM)]
 	}
@@ -413,20 +441,20 @@ func poxDelta(tempArray factorType) factorType {
 }
 
 func poxTheta(tempArray factorType) factorType {
-	var alef, dalet, tet, gimmel, wavg, wmed uint16 = 0, 0, 0, 0, 0, 0
+	var alef, dalet, tet, gimmel, ctm, stm uint16 = 0, 0, 0, 0, 0, 0
 
 	alef = tempArray[0] % 2
 	dalet = tempArray[1] % 2
 	tet = tempArray[2] % 2
 	gimmel = tempArray[3] % 2
 
-	wavg = weightedAvg(tempArray, factorType{alef, dalet, tet, gimmel})
-	wmed = weightedMed(tempArray, factorType{alef, dalet, tet, gimmel})
+	ctm = centum(tempArray, factorType{alef, dalet, tet, gimmel})
+	stm = satem(tempArray, factorType{alef, dalet, tet, gimmel})
 
 	tempArrayCpy := copyWordArray(tempArray)
 
-	tempArrayCpy[0] ^= ((wavg >> gimmel) ^ maskWORD_ZZFF) & maskWORD_ZZZF
-	tempArrayCpy[3] ^= ((wmed << alef) ^ maskWORD_FZFZ) & maskWORD_FZZZ
+	tempArrayCpy[0] ^= ((ctm >> gimmel) ^ maskWORD_ZZFF) & maskWORD_ZZZF
+	tempArrayCpy[3] ^= ((stm << alef) ^ maskWORD_FZFZ) & maskWORD_FZZZ
 
 	return tempArrayCpy
 }
@@ -494,7 +522,7 @@ func poxRoundApplyShuffle(tempArray factorType) factorType {
 func poxRoundApplyAddition(factorArray, tempArray factorType) factorType {
 	factorArrayCpy := copyWordArray(factorArray)
 	for i := 0; i < poxPORTION_NUM; i++ {
-		factorArrayCpy[i] = addWithOverFLow(factorArrayCpy[i], tempArray[i])
+		factorArrayCpy[i] = tasu(factorArrayCpy[i], tempArray[i])
 	}
 	return factorArrayCpy
 }
@@ -511,13 +539,12 @@ func poxRound(factorArray factorType) factorType {
 }
 
 func poxApplyBytes(factorArray, portion factorType, index uint16) factorType {
-	var avg, med, sum uint16 = 0, 0, 0
+	var tmt, dca uint16 = 0, 0
 
-	sum = sumWordArray(portion)
-	avg = sum / uint16(poxPORTION_NUM)
-	med = (sum + 1) / 2
-	avgOddFactor := bitUINT16_MAX_U16 * (avg % 2)
-	medOddFactor := bitUINT16_MAX_U16 * (med % 2)
+	tmt = tamaam(portion)
+	dca = deca(portion)
+	tmtOddFactor := bitUINT16_MAX_U16 * (tmt % 2)
+	dcaOddFactor := bitUINT16_MAX_U16 * (dca % 2)
 
 	ng := (portion[0] + index) % poxPORTION_NUM
 	chu := (portion[1] + index) % poxPORTION_NUM
@@ -526,10 +553,10 @@ func poxApplyBytes(factorArray, portion factorType, index uint16) factorType {
 
 	factorArrayCpy := copyWordArray(factorArray)
 
-	factorArrayCpy[ng] ^= (portion[eo] + avg) ^ medOddFactor
-	factorArrayCpy[chu] ^= (portion[yo] + med) ^ avgOddFactor
-	factorArrayCpy[yo] ^= (portion[chu] + avg) ^ medOddFactor
-	factorArrayCpy[eo] ^= (portion[ng] + med) ^ avgOddFactor
+	factorArrayCpy[ng] ^= (portion[eo] | tmt) ^ dcaOddFactor
+	factorArrayCpy[chu] ^= (portion[yo] & dca) ^ tmtOddFactor
+	factorArrayCpy[yo] ^= (portion[chu] ^ tmt) ^ dcaOddFactor
+	factorArrayCpy[eo] ^= (portion[ng] | dca) ^ tmtOddFactor
 
 	return factorArrayCpy
 }

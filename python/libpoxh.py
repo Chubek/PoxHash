@@ -39,7 +39,7 @@ __POX_MAGIC_PRIME_NUM = 2
 
 __WORD_WIDTH = 16
 __BYTE_WIDTH = 8
-__UINT16_MAX = 2**16 - 1
+__UINT16_MAX = 65535
 
 __MASK_DWORD_4F4Z = 0xffff0000
 __MASK_DWORD_4Z4F = 0x0000ffff
@@ -106,6 +106,10 @@ __OCT_BASE = 8
 __BIN_BASE = 2
 
 
+def __debug(array: __array):
+    print(array[0], array[1], array[2], array[3])
+
+
 def __omega(res_array: __array) -> None:
     res_array[0] = (res_array[0] & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
 
@@ -118,7 +122,7 @@ def __lamed(res_array: __array, by: int) -> None:
     res_array[0] = (res_array[0] << by) | (res_array[0] >> (__WORD_WIDTH - by))
 
 
-def __rotate_left(num: int, by: int) -> __array:
+def __gora(num: int, by: int) -> __array:
     res_array = __array('I', [num])
     __lamed(res_array, by)
 
@@ -130,7 +134,7 @@ def __rotate_left(num: int, by: int) -> __array:
     return res_uint16
 
 
-def __add_with_overflow(arr_a: __array, arr_b: __array, ind: int):
+def __tasu(arr_a: __array, arr_b: __array, ind: int):
     a_plus_b = __array('I', [0])
 
     a_plus_b[0] = arr_a[ind] + arr_b[ind]
@@ -140,28 +144,52 @@ def __add_with_overflow(arr_a: __array, arr_b: __array, ind: int):
     arr_a[ind] = a_plus_b[0]
 
 
-def __weighted_avg(ls: list[int], weights: list[int]) -> int:
-    weighted_avg = __array('I', [0])
+def __centum(ls: list[int], weights: list[int]) -> int:
+    centum = __array('I', [0])
     for i, w in zip(ls, weights):
-        weighted_avg[0] += i * w
+        centum[0] += i * w
 
-    weighted_avg[0] //= __POX_PORTION_NUM
-    if weighted_avg[0] > __UINT16_MAX:
-        __omega(weighted_avg)
+    centum[0] //= __POX_PORTION_NUM
+    if centum[0] > __UINT16_MAX:
+        __omega(centum)
 
-    return weighted_avg.tolist()[0]
+    return centum[0]
 
 
-def __weighted_med(ls: list[int], weights: list[int]) -> int:
-    weighted_med = __array('I', [0])
+def __satem(ls: list[int], weights: list[int]) -> int:
+    satem = __array('I', [0])
     for i, w in zip(ls, weights):
-        weighted_med[0] += i * w
+        satem[0] += i * w
 
-    weighted_med[0] = (weighted_med[0] + 1) // 2
-    if weighted_med[0] > __UINT16_MAX:
-        __epsilon(weighted_med)
+    satem[0] = (satem[0] + 1) // 2
+    if satem[0] > __UINT16_MAX:
+        __epsilon(satem)
 
-    return weighted_med.tolist()[0]
+    return satem[0]
+
+
+def __tamaam(ls: list[int]) -> int:
+    tamaam = __array('I', [0])
+    for w in ls:
+        tamaam[0] += w
+
+    tamaam[0] //= __POX_PORTION_NUM
+    if tamaam[0] > __UINT16_MAX:
+        __omega(tamaam)
+
+    return tamaam[0]
+
+
+def __deca(ls: list[int]) -> int:
+    deca = __array('I', [0])
+    for w in ls:
+        deca[0] += w
+
+    deca[0] = (deca[0] + 1) // 2
+    if deca[0] > __UINT16_MAX:
+        __epsilon(deca)
+
+    return deca[0]
 
 
 def __max_and_argmax(ls: __array) -> __array:
@@ -239,12 +267,13 @@ def __pox_factor_doubles_to_quad(darr: __array) -> __array:
 
     return quad
 
-def __dec_to_base(
-        size: int, base: int, chars: list[str], 
-        res: list[str], dec: int, offset: int) -> None:
+
+def __dec_to_base(size: int, base: int, chars: list[str], res: list[str],
+                  dec: int, offset: int) -> None:
     for i in reversed(range(offset * size, size + (offset * size))):
         res[i] = chars[dec % base]
         dec //= base
+
 
 def __pox_factors_to_bin_digest(factor_array: __array) -> str:
     bin = ['0'] * (__BIN_SIZE * __POX_PORTION_NUM)
@@ -258,6 +287,7 @@ def __pox_factors_to_oct_digest(factor_array: __array) -> str:
     for i, factor in enumerate(factor_array):
         __dec_to_base(__OCT_SIZE, __OCT_BASE, __OCT_CHARS, oct, factor, i)
     return ''.join(oct)
+
 
 def __pox_factors_to_duo_digest(factor_array: __array) -> str:
     duo = ['0'] * (__DUO_SIZE * __POX_PORTION_NUM)
@@ -302,7 +332,7 @@ def __pox_delta(temp_array: __array) -> None:
 
     for _ in range(__POX_PORTION_NUM):
         alaf >>= __POX_SINGLE_DIGIT_PRIMES[dalat % __POX_SD_PRIME_NUM]
-        dalat = __rotate_left(dalat, 2)[0]
+        dalat = __gora(dalat, 2)[0]
         tit >>= __POX_SINGLE_DIGIT_PRIMES[gaman % __POX_SD_PRIME_NUM]
         gaman ^= (alaf ^ __MASK_WORD_ZZFF
                   ) >> __POX_SINGLE_DIGIT_PRIMES[tit % __POX_SD_PRIME_NUM]
@@ -319,16 +349,12 @@ def __pox_theta(temp_array: __array) -> None:
     tet = temp_array[2] % 2
     gimmel = temp_array[3] % 2
 
-    weighted_avg = __weighted_avg(temp_array.tolist(),
-                                  [alef, dalet, tet, gimmel])
+    ctm = __centum(temp_array.tolist(), [alef, dalet, tet, gimmel])
 
-    weighted_med = __weighted_med(temp_array.tolist(),
-                                  [alef, dalet, tet, gimmel])
+    stm = __satem(temp_array.tolist(), [alef, dalet, tet, gimmel])
 
-    temp_array[0] ^= (
-        (weighted_avg >> gimmel) ^ __MASK_WORD_ZZFF) & __MASK_WORD_ZZZF
-    temp_array[3] ^= (
-        (weighted_med << alef) ^ __MASK_WORD_FZFZ) & __MASK_WORD_FZZZ
+    temp_array[0] ^= ((ctm >> gimmel) ^ __MASK_WORD_ZZFF) & __MASK_WORD_ZZZF
+    temp_array[3] ^= ((stm << alef) ^ __MASK_WORD_FZFZ) & __MASK_WORD_FZZZ
 
 
 def __pox_gamma(temp_array: __array) -> None:
@@ -370,10 +396,10 @@ def __pox_round_apply_prime(temp_array: __array) -> None:
 
 def __pox_round_add_tmp_to_facts(factor_array: __array,
                                  temp_array: __array) -> None:
-    __add_with_overflow(factor_array, temp_array, 0)
-    __add_with_overflow(factor_array, temp_array, 1)
-    __add_with_overflow(factor_array, temp_array, 2)
-    __add_with_overflow(factor_array, temp_array, 3)
+    __tasu(factor_array, temp_array, 0)
+    __tasu(factor_array, temp_array, 1)
+    __tasu(factor_array, temp_array, 2)
+    __tasu(factor_array, temp_array, 3)
 
 
 def __pox_round_apply_shuffle(temp_array: __array) -> None:
@@ -397,20 +423,22 @@ def __pox_round(factor_array: __array) -> None:
 
 def __pox_apply_bytes(factor_array: __array, subportion: __array,
                       index: int) -> None:
-    avg_subportion = sum(subportion) // __POX_PORTION_NUM
-    med_subportion = (sum(subportion) + 1) // 2
-    avg_odd_factor = __UINT16_MAX * (avg_subportion % 2)
-    med_odd_factor = __UINT16_MAX * (med_subportion % 2)
-
+    __debug(factor_array)
+    tmt = __tamaam(subportion)
+    dca = __deca(subportion)
+    tmt_odd_factor = __UINT16_MAX * (tmt % 2)
+    dca_odd_factor = __UINT16_MAX * (dca % 2)
+    print(tmt, dca)
     ng = (subportion[0] + index) % __POX_PORTION_NUM
     chu = (subportion[1] + index) % __POX_PORTION_NUM
     yo = (subportion[2] + index) % __POX_PORTION_NUM
     eo = (subportion[3] + index) % __POX_PORTION_NUM
-
-    factor_array[ng] ^= (subportion[eo] + avg_subportion) ^ med_odd_factor
-    factor_array[chu] ^= (subportion[yo] + med_subportion) ^ avg_odd_factor
-    factor_array[yo] ^= (subportion[chu] + avg_subportion) ^ med_odd_factor
-    factor_array[eo] ^= (subportion[ng] + med_subportion) ^ avg_odd_factor
+    print(ng, chu, yo, eo)
+    factor_array[ng] ^= (subportion[eo] | tmt) ^ dca_odd_factor
+    factor_array[chu] ^= (subportion[yo] & dca) ^ tmt_odd_factor
+    factor_array[yo] ^= (subportion[chu] ^ tmt) ^ dca_odd_factor
+    factor_array[eo] ^= (subportion[ng] | dca) ^ tmt_odd_factor
+    __debug(factor_array)
 
 
 def __pox_process_block(factor_array: __array, block: list[int]) -> None:

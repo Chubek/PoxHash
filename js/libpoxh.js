@@ -111,7 +111,7 @@ const lamed = (dwArr, by) => {
   dwArr[0] = (dwArr[0] << by) | (dwArr[0] >> (cWORD_WIDTH - by));
 };
 
-const rotateLeft = (num, by) => {
+const gorda = (num, by) => {
   let resUint32 = new Uint32Array([num]);
   lamed(resUint32);
 
@@ -123,7 +123,7 @@ const rotateLeft = (num, by) => {
   return resUint16;
 };
 
-const addWithOverflow = (arrayA, arrayB, index) => {
+const tasu = (arrayA, arrayB, index) => {
   let resUint32 = new Uint32Array(1);
   resUint32[0] = arrayA[index] + arrayB[index];
 
@@ -134,32 +134,60 @@ const addWithOverflow = (arrayA, arrayB, index) => {
   arrayA[index] = resUint32[0];
 };
 
-const weightedAvg = (ls, weights) => {
-  let weightedAvg = new Uint32Array([0]);
+const centum = (ls, weights) => {
+  let centum = new Uint32Array([0]);
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
-    weightedAvg[0] += ls[i] * weights[i];
+    centum[0] += ls[i] * weights[i];
   }
 
-  weightedAvg[0] = iDiv(weightedAvg[0], cPOX_PORTION_NUM);
-  if (weightedAvg[0] > cUINT16_MAX) {
-    omega(weightedAvg);
+  centum[0] = iDiv(centum[0], cPOX_PORTION_NUM);
+  if (centum[0] > cUINT16_MAX) {
+    omega(centum);
   }
 
-  return weightedAvg[0];
+  return centum[0];
 };
 
-const weightedMed = (ls, weights) => {
-  let weightedMed = new Uint32Array([0]);
+const satum = (ls, weights) => {
+  let satum = new Uint32Array([0]);
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
-    weightedMed[0] += ls[i] * weights[i];
+    satum[0] += ls[i] * weights[i];
   }
 
-  weightedMed[0] = iDiv(weightedMed[0] + 1, 2);
-  if (weightedMed[0] > cUINT16_MAX) {
-    epsilon(weightedMed);
+  satum[0] = iDiv(satum[0] + 1, 2);
+  if (satum[0] > cUINT16_MAX) {
+    epsilon(satum);
   }
 
-  return weightedMed;
+  return satum[0];
+};
+
+const tamaam = (ls) => {
+  let tmt = new Uint32Array([0]);
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    tmt[0] += ls[i];
+  }
+
+  tmt[0] = iDiv(tmt[0], cPOX_PORTION_NUM);
+  if (tmt[0] > cUINT16_MAX) {
+    omega(tmt);
+  }
+
+  return tmt[0];
+};
+
+const deca = (ls) => {
+  let dca = new Uint32Array([0]);
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    dca[0] += ls[i];
+  }
+
+  dca[0] = iDiv(dca[0] + 1, 2);
+  if (dca[0] > cUINT16_MAX) {
+    epsilon(dca);
+  }
+
+  return dca[0];
 };
 
 const maxAndArgMax = (ls) => {
@@ -242,23 +270,16 @@ const byteArrayToWordArrayAndPad = (bytearr) => {
   while (size % cPOX_BLOCK_NUM != 0) {
     size += 1;
   }
-
-  let wordArray = new Uint16Array(size);
-  for (let i = 0; i < bytearr.length; i++) {
-    wordArray[i] = bytearr[i];
+  let u16Array = new Uint16Array(size);
+  for (let i = 0; i < size; i++) {
+    u16Array[i] = bytearr[i];
   }
-
-  return wordArray;
+  return u16Array;
 };
 
 const stringToByteArray = (str) => {
-  let size = str.length;
-  let byteArray = new Uint8Array(size);
-
-  for (let i = 0; i < size; i++) {
-    byteArray[i] = str.charCodeAt(i);
-  }
-
+  let utf8Encode = new TextEncoder();
+  byteArray = utf8Encode.encode(str);
   return byteArray;
 };
 
@@ -278,42 +299,42 @@ const processInput = (input) => {
 };
 
 const convertBaseFromDecimal = (base, size, chars, res, dec, offset) => {
-  for (let i = (size * offset) + size; i >= size * offset; i--) {
+  for (let i = size * offset + size; i >= size * offset; i--) {
     res[i] = chars[dec % base];
     dec = iDiv(dec, base);
   }
 };
 
 const convertWordsToHexDigest = (words) => {
-  let hex = "0".repeat(cHEX_SIZE * cPOX_PORTION_NUM).split('');
+  let hex = "0".repeat(cHEX_SIZE * cPOX_PORTION_NUM).split("");
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
     convertBaseFromDecimal(cHEX_BASE, cHEX_SIZE, cHEX_CHARS, hex, words[i], i);
   }
-  return hex.join('');
+  return hex.join("");
 };
 
 const convertWordsToDuoDigest = (words) => {
-  let duo = "0".repeat(cDUO_SIZE * cPOX_PORTION_NUM).split('');
+  let duo = "0".repeat(cDUO_SIZE * cPOX_PORTION_NUM).split("");
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
     convertBaseFromDecimal(cDUO_BASE, cDUO_SIZE, cDUO_CHARS, duo, words[i], i);
   }
-  return duo.join('');
+  return duo.join("");
 };
 
 const convertWordsToOctDigest = (words) => {
-  let oct = "0".repeat(cOCT_SIZE * cPOX_PORTION_NUM).split('');
+  let oct = "0".repeat(cOCT_SIZE * cPOX_PORTION_NUM).split("");
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
     convertBaseFromDecimal(cOCT_BASE, cOCT_SIZE, cOCT_CHARS, oct, words[i], i);
   }
-  return oct.join('');
+  return oct.join("");
 };
 
 const convertWordsToBinDigest = (words) => {
-  let bin = "0".repeat(cBIN_SIZE * cPOX_PORTION_NUM).split('');
+  let bin = "0".repeat(cBIN_SIZE * cPOX_PORTION_NUM).split("");
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
     convertBaseFromDecimal(cBIN_BASE, cBIN_SIZE, cBIN_CHARS, bin, words[i], i);
   }
-  return bin.join('');
+  return bin.join("");
 };
 
 const get8BPrime = (num) => {
@@ -321,21 +342,8 @@ const get8BPrime = (num) => {
   return cPOX_8B_PRIMES[remainder];
 };
 
-const setCharAt = (str, index, chr) => {
-  if (index > str.length - 1) return str;
-  return str.substring(0, index) + chr + str.substring(index + 1);
-};
-
 const log2N = (num) => {
   return num > 1 ? 1 + log2N(iDiv(num, 2)) : 0;
-};
-
-const sumArray = (array) => {
-  let sum = 0;
-  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
-    sum += array[i];
-  }
-  return sum;
 };
 
 const poxAlpha = (tempArray) => {
@@ -357,7 +365,7 @@ const poxDelta = (tempArray) => {
 
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
     alaf >>= cPOX_SINGLE_DIGIT_PRIMES[dalat % cPOX_SD_PRIME_NUM];
-    dalat = rotateLeft(dalat, 2)[0];
+    dalat = gorda(dalat, 2)[0];
     tit >>= cPOX_SINGLE_DIGIT_PRIMES[gaman % cPOX_SD_PRIME_NUM];
     gaman ^=
       (alaf ^ cMASK_WORD_ZZFF) >>
@@ -375,12 +383,11 @@ const poxTheta = (tempArray) => {
   const tet = tempArray[2] % 2;
   const gimmel = tempArray[3] % 2;
 
-  const weighted_avg = weightedAvg(tempArray, [alef, dalet, tet, gimmel]);
-  const weighted_med = weightedMed(tempArray, [alef, dalet, tet, gimmel]);
+  const ctm = centum(tempArray, [alef, dalet, tet, gimmel]);
+  const stm = satum(tempArray, [alef, dalet, tet, gimmel]);
 
-  tempArray[0] ^=
-    ((weighted_avg >> gimmel) ^ cMASK_WORD_ZZFF) & cMASK_WORD_ZZZF;
-  tempArray[3] ^= ((weighted_med << alef) ^ cMASK_WORD_FZFZ) & cMASK_WORD_FZZZ;
+  tempArray[0] ^= ((ctm >> gimmel) ^ cMASK_WORD_ZZFF) & cMASK_WORD_ZZZF;
+  tempArray[3] ^= ((stm << alef) ^ cMASK_WORD_FZFZ) & cMASK_WORD_FZZZ;
 };
 
 const poxGamma = (tempArray) => {
@@ -424,10 +431,10 @@ const poxRoundApplyPrime = (tempArray) => {
 };
 
 const poxRoundAddTempsToFacts = (factorArray, tempArray) => {
-  addWithOverflow(factorArray, tempArray, 0);
-  addWithOverflow(factorArray, tempArray, 1);
-  addWithOverflow(factorArray, tempArray, 2);
-  addWithOverflow(factorArray, tempArray, 3);
+  tasu(factorArray, tempArray, 0);
+  tasu(factorArray, tempArray, 1);
+  tasu(factorArray, tempArray, 2);
+  tasu(factorArray, tempArray, 3);
 };
 
 const poxRoundApplyShuffle = (tempArray) => {
@@ -450,21 +457,23 @@ const poxRound = (factorArray) => {
   poxRoundAddTempsToFacts(factorArray, tempArray);
 };
 
+const debug = (arr) => console.log(arr[0], arr[1], arr[2], arr[3]);
+
 const poxApplySubportion = (factorArray, subportion, index) => {
-  const avgSubportion = iDiv(sumArray(subportion), cPOX_PORTION_NUM);
-  const medSubportion = iDiv(sumArray(subportion) + 1, 2);
-  const avgOddFactor = cUINT16_MAX * (avgSubportion % 2);
-  const medOddFactor = cUINT16_MAX * (medSubportion % 2);
+  const tmt = tamaam(subportion);
+  const dca = deca(subportion);
+  const tmtOddFactor = cUINT16_MAX * (tmt % 2);
+  const dcaOddFactor = cUINT16_MAX * (dca % 2);
 
   const ng = (subportion[0] + index) % cPOX_PORTION_NUM;
   const chu = (subportion[1] + index) % cPOX_PORTION_NUM;
   const yo = (subportion[2] + index) % cPOX_PORTION_NUM;
   const eo = (subportion[3] + index) % cPOX_PORTION_NUM;
 
-  factorArray[ng] ^= (subportion[eo] + avgSubportion) ^ medOddFactor;
-  factorArray[chu] ^= (subportion[yo] + medSubportion) ^ avgOddFactor;
-  factorArray[yo] ^= (subportion[chu] + avgSubportion) ^ medOddFactor;
-  factorArray[eo] ^= (subportion[ng] + medSubportion) ^ avgOddFactor;
+  factorArray[ng] ^= (subportion[eo] | tmt) ^ dcaOddFactor;
+  factorArray[chu] ^= (subportion[yo] & dca) ^ tmtOddFactor;
+  factorArray[yo] ^= subportion[chu] ^ tmt ^ dcaOddFactor;
+  factorArray[eo] ^= (subportion[ng] | dca) ^ tmtOddFactor;
 };
 
 const poxProcessBlock = (factorArray, blockArray) => {
