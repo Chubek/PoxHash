@@ -122,6 +122,28 @@ __SEX_CHARS = [
     'w',
     'x',
 ]
+__VIG_CHARS = [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "@",
+    "^",
+    "&",
+    "*",
+    "$",
+    "+",
+    "!",
+    ";",
+    ":",
+    "~",
+]
 __HEX_CHARS = [
     '0',
     '1',
@@ -140,8 +162,31 @@ __HEX_CHARS = [
     'E',
     'F',
 ]
-
+__TET_CHARS = [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "T",
+    "E",
+    "W",
+    "R",
+]
 __OCT_CHARS = ['0', '1', '2', '3', '4', '5', '6', '7']
+__SEN_CHARS = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+]
 __DUO_CHARS = [
     '0',
     '1',
@@ -159,15 +204,21 @@ __DUO_CHARS = [
 __BIN_CHARS = ['0', '1']
 
 __SEX_SIZE = 3
+__VIG_SIZE = 4
 __HEX_SIZE = 4
+__TET_SIZE = 5
 __DUO_SIZE = 5
 __OCT_SIZE = 6
+__SEN_SIZE = 7
 __BIN_SIZE = 16
 
 __SEX_BASE = 60
+__VIG_BASE = 20
 __HEX_BASE = 16
+__TET_BASE = 14
 __DUO_BASE = 12
 __OCT_BASE = 8
+__SEN_BASE = 6
 __BIN_BASE = 2
 
 
@@ -343,6 +394,13 @@ def __pox_factors_to_bin_digest(factor_array: __array) -> str:
     return ''.join(bin)
 
 
+def __pox_factors_to_sen_digest(factor_array: __array) -> str:
+    sen = ['0'] * (__SEN_SIZE * __POX_PORTION_NUM)
+    for i, factor in enumerate(factor_array):
+        __dec_to_base(__SEN_SIZE, __SEN_BASE, __SEN_CHARS, sen, factor, i)
+    return ''.join(sen)
+
+
 def __pox_factors_to_oct_digest(factor_array: __array) -> str:
     oct = ['0'] * (__OCT_SIZE * __POX_PORTION_NUM)
     for i, factor in enumerate(factor_array):
@@ -357,11 +415,25 @@ def __pox_factors_to_duo_digest(factor_array: __array) -> str:
     return ''.join(duo)
 
 
+def __pox_factors_to_tet_digest(factor_array: __array) -> str:
+    tet = ['0'] * (__TET_SIZE * __POX_PORTION_NUM)
+    for i, factor in enumerate(factor_array):
+        __dec_to_base(__TET_SIZE, __TET_BASE, __TET_CHARS, tet, factor, i)
+    return ''.join(tet)
+
+
 def __pox_factors_to_hex_digest(factor_array: __array) -> str:
     hex = ['0'] * (__HEX_SIZE * __POX_PORTION_NUM)
     for i, factor in enumerate(factor_array):
         __dec_to_base(__HEX_SIZE, __HEX_BASE, __HEX_CHARS, hex, factor, i)
     return ''.join(hex)
+
+
+def __pox_factors_to_vig_digest(factor_array: __array) -> str:
+    vig = ['0'] * (__VIG_SIZE * __POX_PORTION_NUM)
+    for i, factor in enumerate(factor_array):
+        __dec_to_base(__VIG_SIZE, __VIG_BASE, __VIG_CHARS, vig, factor, i)
+    return ''.join(vig)
 
 
 def __pox_factors_to_sex_digest(factor_array: __array) -> str:
@@ -526,22 +598,30 @@ def __pox_process_block(factor_array: __array, block: list[int]) -> None:
 class PoxHashTy:
     import array as array
 
+    sexdigest: str
+    vigdiest: str
     hexdigest: str
+    tetdigest: str
     duodigest: str
     octdigest: str
+    sendigest: str
     bindigest: str
     bytes: array
     words: array
     doubles: array
     quad: array
 
-    def __init__(self, sexdigest: str, hexdigest: str, duodigest: str,
-                 octdigest: str, bindigest: str, bytes: array, words: array,
+    def __init__(self, sexdigest: str, vigdigest: str, hexdigest: str,
+                 tetdigest: str, duodigest: str, octdigest: str,
+                 sendigest: str, bindigest: str, bytes: array, words: array,
                  doubles: array, quad: array) -> None:
         self.sexdigest = sexdigest
+        self.vigdigest = vigdigest
         self.hexdigest = hexdigest
+        self.tetdigest = tetdigest
         self.duodigest = duodigest
         self.octdigest = octdigest
+        self.sendigest = sendigest
         self.bindigest = bindigest
         self.bytes = bytes
         self.words = words
@@ -558,7 +638,14 @@ def pox_hash(data: bytearray) -> PoxHashTy:
     
     Returns:
         PoxHashTy
+            PoxHashTy.sexdigest: string
+            PoxHashTy.vigdigest: string
             PoxHashTy.hexdigest: string
+            PoxHashTy.tetdigest: string
+            PoxHashTy.duodigest: string
+            PoxHashTy.octdigest: string
+            PoxHashTy.sendigest: string
+            PoxHashTy.bindigest: string
             PoxHashTy.bytes: array.array('B', 8)
             PoxHashTy.words: array.array('H', 4)
             PoxHashTy.doubles: array.array('I', 2)
@@ -572,25 +659,33 @@ def pox_hash(data: bytearray) -> PoxHashTy:
         for i in range(0, len(integer_list), __POX_BLOCK_NUM)
     ]
 
-    factor_array = __array(
-        'H', [__POX_PRIME_INIT_A, __POX_PRIME_INIT_B, __POX_PRIME_INIT_C, __POX_PRIME_INIT_D])
+    factor_array = __array('H', [
+        __POX_PRIME_INIT_A, __POX_PRIME_INIT_B, __POX_PRIME_INIT_C,
+        __POX_PRIME_INIT_D
+    ])
 
     for block in blocks:
         __pox_process_block(factor_array, block)
 
     sexdigest = __pox_factors_to_sex_digest(factor_array)
+    vigdigest = __pox_factors_to_vig_digest(factor_array)
     hexdigest = __pox_factors_to_hex_digest(factor_array)
+    tetdigest = __pox_factors_to_tet_digest(factor_array)
     duodigest = __pox_factors_to_duo_digest(factor_array)
     octdigest = __pox_factors_to_oct_digest(factor_array)
+    sendigest = __pox_factors_to_sen_digest(factor_array)
     bindigest = __pox_factors_to_bin_digest(factor_array)
     bytes = __pox_factors_to_byte_array(factor_array)
     doubles = __pox_factors_to_doubles(factor_array)
     quad = __pox_factor_doubles_to_quad(doubles)
 
     return PoxHashTy(sexdigest=sexdigest,
+                     vigdigest=vigdigest,
                      hexdigest=hexdigest,
+                     tetdigest=tetdigest,
                      duodigest=duodigest,
                      octdigest=octdigest,
+                     sendigest=sendigest,
                      bindigest=bindigest,
                      bytes=bytes,
                      words=factor_array,

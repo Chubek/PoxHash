@@ -33,14 +33,20 @@ const (
 	numRANGE_ZTF   = 4
 
 	baseSEX_SIZE int    = 3
+	baseVIG_SIZE        = 4
 	baseHEX_SIZE        = 4
+	baseTET_SIZE        = 5
 	baseDUO_SIZE        = 5
 	baseOCT_SIZE        = 6
+	baseSEN_SIZE        = 7
 	baseBIN_SIZE        = 16
 	baseSEX_NUM  uint16 = 60
+	baseVIG_NUM         = 20
 	baseHEX_NUM         = 16
+	baseTET_NUM         = 14
 	baseDUO_NUM         = 12
 	baseOCT_NUM         = 8
+	baseSEN_NUM         = 6
 	baseBIN_NUM         = 2
 
 	maskDWORD_4F4Z uint32 = 0xffff0000
@@ -88,6 +94,9 @@ var (
 		109, 110, 111, 112, 113, 114, 115, 116,
 		117, 118, 119, 120,
 	}
+	bytesCHAR_VIG = [20]byte{
+		65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 64, 94, 38, 42, 36, 43, 33, 59, 58, 126,
+	}
 	bytesCHAR_HEX = [16]byte{
 		48,
 		49,
@@ -105,6 +114,9 @@ var (
 		68,
 		69,
 		70}
+	bytesCHAR_TET = [14]byte{
+		48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 84, 69, 87, 82,
+	}
 	bytesCHAR_DUO = [12]byte{
 		48,
 		49,
@@ -127,6 +139,14 @@ var (
 		53,
 		54,
 		55,
+	}
+	bytesCHAR_SEN = [6]byte{
+		48,
+		49,
+		50,
+		51,
+		52,
+		53,
 	}
 	bytesCHAR_BIN = [2]byte{48, 49}
 )
@@ -331,12 +351,28 @@ func wordArrToSexDigest(wordarr factorType) string {
 	return string(sex[:])
 }
 
+func wordArrToVigDigest(wordarr factorType) string {
+	var vig [baseVIG_SIZE * poxPORTION_NUM]byte
+	for i, word := range wordarr {
+		decimalToBase(baseVIG_NUM, word, baseVIG_SIZE, i, bytesCHAR_VIG[:], vig[:])
+	}
+	return string(vig[:])
+}
+
 func wordArrToHexDigest(wordarr factorType) string {
 	var hex [baseHEX_SIZE * poxPORTION_NUM]byte
 	for i, word := range wordarr {
 		decimalToBase(baseHEX_NUM, word, baseHEX_SIZE, i, bytesCHAR_HEX[:], hex[:])
 	}
 	return string(hex[:])
+}
+
+func wordArrToTetDigest(wordarr factorType) string {
+	var tet [baseTET_SIZE * poxPORTION_NUM]byte
+	for i, word := range wordarr {
+		decimalToBase(baseTET_NUM, word, baseTET_SIZE, i, bytesCHAR_TET[:], tet[:])
+	}
+	return string(tet[:])
 }
 
 func wordArrToDuoDigest(wordarr factorType) string {
@@ -353,6 +389,14 @@ func wordArrToOctDigest(wordarr factorType) string {
 		decimalToBase(baseOCT_NUM, word, baseOCT_SIZE, i, bytesCHAR_OCT[:], oct[:])
 	}
 	return string(oct[:])
+}
+
+func wordArrToSenDigest(wordarr factorType) string {
+	var sen [baseSEN_SIZE * poxPORTION_NUM]byte
+	for i, word := range wordarr {
+		decimalToBase(baseSEN_NUM, word, baseSEN_SIZE, i, bytesCHAR_SEN[:], sen[:])
+	}
+	return string(sen[:])
 }
 
 func wordArrToBinDigest(wordarr factorType) string {
@@ -598,9 +642,12 @@ func poxProcessBlock(factorArray factorType, block blockType) factorType {
 
 type PoxHashTy struct {
 	Sexdigest string    `json:"sexdigest"`
+	Vigdigest string    `json:"vigdigest"`
 	Hexdigest string    `json:"hexdigest"`
+	Tetdigest string    `json:"tetdigest"`
 	Duodigest string    `json:"duodigest"`
 	Octdigest string    `json:"octdigest"`
+	Sendigest string    `json:"sendigest"`
 	Bindigest string    `json:"bindigest"`
 	Bytes     [8]uint8  `json:"bytes"`
 	Words     [4]uint16 `json:"words"`
@@ -615,7 +662,14 @@ func PoxHash(data []byte) PoxHashTy {
 	//
 	// Returns:
 	//		PoxHashTy
+	//			PoxHashTy.Sexdigest: string
+	//			PoxHashTy.Vigdigest: string
 	//			PoxHashTy.Hexdigest: string
+	//			PoxHashTy.Tetdigest: string
+	//			PoxHashTy.Duodigest: string
+	//			PoxHashTy.Octdigest: string
+	//			PoxHashTy.Sendigest: string
+	//			PoxHashTy.Bindigest: string
 	//			PoxHashTy.Bytes: [8]uint8
 	//			PoxHashTy.Words: [4]uint16
 	//			PoxHashTy.Doubles [2]uint32
@@ -629,9 +683,12 @@ func PoxHash(data []byte) PoxHashTy {
 	}
 
 	sexdigest := wordArrToSexDigest(factorArray)
+	vigdigest := wordArrToVigDigest(factorArray)
 	hexdigest := wordArrToHexDigest(factorArray)
+	tetdigest := wordArrToTetDigest(factorArray)
 	duodigest := wordArrToDuoDigest(factorArray)
 	octdigest := wordArrToOctDigest(factorArray)
+	sendigest := wordArrToSenDigest(factorArray)
 	bindigest := wordArrToBinDigest(factorArray)
 	bytes := wordArrToByteArr(factorArray)
 	doubles := wordArrayToDoubleArray(factorArray)
@@ -639,9 +696,12 @@ func PoxHash(data []byte) PoxHashTy {
 
 	return PoxHashTy{
 		Sexdigest: sexdigest,
+		Vigdigest: vigdigest,
 		Hexdigest: hexdigest,
+		Tetdigest: tetdigest,
 		Duodigest: duodigest,
 		Octdigest: octdigest,
+		Sendigest: sendigest,
 		Bindigest: bindigest,
 		Bytes:     bytes,
 		Words:     factorArray,

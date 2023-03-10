@@ -64,28 +64,44 @@ const COMB_BIONOM = @[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 const SEX_CHARS: array[60, char] = [
   '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
 ]
+const VIG_CHARS: array[20, char] = [
+     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', '@', '^', '&', '*', '$', '+', '!', ';',
+        ':', '~',
+]
 const HEX_CHARS: array[16, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     ]
+const TET_CHARS: array[14, char] = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'E', 'W', 'R',
+]
 const DUO_CHARS: array[12, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#',
     ]
 const OCT_CHARS: array[8, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7',
     ]
+const SEN_CHARS: array[6, char] = [
+        '0', '1', '2', '3', '4', '5',
+    ]
 const BIN_CHARS: array[2, char] = [
     '0', '1',
     ]
 
 const SEX_SIZE = 3
+const VIG_SIZE = 4
 const HEX_SIZE = 4
+const TET_SIZE = 5
 const DUO_SIZE = 5
 const OCT_SIZE = 6
+const SEN_SIZE = 7
 const BIN_SIZE = 16
 const SEX_BASE: uint16 = 60
+const VIG_BASE: uint16 = 20
 const HEX_BASE: uint16 = 16
+const TET_BASE: uint16 = 14
 const DUO_BASE: uint16 = 12
 const OCT_BASE: uint16 = 8
+const SEN_BASE: uint16 = 6
 const BIN_BASE: uint16 = 2
 
 type
@@ -324,12 +340,26 @@ proc wordArrayToSexDigest(warr: FactorArray): string =
         convertBasesFromDecimal(SEX_BASE, SEX_SIZE, SEX_CHARS, word, sex, i)
     return sex
 
+proc wordArrayToVigDigest(warr: FactorArray): string =
+    var vig = newString(VIG_SIZE * POX_PORTION_NUM)
+    for i in ...POX_PORTION_NUM:
+        var word = warr[i]
+        convertBasesFromDecimal(VIG_BASE, VIG_SIZE, VIG_CHARS, word, vig, i)
+    return vig
+
 proc wordArrayToHexDigest(warr: FactorArray): string =
     var hex = newString(HEX_SIZE * POX_PORTION_NUM)
     for i in ...POX_PORTION_NUM:
         var word = warr[i]
         convertBasesFromDecimal(HEX_BASE, HEX_SIZE, HEX_CHARS, word, hex, i)
     return hex
+
+proc wordArrayToTetDigest(warr: FactorArray): string =
+    var tet = newString(TET_SIZE * POX_PORTION_NUM)
+    for i in ...POX_PORTION_NUM:
+        var word = warr[i]
+        convertBasesFromDecimal(TET_BASE, TET_SIZE, TET_CHARS, word, tet, i)
+    return tet
 
 proc wordArrayToDuoDigest(warr: FactorArray): string =
     var duo = newString(DUO_SIZE * POX_PORTION_NUM)
@@ -344,6 +374,13 @@ proc wordArrayToOctDigest(warr: FactorArray): string =
         var word = warr[i]
         convertBasesFromDecimal(OCT_BASE, OCT_SIZE, OCT_CHARS, word, oct, i)
     return oct
+
+proc wordArrayToSenDigest(warr: FactorArray): string =
+    var sen = newString(SEN_SIZE * POX_PORTION_NUM)
+    for i in ...POX_PORTION_NUM:
+        var word = warr[i]
+        convertBasesFromDecimal(SEN_BASE, SEN_SIZE, SEN_CHARS, word, sen, i)
+    return sen
 
 proc wordArrayToBinDigest(warr: FactorArray): string =
     var bin = newString(BIN_SIZE * POX_PORTION_NUM)
@@ -512,9 +549,12 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
 type
     PoxHashTy* = object
         sexdigest*: string
+        vigdigest*: string
         hexdigest*: string
+        tetdigest*: string
         duodigest*: string
         octdigest*: string
+        sendigest*: string
         bindigest*: string
         bytes*: array[8, uint8]
         words*: array[4, uint16]
@@ -528,7 +568,14 @@ proc PoxHash*(data: ByteSeq): PoxHashTy =
     ## 
     ## Returns:
     ##      PoxHashTy
+    ##          PoxHashTy.sexdigest: string
+    ##          PoxHashTy.vigdigest: string
     ##          PoxHashTy.hexdigest: string
+    ##          PoxHashTy.tetdigest: string
+    ##          PoxHashTy.duodigest: string
+    ##          PoxHashTy.octdigest: string
+    ##          PoxHashTy.sendigest: string
+    ##          PoxHashTy.bindigest: string
     ##          PoxHashTy.bytes: array[8, uint8]
     ##          PoxHashTy.words: array[4, uint16]
     ##          PoxHashTy.doubles: array[2, uint32]
@@ -542,9 +589,12 @@ proc PoxHash*(data: ByteSeq): PoxHashTy =
         poxProcessBlock(factorArray, blockArray)
 
     var sexdigest = wordArrayToSexDigest(factorArray)
+    var vigdigest = wordArrayToVigDigest(factorArray)
     var hexdigest = wordArrayToHexDigest(factorArray)
+    var tetdigest = wordArrayToTetDigest(factorArray)
     var duodigest = wordArrayToDuoDigest(factorArray)
     var octdigest = wordArrayToOctDigest(factorArray)
+    var sendigest = wordArrayToSenDigest(factorArray)
     var bindigest = wordArrayToBinDigest(factorArray)
     var bytes = factorsToByte(factorArray)
     var doubles = wordArrToDoubleArr(factorArray)
@@ -553,9 +603,12 @@ proc PoxHash*(data: ByteSeq): PoxHashTy =
     var ret: PoxHashTy
     ret = PoxHashTy(
             sexdigest: sexdigest,
-            hexdigest: hexdigest, 
+            vigdigest: vigdigest,
+            hexdigest: hexdigest,
+            tetdigest: tetdigest, 
             duodigest: duodigest,
             octdigest: octdigest,
+            sendigest: sendigest,
             bindigest: bindigest,
             bytes: bytes, 
             words: factorArray, 

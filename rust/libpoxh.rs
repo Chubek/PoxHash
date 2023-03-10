@@ -63,14 +63,20 @@ mod consts {
     pub const SIZE_BIONOM: usize = 6;
 
     pub const SEX_SIZE: usize = 3;
+    pub const VIG_SIZE: usize = 4;
     pub const HEX_SIZE: usize = 4;
+    pub const TET_SIZE: usize = 5;
     pub const DUO_SIZE: usize = 5;
     pub const OCT_SIZE: usize = 6;
+    pub const SEN_SIZE: usize = 7;
     pub const BIN_SIZE: usize = 16;
     pub const SEX_BASE: u16 = 60;
+    pub const VIG_BASE: u16 = 20;
     pub const HEX_BASE: u16 = 16;
+    pub const TET_BASE: u16 = 14;
     pub const DUO_BASE: u16 = 12;
     pub const OCT_BASE: u16 = 8;
+    pub const SEN_BASE: u16 = 6;
     pub const BIN_BASE: u16 = 2;
 
     pub const SEX_CHARS: [char; 60] = [
@@ -79,11 +85,19 @@ mod consts {
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
         's', 't', 'u', 'v', 'w', 'x',
     ];
+    pub const VIG_CHARS: [char; 20] = [
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', '@', '^', '&', '*', '$', '+', '!', ';',
+        ':', '~',
+    ];
     pub const HEX_CHARS: [char; 16] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     ];
+    pub const TET_CHARS: [char; 14] = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'E', 'W', 'R',
+    ];
     pub const DUO_CHARS: [char; 12] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#'];
     pub const OCT_CHARS: [char; 8] = ['0', '1', '2', '3', '4', '5', '6', '7'];
+    pub const SEN_CHARS: [char; 6] = ['0', '1', '2', '3', '4', '5'];
     pub const BIN_CHARS: [char; 2] = ['0', '1'];
 }
 
@@ -277,6 +291,22 @@ mod convert {
         return digest.into_iter().collect();
     }
 
+    pub fn word_array_to_vig_digest(word_array: types::ArrTypeRef) -> String {
+        let mut digest = vec!['0'; consts::VIG_SIZE * consts::POX_PORTION_NUM];
+        for i in 0..consts::POX_PORTION_NUM {
+            let word = word_array[i];
+            convert_decimal_to_base! {
+                consts::VIG_BASE,
+                consts::VIG_SIZE,
+                consts::VIG_CHARS,
+                digest,
+                word,
+                i
+            }
+        }
+        return digest.into_iter().collect();
+    }
+
     pub fn word_array_to_hex_digest(word_array: types::ArrTypeRef) -> String {
         let mut digest = vec!['0'; consts::HEX_SIZE * consts::POX_PORTION_NUM];
         for i in 0..consts::POX_PORTION_NUM {
@@ -285,6 +315,22 @@ mod convert {
                 consts::HEX_BASE,
                 consts::HEX_SIZE,
                 consts::HEX_CHARS,
+                digest,
+                word,
+                i
+            }
+        }
+        return digest.into_iter().collect();
+    }
+
+    pub fn word_array_to_tet_digest(word_array: types::ArrTypeRef) -> String {
+        let mut digest = vec!['0'; consts::TET_SIZE * consts::POX_PORTION_NUM];
+        for i in 0..consts::POX_PORTION_NUM {
+            let word = word_array[i];
+            convert_decimal_to_base! {
+                consts::TET_BASE,
+                consts::TET_SIZE,
+                consts::TET_CHARS,
                 digest,
                 word,
                 i
@@ -317,6 +363,22 @@ mod convert {
                 consts::OCT_BASE,
                 consts::OCT_SIZE,
                 consts::OCT_CHARS,
+                digest,
+                word,
+                i
+            }
+        }
+        return digest.into_iter().collect();
+    }
+
+    pub fn word_array_to_sen_digest(word_array: types::ArrTypeRef) -> String {
+        let mut digest = vec!['0'; consts::SEN_SIZE * consts::POX_PORTION_NUM];
+        for i in 0..consts::POX_PORTION_NUM {
+            let word = word_array[i];
+            convert_decimal_to_base! {
+                consts::SEN_BASE,
+                consts::SEN_SIZE,
+                consts::SEN_CHARS,
                 digest,
                 word,
                 i
@@ -563,9 +625,12 @@ mod block {
 
 pub struct PoxHashTy {
     pub sexdigest: String,
+    pub vigdigest: String,
     pub hexdigest: String,
+    pub tetdigest: String,
     pub duodigest: String,
     pub octdigest: String,
+    pub sendigest: String,
     pub bindigest: String,
     pub bytes: [u8; 8],
     pub words: [u16; 4],
@@ -581,7 +646,14 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     ///
     /// Returns:
     ///     PoxHashTy
+    ///         PoxHashTy.sexdigest: String
+    ///         PoxHashTy.vigdigest: String
     ///         PoxHashTy.hexdigest: String
+    ///         PoxHashTy.tetdigest: String
+    ///         PoxHashTy.duodigest: String
+    ///         PoxHashTy.octdigest: String
+    ///         PoxHashTy.sendigest: String
+    ///         PoxHashTy.bindigest: String
     ///         PoxHashTy.bytes: [u8; 8]
     ///         PoxHashTy.words: [u16; 4]
     ///         PoxHashTy.doubles: [u32, 2]
@@ -600,9 +672,12 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     }
 
     let sexdigest = convert::word_array_to_sex_digest(&factor_array);
+    let vigdigest = convert::word_array_to_vig_digest(&factor_array);
     let hexdigest = convert::word_array_to_hex_digest(&factor_array);
+    let tetdigest = convert::word_array_to_tet_digest(&factor_array);
     let duodigest = convert::word_array_to_duo_digest(&factor_array);
     let octdigest = convert::word_array_to_oct_digest(&factor_array);
+    let sendigest = convert::word_array_to_sen_digest(&factor_array);
     let bindigest = convert::word_array_to_bin_digest(&factor_array);
     let bytes = convert::word_array_to_byte_array(&factor_array);
     let words: [u16; 4] = [
@@ -616,9 +691,12 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
 
     PoxHashTy {
         sexdigest,
+        vigdigest,
         hexdigest,
+        tetdigest,
         duodigest,
         octdigest,
+        sendigest,
         bindigest,
         bytes,
         words,

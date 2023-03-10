@@ -63,7 +63,6 @@ const cCOMB_BIONOM = [
   [1, 3],
   [2, 3],
 ];
-const cRANGE_ZTG = [0, 1, 2, 3];
 const cSEX_CHARS = [
   "0",
   "1",
@@ -126,6 +125,28 @@ const cSEX_CHARS = [
   "w",
   "x",
 ];
+const cVIG_CHARS = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "@",
+  "^",
+  "&",
+  "*",
+  "$",
+  "+",
+  "!",
+  ";",
+  ":",
+  "~",
+];
 const cHEX_CHARS = [
   "0",
   "1",
@@ -144,19 +165,43 @@ const cHEX_CHARS = [
   "E",
   "F",
 ];
+const cTET_CHARS = [
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "T",
+  "E",
+  "W",
+  "R",
+];
 const cDUO_CHARS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "#"];
 const cOCT_CHARS = ["0", "1", "2", "3", "4", "5", "6", "7"];
+const cSEN_CHARS = ["0", "1", "2", "3", "4", "5"];
 const cBIN_CHARS = ["0", "1", "2"];
 const cSEX_SIZE = 3;
+const cVIG_SIZE = 4;
 const cHEX_SIZE = 4;
+const cTET_SIZE = 5;
 const cDUO_SIZE = 5;
 const cOCT_SIZE = 6;
+const cSEN_SIZE = 7;
 const cBIN_SIZE = 16;
 const cSEX_BASE = 60;
+const cVIG_BASE = 20;
 const cHEX_BASE = 16;
+const cTET_BASE = 14;
 const cDUO_BASE = 12;
 const cOCT_BASE = 8;
+const cSEN_BASE = 6;
 const cBIN_BASE = 2;
+
 const cBIONOM_SIZE = 6;
 
 const iDiv = (a, b) => {
@@ -363,7 +408,7 @@ const processInput = (input) => {
 };
 
 const convertBaseFromDecimal = (base, size, chars, res, dec, offset) => {
-  for (let i = ((size * offset) + size) - 1; i >= size * offset; i--) {
+  for (let i = size * offset + size - 1; i >= size * offset; i--) {
     res[i] = chars[dec % base];
     dec = iDiv(dec, base);
   }
@@ -377,12 +422,28 @@ const convertWordsToSexDigest = (words) => {
   return sex.join("");
 };
 
+const convertWordsToVigDigest = (words) => {
+  let vig = "0".repeat(cVIG_SIZE * cPOX_PORTION_NUM).split("");
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    convertBaseFromDecimal(cVIG_BASE, cVIG_SIZE, cVIG_CHARS, vig, words[i], i);
+  }
+  return vig.join("");
+};
+
 const convertWordsToHexDigest = (words) => {
   let hex = "0".repeat(cHEX_SIZE * cPOX_PORTION_NUM).split("");
   for (let i = 0; i < cPOX_PORTION_NUM; i++) {
     convertBaseFromDecimal(cHEX_BASE, cHEX_SIZE, cHEX_CHARS, hex, words[i], i);
   }
   return hex.join("");
+};
+
+const convertWordsToTetDigest = (words) => {
+  let tet = "0".repeat(cTET_SIZE * cPOX_PORTION_NUM).split("");
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    convertBaseFromDecimal(cTET_BASE, cTET_SIZE, cTET_CHARS, tet, words[i], i);
+  }
+  return tet.join("");
 };
 
 const convertWordsToDuoDigest = (words) => {
@@ -399,6 +460,14 @@ const convertWordsToOctDigest = (words) => {
     convertBaseFromDecimal(cOCT_BASE, cOCT_SIZE, cOCT_CHARS, oct, words[i], i);
   }
   return oct.join("");
+};
+
+const convertWordsToSenDigest = (words) => {
+  let sen = "0".repeat(cSEN_SIZE * cPOX_PORTION_NUM).split("");
+  for (let i = 0; i < cPOX_PORTION_NUM; i++) {
+    convertBaseFromDecimal(cSEN_BASE, cSEN_SIZE, cSEN_CHARS, sen, words[i], i);
+  }
+  return sen.join("");
 };
 
 const convertWordsToBinDigest = (words) => {
@@ -562,9 +631,12 @@ const poxProcessBlock = (factorArray, blockArray) => {
 
 function PoxHashTy(
   sexdigest,
+  vigdigest,
   hexdigest,
+  tetdigest,
   duodigest,
   octdigest,
+  sendigest,
   bindigest,
   bytes,
   words,
@@ -572,9 +644,12 @@ function PoxHashTy(
   quad
 ) {
   this.sexdigest = sexdigest;
+  this.vigdigest = vigdigest;
   this.hexdigest = hexdigest;
-  this.octdigest = duodigest;
+  this.tetdigest = tetdigest;
   this.duodigest = octdigest;
+  this.octdigest = duodigest;
+  this.sendigest = sendigest;
   this.bindigest = bindigest;
   this.bytes = bytes;
   this.words = words;
@@ -590,7 +665,14 @@ poxHash = (data) => {
    *
    * Returns:
    *      PoxHashTy
+   *          PoxHashTy.sexdigest: string
+   *          PoxHashTy.vigdigest: string
    *          PoxHashTy.hexdigest: string
+   *          PoxHashTy.tetdigest: string
+   *          PoxHashTy.duodigest: string
+   *          PoxHashTy.octdigest: string
+   *          PoxHashTy.sendigest: string
+   *          PoxHashTy.bindigest: string
    *          PoxHashTy.bytes: Uint8Array[8]
    *          PoxHashTy.factors: Uint16Array[4]
    *          PoxHashTy.doubles: Uint32Array[2]
@@ -615,9 +697,12 @@ poxHash = (data) => {
     poxProcessBlock(factorArray, portion);
   }
   const sexdigest = convertWordsToSexDigest(factorArray);
+  const vigdigest = convertWordsToVigDigest(factorArray);
   const hexdigest = convertWordsToHexDigest(factorArray);
+  const tetdigest = convertWordsToTetDigest(factorArray);
   const duodigest = convertWordsToDuoDigest(factorArray);
   const octdigest = convertWordsToOctDigest(factorArray);
+  const sendigest = convertWordsToSenDigest(factorArray);
   const bindigest = convertWordsToBinDigest(factorArray);
   const bytes = wordArrayToByteArray(factorArray);
   const doubles = wordArrayToDoubleArray(factorArray);
@@ -625,9 +710,12 @@ poxHash = (data) => {
 
   return new PoxHashTy(
     sexdigest,
+    vigdigest,
     hexdigest,
+    tetdigest,
     duodigest,
     octdigest,
+    sendigest,
     bindigest,
     bytes,
     factorArray,

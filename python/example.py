@@ -6,9 +6,12 @@ if __name__ == "__main__":
     for i, arg in enumerate(sys.argv[1:]):
         hash = pox_hash(arg.encode())
         sexdigest = hash.sexdigest
+        vigdigest = hash.vigdigest
         hexdigest = hash.hexdigest
+        tetdigest = hash.tetdigest
         duodigest = hash.duodigest
         octdigest = hash.octdigest
+        sendigest = hash.sendigest
         bindigest = hash.bindigest
         hdigest = hash.hexdigest
         hexdigest = hash.hexdigest
@@ -19,12 +22,19 @@ if __name__ == "__main__":
         print("\n")
         print(f"\tArg #{i + 1} as follows")
         print(f"\t\tsexdigest: {sexdigest}")
+        print(f"\t\tvigdigest: {vigdigest}")
         print(f"\t\thexdigest: {hexdigest}")
+        print(f"\t\ttetdigest: {tetdigest}")
         print(f"\t\tduodigest: {duodigest}")
         print(f"\t\toctdigest: {octdigest}")
+        print(f"\t\tsendigest: {sendigest}")
         print(f"\t\tbindigest: {bindigest}")
-        print(f"\t\tbytes: uint8({bytes[0]}, {bytes[1]}, {bytes[2]}, {bytes[3]}, {bytes[4]}, {bytes[5]}, {bytes[6]}, {bytes[7]})")
-        print(f"\t\twords: uint16({words[0]}, {words[1]}, {words[2]}, {words[3]})")
+        print(
+            f"\t\tbytes: uint8({bytes[0]}, {bytes[1]}, {bytes[2]}, {bytes[3]}, {bytes[4]}, {bytes[5]}, {bytes[6]}, {bytes[7]})"
+        )
+        print(
+            f"\t\twords: uint16({words[0]}, {words[1]}, {words[2]}, {words[3]})"
+        )
         print(f"\t\tdoubles: uint32({doubles[0]}, {doubles[1]})")
         print(f"\t\tquad: uint64({quad})")
         print("\n")

@@ -8,9 +8,12 @@ int main(int argc, char **argv)
     {
         poxhash_t hash = pox_hash(argv[i]);
         char *sexdigest = hash.sexdigest;
+        char *vigdigest = hash.vigdigest;
         char *hexdigest = hash.hexdigest;
+        char *tetdigest = hash.tetdigest;
         char *duodigest = hash.duodigest;
         char *octdigest = hash.octdigest;
+        char *sendigest = hash.sendigest;
         char *bindigest = hash.bindigest;
         uint8_t *bytes = hash.bytes;
         uint16_t *words = hash.words;
@@ -19,14 +22,17 @@ int main(int argc, char **argv)
         printf("\n");
         printf("\tArg #%u as follows\n", i);
         printf("\t\tsexdigest: %s\n", sexdigest);
+        printf("\t\tvigdigest: %s\n", vigdigest);
         printf("\t\thexdigest: %s\n", hexdigest);
+        printf("\t\ttetdigest: %s\n", tetdigest);
         printf("\t\tduodigest: %s\n", duodigest);
         printf("\t\toctdigest: %s\n", octdigest);
+        printf("\t\tsendigest: %s\n", sendigest);
         printf("\t\tbindigest: %s\n", bindigest);
         printf("\t\tbytes: uint8(%u, %u, %u, %u, %u, %u, %u, %u)\n", (uint32_t)bytes[0], (uint32_t)bytes[1], (uint32_t)bytes[2], (uint32_t)bytes[3], (uint32_t)bytes[4], (uint32_t)bytes[5], (uint32_t)bytes[6], (uint32_t)bytes[7]);
         printf("\t\twords: uint16(%hu, %hu, %hu, %hu)\n", words[0], words[1], words[2], words[3]);
         printf("\t\tdoubles: uint32(%u, %u)\n", doubles[0], doubles[1]);
-		printf("\t\tquad: uint64(%lu)\n", quad);
+        printf("\t\tquad: uint64(%lu)\n", quad);
         printf("\n");
     }
 

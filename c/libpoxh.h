@@ -53,14 +53,20 @@
 #define WORD_WIDTH 16
 #define BYTE_WIDTH 8
 #define SEX_SIZE 3
+#define VIG_SIZE 4
 #define HEX_SIZE 4
-#define OCT_SIZE 6
+#define TET_SIZE 5
 #define DUO_SIZE 5
+#define OCT_SIZE 6
+#define SEN_SIZE 7
 #define BIN_SIZE 16
 #define SEX_BASE 60
+#define VIG_BASE 20
 #define HEX_BASE 16
-#define OCT_BASE 8
+#define TET_BASE 14
 #define DUO_BASE 12
+#define OCT_BASE 8
+#define SEN_BASE 6
 #define BIN_BASE 2
 #define BYTE_SIZE POX_BLOCK_NUM / 8
 #define SIZE_BIONOM 6
@@ -82,47 +88,6 @@ static const uint16_t cPOX_8B_PRIMES[POX_8B_PRIME_NUM] = {
     0xe5, 0xe9, 0xef, 0xf1, 0xfb};
 static const uint16_t cPOX_MAGIC_PRIMES[POX_MAGIC_PRIME_NUM] = {0x33, 0x65};
 static const uint16_t cPOX_SINGLE_DIGIT_PRIMES[POX_SD_PRIME_NUM] = {0x3, 0x5, 0x7};
-static const char cHEX_CHARS[16] = {
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    'A',
-    'B',
-    'C',
-    'D',
-    'E',
-    'F',
-};
-static const char cOCT_CHARS[8] = {
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7'};
-static const char cDUO_CHARS[12] = {
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    '*',
-    '#',
-};
 static const char cSEX_CHARS[60] = {
     '0',
     '1',
@@ -184,8 +149,89 @@ static const char cSEX_CHARS[60] = {
     'v',
     'w',
     'x',
-
 };
+static const char cVIG_CHARS[20] = {
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    '@',
+    '^',
+    '&',
+    '*',
+    '$',
+    '+',
+    '!',
+    ';',
+    ':',
+    '~',
+};
+static const char cHEX_CHARS[16] = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+};
+static const char cTET_CHARS[14] = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'T',
+    'E',
+    'W',
+    'R',
+};
+static const char cDUO_CHARS[12] = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '*',
+    '#',
+};
+static const char cOCT_CHARS[8] = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+};
+static const char cSEN_CHARS[6] = {
+    '0', '1', '2', '3', '4', '5'};
 static const char cBIN_CHARS[2] = {'0', '1'};
 static const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
 static const size_t cCOMB_BIONOM[6][2] = {
@@ -394,11 +440,14 @@ static inline uint16_t get_8b_prime(uint16_t num)
         }                                                               \
     } while (0)
 
-#define FACTORS_TO_BASEDIGEST(warr, sexdigest, hexdigest, duodigest, octdigest, bindigest) \
-    WORD_TO_BASE(warr, SEX_BASE, SEX_SIZE, cSEX_CHARS, sexdigest);                         \
-    WORD_TO_BASE(warr, HEX_BASE, HEX_SIZE, cHEX_CHARS, hexdigest);                         \
-    WORD_TO_BASE(warr, DUO_BASE, DUO_SIZE, cDUO_CHARS, duodigest);                         \
-    WORD_TO_BASE(warr, OCT_BASE, OCT_SIZE, cOCT_CHARS, octdigest);                         \
+#define FACTORS_TO_BASEDIGEST(warr, sexdigest, vigdigest, hexdigest, tetdigest, duodigest, octdigest, sendigest, bindigest) \
+    WORD_TO_BASE(warr, SEX_BASE, SEX_SIZE, cSEX_CHARS, sexdigest);                                                          \
+    WORD_TO_BASE(warr, VIG_BASE, VIG_SIZE, cVIG_CHARS, vigdigest);                                                          \
+    WORD_TO_BASE(warr, HEX_BASE, HEX_SIZE, cHEX_CHARS, hexdigest);                                                          \
+    WORD_TO_BASE(warr, TET_BASE, TET_SIZE, cTET_CHARS, tetdigest);                                                          \
+    WORD_TO_BASE(warr, DUO_BASE, DUO_SIZE, cDUO_CHARS, duodigest);                                                          \
+    WORD_TO_BASE(warr, OCT_BASE, OCT_SIZE, cOCT_CHARS, octdigest);                                                          \
+    WORD_TO_BASE(warr, SEN_BASE, SEN_SIZE, cSEN_CHARS, sendigest);                                                          \
     WORD_TO_BASE(warr, BIN_BASE, BIN_SIZE, cBIN_CHARS, bindigest);
 
 #define WORD_TO_DUOBLE_WORD(w1, w2, d) \
@@ -507,9 +556,9 @@ static inline uint16_t get_8b_prime(uint16_t num)
         temp_array[3] &= pnum;            \
     } while (0)
 
-#define POX_ROUND_APPLY_PRIME(temp_array)               \
+#define POX_ROUND_APPLY_PRIME(temp_array)                     \
     for (int __iw = 0; __iw < POX_ROUND_PRIME_NUM; __iw++)    \
-    {                                                   \
+    {                                                         \
         POX_APPLY_PRIME(temp_array, cPOX_ROUND_PRIMES[__iw]); \
     }
 
@@ -589,9 +638,12 @@ static inline uint16_t get_8b_prime(uint16_t num)
 typedef struct PoxHashTy
 {
     char sexdigest[(SEX_SIZE * 4) + 1];
+    char vigdigest[(VIG_SIZE * 4) + 1];
     char hexdigest[(HEX_SIZE * 4) + 1];
+    char tetdigest[(TET_SIZE * 4) + 1];
     char duodigest[(DUO_SIZE * 4) + 1];
     char octdigest[(OCT_SIZE * 4) + 1];
+    char sendigest[(SEN_SIZE * 4) + 1];
     char bindigest[(BIN_SIZE * 4) + 1];
     uint8_t bytes[BYTE_SIZE];
     uint16_t words[POX_PORTION_NUM];
@@ -599,20 +651,23 @@ typedef struct PoxHashTy
     uint64_t quad;
 } poxhash_t;
 
-#define INIT_POXHASH(poxhash, factor_array)                                                                                             \
-    memset(poxhash.sexdigest, 0, SIZE_BYTE_ARR((SEX_SIZE * 4) + 1));                                                                    \
-    memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR((HEX_SIZE * 4) + 1));                                                                    \
-    memset(poxhash.duodigest, 0, SIZE_BYTE_ARR((DUO_SIZE * 4) + 1));                                                                    \
-    memset(poxhash.octdigest, 0, SIZE_BYTE_ARR((OCT_SIZE * 4) + 1));                                                                    \
-    memset(poxhash.bindigest, 0, SIZE_BYTE_ARR((BIN_SIZE * 4) + 1));                                                                    \
-    memset(poxhash.bytes, 0, SIZE_BYTE_ARR(BYTE_SIZE));                                                                                 \
-    memset(poxhash.words, 0, SIZE_WORD_ARR(POX_PORTION_NUM));                                                                           \
-    memset(poxhash.doubles, 0, sizeof(uint32_t) * 2);                                                                                   \
-    poxhash.quad = 0;                                                                                                                   \
-    FACTORS_TO_BASEDIGEST(factor_array, poxhash.sexdigest, poxhash.hexdigest, poxhash.duodigest, poxhash.octdigest, poxhash.bindigest); \
-    FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);                                                                                    \
-    FACTORS_TO_DUOBLEARR(factor_array, poxhash.doubles);                                                                                \
-    FACTPRS_TO_QUAD(factor_array, poxhash.quad);                                                                                        \
+#define INIT_POXHASH(poxhash, factor_array)                                                                                                                                                      \
+    memset(poxhash.sexdigest, 0, SIZE_BYTE_ARR((SEX_SIZE * 4) + 1));                                                                                                                             \
+    memset(poxhash.vigdigest, 0, SIZE_BYTE_ARR((VIG_SIZE * 4) + 1));                                                                                                                             \
+    memset(poxhash.hexdigest, 0, SIZE_BYTE_ARR((HEX_SIZE * 4) + 1));                                                                                                                             \
+    memset(poxhash.tetdigest, 0, SIZE_BYTE_ARR((TET_SIZE * 4) + 1));                                                                                                                             \
+    memset(poxhash.duodigest, 0, SIZE_BYTE_ARR((DUO_SIZE * 4) + 1));                                                                                                                             \
+    memset(poxhash.octdigest, 0, SIZE_BYTE_ARR((OCT_SIZE * 4) + 1));                                                                                                                             \
+    memset(poxhash.sendigest, 0, SIZE_BYTE_ARR((SEN_SIZE * 4) + 1));                                                                                                                             \
+    memset(poxhash.bindigest, 0, SIZE_BYTE_ARR((BIN_SIZE * 4) + 1));                                                                                                                             \
+    memset(poxhash.bytes, 0, SIZE_BYTE_ARR(BYTE_SIZE));                                                                                                                                          \
+    memset(poxhash.words, 0, SIZE_WORD_ARR(POX_PORTION_NUM));                                                                                                                                    \
+    memset(poxhash.doubles, 0, sizeof(uint32_t) * 2);                                                                                                                                            \
+    poxhash.quad = 0;                                                                                                                                                                            \
+    FACTORS_TO_BASEDIGEST(factor_array, poxhash.sexdigest, poxhash.vigdigest, poxhash.hexdigest, poxhash.tetdigest, poxhash.duodigest, poxhash.octdigest, poxhash.sendigest, poxhash.bindigest); \
+    FACTORS_TO_BYTEARR(factor_array, poxhash.bytes);                                                                                                                                             \
+    FACTORS_TO_DUOBLEARR(factor_array, poxhash.doubles);                                                                                                                                         \
+    FACTPRS_TO_QUAD(factor_array, poxhash.quad);                                                                                                                                                 \
     memcpy(poxhash.words, factor_array, SIZE_WORD_ARR(POX_PORTION_NUM));
 
 /**
@@ -622,9 +677,13 @@ typedef struct PoxHashTy
  *
  * Returns:
  *      struct PoxHashTy (poxhash_t)
+ *          PoxHashTy.hexdigest: char[13] (null-terminated)
+ *          PoxHashTy.vigdigest: char[17] (null-terminated)
  *          PoxHashTy.hexdigest: char[17] (null-terminated)
+ *          PoxHashTy.tetodigest: char[21] (null-terminated)
  *          PoxHashTy.duodigest: char[21] (null-terminated)
  *          PoxHashTy.octdigest: char[25] (null-terminated)
+ *          PoxHashTy.sendigest: char[29] (null-terminated)
  *          PoxHashTy.bindigest: char[65] (null-terminated)
  *          PoxHashTy.bytes: uint8_t[8]
  *          PoxHashTy.words: uint16_t[4]

@@ -7,9 +7,12 @@ fn main() {
     for (i, arg) in (&args[1..]).to_vec().into_iter().enumerate() {
         let hash = pox_hash(arg.as_bytes().to_vec());
         let sexdigest = hash.sexdigest;
+        let vigdigest = hash.vigdigest;
         let hexdigest = hash.hexdigest;
+        let tetdigest = hash.tetdigest;
         let duodigest = hash.duodigest;
         let octdigest = hash.octdigest;
+        let sendigest = hash.sendigest;
         let bindigest = hash.bindigest;
         let bytes = hash.bytes;
         let words = hash.words;
@@ -18,12 +21,21 @@ fn main() {
         println!("\n");
         println!("\tArg #{i} as follows");
         println!("\t\tsexdigest: {sexdigest}");
+        println!("\t\tvigdigest: {vigdigest}");
         println!("\t\thexdigest: {hexdigest}");
+        println!("\t\ttetdigest: {tetdigest}");
         println!("\t\tduodigest: {duodigest}");
         println!("\t\toctdigest: {octdigest}");
+        println!("\t\tsendigest: {sendigest}");
         println!("\t\tbindigest: {bindigest}");
-        println!("\t\tbytes: uint8({}, {}, {}, {}, {}, {}, {}, {})", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]);
-        println!("\t\twords: uint16({}, {}, {}, {})", words[0], words[1], words[2], words[3],);
+        println!(
+            "\t\tbytes: uint8({}, {}, {}, {}, {}, {}, {}, {})",
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]
+        );
+        println!(
+            "\t\twords: uint16({}, {}, {}, {})",
+            words[0], words[1], words[2], words[3],
+        );
         println!("\t\tdouble: uint32({}, {})", doubles[0], doubles[1]);
         println!("\t\tquad: uint64({})", quad);
         println!("\n")
