@@ -306,12 +306,14 @@ uint64_t get_time_in_us()
     return us;
 }
 
-int sum_array(int *arr, int size)
+int all_are_false(int *arr, int size)
 {
-    int sum = 0;
-    for (int i = 0; i < size; i++)
-        sum += arr[i];
-    return sum;
+    for (int i = 0; i < size; i++) {
+        if (arr[i] == 1) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time, char *joined)
@@ -335,7 +337,7 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
     int sen = arg_has_flag(flags, len_flags, FLAG_SEN);
     int bin = arg_has_flag(flags, len_flags, FLAG_BIN);
 
-    int sum = sum_array(
+    int all_false = all_are_false(
         (int[]){
             everything,
             all_flags_decimal,
@@ -355,7 +357,7 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
         },
         15);
 
-    if (sum == 0)
+    if (all_false)
     {
         ERR_OUT("You have not specfied any digests to be printed. Please pass at least one, or `*` for all");
     }
