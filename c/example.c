@@ -163,7 +163,7 @@ int validate_flags(int argc, char **argv)
         ERR_OUT("Length of the first argument must at least be 3 and at most 24");
     }
 
-    if (argv[1][0] != '-' || argv[1][len_flags - 1] != '-')
+    if (argv[1][0] != FLAG_DASH || argv[1][len_flags - 1] != FLAG_DASH)
     {
         ERR_OUT("The flag argument must begin and end with `-`");
     }
@@ -179,7 +179,7 @@ int validate_flags(int argc, char **argv)
     }
 
     char reoccrance = search_for_flag_reocurrance(argv[1], len_flags);
-    if (reoccrance != '\0' && reoccrance != '^')
+    if (reoccrance != '\0' && reoccrance != FLAG_BENCHMARK)
     {
         printf("Flag %c appears twice\n", reoccrance);
         ERR_OUT("Only `^` can appear twice");
