@@ -1,6 +1,25 @@
+#ifndef __EXAMPLE_C
+#define __EXAMPLE_C
+
+#ifndef _POXIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L
+#endif
+
+#ifndef __INCLUDE_STDIO
+#define __INCLUDE_STDIO
 #include <stdio.h>
+#endif
+#ifndef __INDLUCE_TIME
+#define __INCLUDE_TIME
 #include <time.h>
+#endif
+#ifndef __INCLUDE_LIBPOX
+#define __INCLUDE_LIBPOX
 #include "libpoxh.h"
+#endif
+
+#define SEC_TO_US(sec) ((sec)*1000000)
+#define NS_TO_US(ns)    ((ns)/1000)
 
 #define MAX_FLAG_SIZE 24
 #define MIN_FLAG_SIZE 3
@@ -90,9 +109,9 @@ char *get_exec_name(char *argv0)
     return exec_name;
 }
 
-int arg_has_flag(char *arg, int len_arg, flag_t must_have)
+int arg_has_flag(char *arg, int len_flags, flag_t must_have)
 {
-    for (int i = 1; i < len_arg - 1; i++)
+    for (int i = 1; i < len_flags - 1; i++)
     {
         if (arg[i] == must_have)
         {
@@ -109,24 +128,23 @@ int validate_flags(int argc, char **argv)
         ERR_OUT("No flags passed");
     }
 
-    int len_arg = strlen(argv[1]);
-    if (len_arg > MAX_FLAG_SIZE)
-
-        if (argv[1][0] != '-' || argv[1][len_arg - 1] != '-')
-        {
-            ERR_OUT("The flag argument must begin and end with `-`");
-        }
-
-    if (len_arg < MIN_FLAG_SIZE)
+    int len_flags = strlen(argv[1]);
+    if (len_flags < MIN_FLAG_SIZE || len_flags > MAX_FLAG_SIZE)
     {
-        ERR_OUT("Length of the first argument must at least be 3");
+        ERR_OUT("Length of the first argument must at least be 3 and at most 24");
     }
+
+    if (argv[1][0] != '-' || argv[1][len_flags - 1] != '-')
+    {
+        ERR_OUT("The flag argument must begin and end with `-`");
+    }
+
     char *exec_name = get_exec_name(argv[0]);
     if (!(strncmp(argv[1], "-?-", HELP_FLAG_SIZE)))
         print_help(exec_name);
 
-    int help_passed = arg_has_flag(argv[1], len_arg, FLAG_HELP);
-    if (help_passed && len_arg > MIN_FLAG_SIZE)
+    int help_passed = arg_has_flag(argv[1], len_flags, FLAG_HELP);
+    if (help_passed && len_flags > MIN_FLAG_SIZE)
     {
         ERR_OUT("You may not pass the `?` flag along with other flags");
     }
@@ -136,11 +154,11 @@ int validate_flags(int argc, char **argv)
         ERR_OUT("You must pass at least one argument to hash");
     }
 
-    int all_flags_passed = arg_has_flag(argv[1], len_arg, FLAG_EVERTHING);
-    int all_flags_dec_passed = arg_has_flag(argv[1], len_arg, FLAG_ALL_DECIMAL);
-    int all_flags_nondec_passed = arg_has_flag(argv[1], len_arg, FLAG_ALL_NON_DEC);
+    int all_flags_passed = arg_has_flag(argv[1], len_flags, FLAG_EVERTHING);
+    int all_flags_dec_passed = arg_has_flag(argv[1], len_flags, FLAG_ALL_DECIMAL);
+    int all_flags_nondec_passed = arg_has_flag(argv[1], len_flags, FLAG_ALL_NON_DEC);
 
-    for (int i = 1; i < len_arg - 1; i++)
+    for (int i = 1; i < len_flags - 1; i++)
     {
         switch (argv[1][i])
         {
@@ -239,7 +257,7 @@ int validate_flags(int argc, char **argv)
             }
             continue;
         case FLAG_HELP:
-            if (len_arg > MIN_FLAG_SIZE)
+            if (len_flags > MIN_FLAG_SIZE)
             {
                 ERR_OUT("You may not pass the `?` flag along with other flags");
             }
@@ -250,7 +268,7 @@ int validate_flags(int argc, char **argv)
         }
     }
 
-    return len_arg;
+    return len_flags;
 }
 
 char *join_args(int argc, char **argv)
@@ -280,11 +298,12 @@ char *join_args(int argc, char **argv)
     return ret;
 }
 
-time_t get_time_in_secs()
+uint64_t get_time_in_us()
 {
-    time_t secs;
-    secs = time(NULL);
-    return secs;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    uint64_t us = SEC_TO_US((uint64_t)ts.tv_sec) + NS_TO_US((uint64_t)ts.tv_nsec);
+    return us;
 }
 
 int sum_array(int *arr, int size)
@@ -295,10 +314,10 @@ int sum_array(int *arr, int size)
     return sum;
 }
 
-void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags, time_t total_time)
+void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time, char *joined)
 {
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
-        printf("Total time for %d byte string(s): %lu\n", len_hashes, (unsigned long)total_time);
+        printf("Total microseconds spent for hashing %d bytestring(s): %luus\n", len_hashes, total_time);
 
     int everything = arg_has_flag(flags, len_flags, FLAG_EVERTHING);
     int all_flags_decimal = arg_has_flag(flags, len_flags, FLAG_ALL_DECIMAL);
@@ -343,7 +362,7 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
 
     for (int i = 0; i < len_hashes; i++)
     {
-        printf("\nRequested digests for byte string #%u\n", i + 1);
+        printf("\nRequested digests for byte string #%u%s\n", i + 1, joined);
         if (everything || all_flags_decimal || byte)
             printf("\tBytes: U8[%hu, %u, %u, %u, %u, %u, %u, %u,]\n", hashes[i].bytes[0], hashes[i].bytes[1], hashes[i].bytes[2], hashes[i].bytes[3], hashes[i].bytes[4], hashes[i].bytes[5], hashes[i].bytes[6], hashes[i].bytes[7]);
         if (everything || all_flags_decimal || word)
@@ -383,25 +402,26 @@ int main(int argc, char **argv)
     if (arg_has_flag(argv[1], len_flags, FLAG_JOIN))
     {
         char *args_joined = join_args(argc, argv);
-        time_t t1 = get_time_in_secs();
+        time_t t1 = get_time_in_us();
         hashes[0] = pox_hash(args_joined);
-        time_t t2 = get_time_in_secs();
+        time_t t2 = get_time_in_us();
         free(args_joined);
-        print_hashes(hashes, 1, argv[1], len_flags, t2 - t1);
+        print_hashes(hashes, 1, argv[1], len_flags, t2 - t1, " (joined arguments):");
     }
     else
     {
-        time_t total_time, t1, t2;
+        uint64_t total_time, t1, t2;
         int cursor = 0;
         for (int i = 2; i < argc; i++)
         {
-            t1 = get_time_in_secs();
+            t1 = get_time_in_us();
             hashes[cursor++] = pox_hash(argv[i]);
-            t2 = get_time_in_secs();
+            t2 = get_time_in_us();
             total_time += t2 - t1;
         }
-        print_hashes(hashes, argc - 2, argv[1], len_flags, total_time);
+        print_hashes(hashes, argc - 2, argv[1], len_flags, total_time, ":");
     }
 
     return 0;
 }
+#endif
