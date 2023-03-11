@@ -366,7 +366,7 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
     {
         printf("\nRequested digests for byte string #%u%s\n", i + 1, joined);
         if (everything || all_flags_decimal || byte)
-            printf("\tBytes: U8[%hu, %u, %u, %u, %u, %u, %u, %u,]\n", hashes[i].bytes[0], hashes[i].bytes[1], hashes[i].bytes[2], hashes[i].bytes[3], hashes[i].bytes[4], hashes[i].bytes[5], hashes[i].bytes[6], hashes[i].bytes[7]);
+            printf("\tBytes: U8[%hu, %u, %u, %u, %u, %u, %u, %u]\n", hashes[i].bytes[0], hashes[i].bytes[1], hashes[i].bytes[2], hashes[i].bytes[3], hashes[i].bytes[4], hashes[i].bytes[5], hashes[i].bytes[6], hashes[i].bytes[7]);
         if (everything || all_flags_decimal || word)
             printf("\tWords: U16[%hu, %hu, %hu, %hu]\n", hashes[i].words[0], hashes[i].words[1], hashes[i].words[2], hashes[i].words[3]);
         if (everything || all_flags_decimal || dub)
