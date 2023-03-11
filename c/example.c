@@ -26,8 +26,11 @@
 #define HELP_FLAG_SIZE 3
 #define SPACE 32
 #define MIN_ARG_NUM 3
+#define NUM_ASCII 128
+#define LEN_WRONG_FLAGS 28
 
-#define ERR_OUT(message)                                                                          \
+#define ERR_OUT(message)    \
+    printf("\n");                                                                    \
     printf(message);                                                                              \
     printf("\n");                                                                                 \
     printf("\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n\n"); \
@@ -38,12 +41,12 @@ typedef enum FLAGS
     FLAG_BENCHMARK = '^',
     FLAG_JOIN = '+',
     FLAG_EVERTHING = '*',
-    FLAG_ALL_NON_DEC = '$',
-    FLAG_ALL_DECIMAL = '&',
-    FLAG_BYTES = 'B',
-    FLAG_WORDS = 'W',
-    FLAG_DOUBLES = 'D',
-    FLAG_QUAD = 'Q',
+    FLAG_ALL_NON_DEC = 'N',
+    FLAG_ALL_DECIMAL = 'D',
+    FLAG_BYTES = '8',
+    FLAG_WORDS = '4',
+    FLAG_DOUBLES = '2',
+    FLAG_QUAD = '1',
     FLAG_SEX = 'g',
     FLAG_VIG = 'v',
     FLAG_HEX = 'h',
@@ -55,6 +58,23 @@ typedef enum FLAGS
     FLAG_HELP = '?',
     FLAG_DASH = '-',
 } flag_t;
+
+const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
+    {'G', 'g'}, {'V', 'v'}, 
+    {'O', 'o'}, {'T', 't'}, 
+    {'S', 's'}, {'H', 'h'}, 
+    {'n', 'N'}, {'W', '4'},     
+    {'w', '4'},  {'q', '1'}, 
+    {'Q', '1'}, {'3', '2'}, 
+    {'5', '4'}, {'6', '^'},
+    {'7', '8'}, {'9', '8'},
+    {'0', '1'}, {'/', '?'}, 
+    {'=', '+'}, {'B', 'b'},
+    {'E', '*'}, {'A', '*'},
+    {'>', '?'}, {'&', '*'},
+    {'r', 't'}, {'y', 't'},
+    {'f', 'g'}, {'x', 'h'},
+};
 
 void print_help(char *exec)
 {
@@ -71,12 +91,12 @@ void print_help(char *exec)
     printf("\033[1;35m\t`^`\033[0m: Benchmark run (pass two to only show benchmark)\n");
     printf("\033[1;35m\t`+`\033[0m: Join arguments\n");
     printf("\033[1;35m\t`*`\033[0m: Print every digest\n");
-    printf("\033[1;35m\t`$`\033[0m: Print every non-decimal digest\n");
-    printf("\033[1;35m\t`&`\033[0m: Print every decimal digest\n");
-    printf("\033[1;35m\t`B`\033[0m: Print bytes digest\n");
-    printf("\033[1;35m\t`W`\033[0m: Print words digest\n");
-    printf("\033[1;35m\t`D`\033[0m: Print doubles digest\n");
-    printf("\033[1;35m\t`Q`\033[0m: Print quad digest\n");
+    printf("\033[1;35m\t`N`\033[0m: Print every non-decimal digest\n");
+    printf("\033[1;35m\t`D`\033[0m: Print every decimal digest\n");
+    printf("\033[1;35m\t`8`\033[0m: Print bytes digest\n");
+    printf("\033[1;35m\t`4`\033[0m: Print words digest\n");
+    printf("\033[1;35m\t`2`\033[0m: Print doubles digest\n");
+    printf("\033[1;35m\t`1`\033[0m: Print quad digest\n");
     printf("\033[1;35m\t`g`\033[0m: Print sexagesimal digest\n");
     printf("\033[1;35m\t`v`\033[0m: Print viggesimal digest\n");
     printf("\033[1;35m\t`h`\033[0m: Print hexadecimal digest\n");
@@ -88,6 +108,25 @@ void print_help(char *exec)
     printf("\033[1;35m\t`?`\033[0m: Print Help\n\n");
     free(exec);
     exit(1);
+}
+
+void check_for_wrong_flags(char *flags, int len_flags)
+{
+    char flag, wrong_flag, right_flag;
+    for (int i = 0; i < len_flags; i++)
+    {
+        flag = flags[i];
+        for (int j = 0; j < LEN_WRONG_FLAGS; j++)
+        {
+            wrong_flag = cWRONG_FLAGS[j][0];
+            right_flag = cWRONG_FLAGS[j][1];
+            if (flag == wrong_flag)
+            {
+                printf("No flag for `%c`, perhaps you meant `%c`?", flag, right_flag);
+                ERR_OUT("Flag erreror");
+            }
+        }
+    }
 }
 
 char *get_exec_name(char *argv0)
@@ -122,8 +161,8 @@ int arg_has_flag(char *flag_arg, int len_flags, flag_t must_have)
 
 char search_for_flag_reocurrance(char *flag_arg, int len_flags)
 {
-    char occurance_array[128];
-    memset(occurance_array, 0, 128);
+    char occurance_array[NUM_ASCII];
+    memset(occurance_array, 0, NUM_ASCII);
     for (int i = 0; i < len_flags; i++)
     {
         occurance_array[flag_arg[i]] += 1;
@@ -168,6 +207,8 @@ int validate_flags(int argc, char **argv)
         ERR_OUT("The flag argument must begin and end with `-`");
     }
 
+    check_for_wrong_flags(argv[1], len_flags);
+
     char *exec_name = get_exec_name(argv[0]);
     if (!(strncmp(argv[1], "-?-", HELP_FLAG_SIZE)))
         print_help(exec_name);
@@ -205,91 +246,91 @@ int validate_flags(int argc, char **argv)
         case FLAG_EVERTHING:
             if (all_flags_dec_passed || all_flags_nondec_passed)
             {
-                ERR_OUT("You may not pass `*` when you have passed `$` or `&`");
+                ERR_OUT("You may not pass `*` when you have passed `N` or `D`");
             }
             continue;
         case FLAG_ALL_NON_DEC:
             if (all_flags_passed)
             {
-                ERR_OUT("You may not pass `$` when `*` is passed");
+                ERR_OUT("You may not pass `N` when `*` is passed");
             }
             continue;
         case FLAG_ALL_DECIMAL:
             if (all_flags_passed)
             {
-                ERR_OUT("You may not pass `&` when `*` is passed");
+                ERR_OUT("You may not pass `D` when `*` is passed");
             }
             continue;
         case FLAG_BYTES:
             if (all_flags_dec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a decimal digest flag when `*` or `&` is passed");
+                ERR_OUT("You may not pass a decimal digest flag when `*` or `D` is passed");
             }
             continue;
         case FLAG_WORDS:
             if (all_flags_dec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a decimal digest flag when `*` or `&` is passed");
+                ERR_OUT("You may not pass a decimal digest flag when `*` or `D` is passed");
             }
             continue;
         case FLAG_DOUBLES:
             if (all_flags_dec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a decimal digest flag when `*` or `&` is passed");
+                ERR_OUT("You may not pass a decimal digest flag when `*` or `D` is passed");
             }
             continue;
         case FLAG_QUAD:
             if (all_flags_dec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a decimal digest flag when `*` or `&` is passed");
+                ERR_OUT("You may not pass a decimal digest flag when `*` or `D` is passed");
             }
             continue;
         case FLAG_SEX:
             if (all_flags_nondec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `$` is passed");
+                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `N` is passed");
             }
             continue;
         case FLAG_VIG:
             if (all_flags_nondec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `$` is passed");
+                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `N` is passed");
             }
             continue;
         case FLAG_HEX:
             if (all_flags_nondec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `$` is passed");
+                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `N` is passed");
             }
             continue;
         case FLAG_TET:
             if (all_flags_nondec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `$` is passed");
+                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `N` is passed");
             }
             continue;
         case FLAG_DUO:
             if (all_flags_nondec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `$` is passed");
+                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `N` is passed");
             }
             continue;
         case FLAG_OCT:
             if (all_flags_nondec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `$` is passed");
+                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `N` is passed");
             }
             continue;
         case FLAG_SEN:
             if (all_flags_nondec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `$` is passed");
+                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `N` is passed");
             }
             continue;
         case FLAG_BIN:
             if (all_flags_nondec_passed || all_flags_passed)
             {
-                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `$` is passed");
+                ERR_OUT("You may not pass a non-decimal digest flag when `*` or `N` is passed");
             }
             continue;
         case FLAG_HELP:
@@ -357,10 +398,11 @@ int all_are_false(int *arr, int size)
 void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time, char *joined)
 {
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
-        printf("Total microseconds spent for hashing %d bytestring(s): %luus\n", len_hashes, total_time);
-    
+        printf("Total time for hashing %d bytestring(s): %luus\n", len_hashes, total_time);
+
     char reoccurance = search_for_flag_reocurrance(flags, len_flags);
-    if (reoccurance == FLAG_BENCHMARK) {
+    if (reoccurance == FLAG_BENCHMARK)
+    {
         printf("\n");
         exit(0);
     }
@@ -403,9 +445,9 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
 
     if (all_false)
     {
-        
 
-        ERR_OUT("You have not specfied any digests to be printed. Please pass at least one, or `*` for all");
+        printf("You had not specfied any digests to be printed\n");
+        exit(0);
     }
 
     for (int i = 0; i < len_hashes; i++)
@@ -442,7 +484,7 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
 
 int main(int argc, char **argv)
 {
-    printf("\n");
+    printf("PoxHash (Header-Only C)\n");
     int len_flags = validate_flags(argc, argv);
 
     poxhash_t hashes[argc - 2];
