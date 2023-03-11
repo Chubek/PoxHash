@@ -635,7 +635,7 @@ static inline uint16_t get_8b_prime(uint16_t num)
         }                                                                                              \
     }
 
-typedef struct PoxHashTy
+typedef struct PoxHashDigest
 {
     char sexdigest[(SEX_SIZE * 4) + 1];
     char vigdigest[(VIG_SIZE * 4) + 1];
@@ -671,24 +671,24 @@ typedef struct PoxHashTy
     memcpy(poxhash.words, factor_array, SIZE_WORD_ARR(POX_PORTION_NUM));
 
 /**
- * Converts the given byte array into a struct PoxHashTy (alias poxhash_t) object
+ * Converts the given byte array into a struct PoxHashDigest (alias poxhash_t) object
  * Parameters:
  *      char *data
  *
  * Returns:
- *      struct PoxHashTy (poxhash_t)
- *          PoxHashTy.hexdigest: char[13] (null-terminated)
- *          PoxHashTy.vigdigest: char[17] (null-terminated)
- *          PoxHashTy.hexdigest: char[17] (null-terminated)
- *          PoxHashTy.tetodigest: char[21] (null-terminated)
- *          PoxHashTy.duodigest: char[21] (null-terminated)
- *          PoxHashTy.octdigest: char[25] (null-terminated)
- *          PoxHashTy.sendigest: char[29] (null-terminated)
- *          PoxHashTy.bindigest: char[65] (null-terminated)
- *          PoxHashTy.bytes: uint8_t[8]
- *          PoxHashTy.words: uint16_t[4]
- *          PoxHashTy.doubles uint32_t[2]
- *          PoxHashTy.quad  uint64_t
+ *      struct PoxHashDigest (poxhash_t)
+ *          PoxHashDigest.hexdigest: char[13] (null-terminated)
+ *          PoxHashDigest.vigdigest: char[17] (null-terminated)
+ *          PoxHashDigest.hexdigest: char[17] (null-terminated)
+ *          PoxHashDigest.tetodigest: char[21] (null-terminated)
+ *          PoxHashDigest.duodigest: char[21] (null-terminated)
+ *          PoxHashDigest.octdigest: char[25] (null-terminated)
+ *          PoxHashDigest.sendigest: char[29] (null-terminated)
+ *          PoxHashDigest.bindigest: char[65] (null-terminated)
+ *          PoxHashDigest.bytes: uint8_t[8]
+ *          PoxHashDigest.words: uint16_t[4]
+ *          PoxHashDigest.doubles uint32_t[2]
+ *          PoxHashDigest.quad  uint64_t
  */
 extern inline poxhash_t pox_hash(char *data)
 {

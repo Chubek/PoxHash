@@ -547,7 +547,7 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
                 poxRound(factorArray)
 
 type
-    PoxHashTy* = object
+    PoxHashDigest* = object
         sexdigest*: string
         vigdigest*: string
         hexdigest*: string
@@ -561,25 +561,25 @@ type
         doubles*: array[2, uint32]
         quad*: uint64
 
-proc PoxHash*(data: ByteSeq): PoxHashTy =
-    ## Converts the given byte seq into a PoxHashTy object
+proc PoxHash*(data: ByteSeq): PoxHashDigest =
+    ## Converts the given byte seq into a PoxHashDigest object
     ## Parameters:
     ##       data: seq[byte]
     ## 
     ## Returns:
-    ##      PoxHashTy
-    ##          PoxHashTy.sexdigest: string
-    ##          PoxHashTy.vigdigest: string
-    ##          PoxHashTy.hexdigest: string
-    ##          PoxHashTy.tetdigest: string
-    ##          PoxHashTy.duodigest: string
-    ##          PoxHashTy.octdigest: string
-    ##          PoxHashTy.sendigest: string
-    ##          PoxHashTy.bindigest: string
-    ##          PoxHashTy.bytes: array[8, uint8]
-    ##          PoxHashTy.words: array[4, uint16]
-    ##          PoxHashTy.doubles: array[2, uint32]
-    ##          PoxHashTy.quad: uint64
+    ##      PoxHashDigest
+    ##          PoxHashDigest.sexdigest: string
+    ##          PoxHashDigest.vigdigest: string
+    ##          PoxHashDigest.hexdigest: string
+    ##          PoxHashDigest.tetdigest: string
+    ##          PoxHashDigest.duodigest: string
+    ##          PoxHashDigest.octdigest: string
+    ##          PoxHashDigest.sendigest: string
+    ##          PoxHashDigest.bindigest: string
+    ##          PoxHashDigest.bytes: array[8, uint8]
+    ##          PoxHashDigest.words: array[4, uint16]
+    ##          PoxHashDigest.doubles: array[2, uint32]
+    ##          PoxHashDigest.quad: uint64
     var padded = byteArrayToPortionArrayAndPad(data)
     var factorArray: FactorArray = [POX_PRIME_INIT_A, POX_PRIME_INIT_B, POX_PRIME_INIT_C, POX_PRIME_INIT_D]
     var blockArray: BlockArray
@@ -600,8 +600,8 @@ proc PoxHash*(data: ByteSeq): PoxHashTy =
     var doubles = wordArrToDoubleArr(factorArray)
     var quad = wordArrToQuad(factorArray)
 
-    var ret: PoxHashTy
-    ret = PoxHashTy(
+    var ret: PoxHashDigest
+    ret = PoxHashDigest(
             sexdigest: sexdigest,
             vigdigest: vigdigest,
             hexdigest: hexdigest,

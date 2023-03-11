@@ -640,7 +640,7 @@ func poxProcessBlock(factorArray factorType, block blockType) factorType {
 	return factorArrayCpy
 }
 
-type PoxHashTy struct {
+type PoxHashDigest struct {
 	Sexdigest string    `json:"sexdigest"`
 	Vigdigest string    `json:"vigdigest"`
 	Hexdigest string    `json:"hexdigest"`
@@ -655,25 +655,25 @@ type PoxHashTy struct {
 	Quad      uint64    `json:"quad"`
 }
 
-func PoxHash(data []byte) PoxHashTy {
-	// Converts the given data to a PoxHashTy object
+func PoxHash(data []byte) PoxHashDigest {
+	// Converts the given data to a PoxHashDigest object
 	// Parameters:
 	//		data: []byte
 	//
 	// Returns:
-	//		PoxHashTy
-	//			PoxHashTy.Sexdigest: string
-	//			PoxHashTy.Vigdigest: string
-	//			PoxHashTy.Hexdigest: string
-	//			PoxHashTy.Tetdigest: string
-	//			PoxHashTy.Duodigest: string
-	//			PoxHashTy.Octdigest: string
-	//			PoxHashTy.Sendigest: string
-	//			PoxHashTy.Bindigest: string
-	//			PoxHashTy.Bytes: [8]uint8
-	//			PoxHashTy.Words: [4]uint16
-	//			PoxHashTy.Doubles [2]uint32
-	//			PoxHashTy.Quad 	uint64
+	//		PoxHashDigest
+	//			PoxHashDigest.Sexdigest: string
+	//			PoxHashDigest.Vigdigest: string
+	//			PoxHashDigest.Hexdigest: string
+	//			PoxHashDigest.Tetdigest: string
+	//			PoxHashDigest.Duodigest: string
+	//			PoxHashDigest.Octdigest: string
+	//			PoxHashDigest.Sendigest: string
+	//			PoxHashDigest.Bindigest: string
+	//			PoxHashDigest.Bytes: [8]uint8
+	//			PoxHashDigest.Words: [4]uint16
+	//			PoxHashDigest.Doubles [2]uint32
+	//			PoxHashDigest.Quad 	uint64
 	padded := byteArrToWordArrAndPad(data)
 	factorArray := newFactorArray()
 
@@ -694,7 +694,7 @@ func PoxHash(data []byte) PoxHashTy {
 	doubles := wordArrayToDoubleArray(factorArray)
 	quad := wordToQuad(factorArray[0], factorArray[1], factorArray[2], factorArray[3])
 
-	return PoxHashTy{
+	return PoxHashDigest{
 		Sexdigest: sexdigest,
 		Vigdigest: vigdigest,
 		Hexdigest: hexdigest,

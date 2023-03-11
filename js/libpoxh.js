@@ -629,7 +629,7 @@ const poxProcessBlock = (factorArray, blockArray) => {
   }
 };
 
-function PoxHashTy(
+function PoxHashDigest(
   sexdigest,
   vigdigest,
   hexdigest,
@@ -659,24 +659,24 @@ function PoxHashTy(
 
 poxHash = (data) => {
   /**
-   * Converts the given data into a PoxHashTy object
+   * Converts the given data into a PoxHashDigest object
    * Parameters:
    *      data: string or Uint8Array
    *
    * Returns:
-   *      PoxHashTy
-   *          PoxHashTy.sexdigest: string
-   *          PoxHashTy.vigdigest: string
-   *          PoxHashTy.hexdigest: string
-   *          PoxHashTy.tetdigest: string
-   *          PoxHashTy.duodigest: string
-   *          PoxHashTy.octdigest: string
-   *          PoxHashTy.sendigest: string
-   *          PoxHashTy.bindigest: string
-   *          PoxHashTy.bytes: Uint8Array[8]
-   *          PoxHashTy.factors: Uint16Array[4]
-   *          PoxHashTy.doubles: Uint32Array[2]
-   *          PoxHashTy.quad: BigInt.asUintN(64)
+   *      PoxHashDigest
+   *          PoxHashDigest.sexdigest: string
+   *          PoxHashDigest.vigdigest: string
+   *          PoxHashDigest.hexdigest: string
+   *          PoxHashDigest.tetdigest: string
+   *          PoxHashDigest.duodigest: string
+   *          PoxHashDigest.octdigest: string
+   *          PoxHashDigest.sendigest: string
+   *          PoxHashDigest.bindigest: string
+   *          PoxHashDigest.bytes: Uint8Array[8]
+   *          PoxHashDigest.factors: Uint16Array[4]
+   *          PoxHashDigest.doubles: Uint32Array[2]
+   *          PoxHashDigest.quad: BigInt.asUintN(64)
    */
   const processedInput = processInput(data);
   if (processInput == null) {
@@ -708,7 +708,7 @@ poxHash = (data) => {
   const doubles = wordArrayToDoubleArray(factorArray);
   const quad = doubleArrayToQuad(doubles);
 
-  return new PoxHashTy(
+  return new PoxHashDigest(
     sexdigest,
     vigdigest,
     hexdigest,
@@ -725,4 +725,4 @@ poxHash = (data) => {
 };
 
 exports.poxHash = poxHash;
-exports.PoxHashTy = PoxHashTy;
+exports.PoxHashDigest = PoxHashDigest;

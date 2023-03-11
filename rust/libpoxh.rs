@@ -623,7 +623,7 @@ mod block {
     }
 }
 
-pub struct PoxHashTy {
+pub struct PoxHashDigest {
     pub sexdigest: String,
     pub vigdigest: String,
     pub hexdigest: String,
@@ -639,25 +639,25 @@ pub struct PoxHashTy {
 }
 
 #[allow(unused_doc_comments)]
-pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
-    /// Converts the given data into a PoxHashTy object
+pub fn pox_hash(data: Vec<u8>) -> PoxHashDigest {
+    /// Converts the given data into a PoxHashDigest object
     /// Parameters:
     ///     data: Vec<u8>
     ///
     /// Returns:
-    ///     PoxHashTy
-    ///         PoxHashTy.sexdigest: String
-    ///         PoxHashTy.vigdigest: String
-    ///         PoxHashTy.hexdigest: String
-    ///         PoxHashTy.tetdigest: String
-    ///         PoxHashTy.duodigest: String
-    ///         PoxHashTy.octdigest: String
-    ///         PoxHashTy.sendigest: String
-    ///         PoxHashTy.bindigest: String
-    ///         PoxHashTy.bytes: [u8; 8]
-    ///         PoxHashTy.words: [u16; 4]
-    ///         PoxHashTy.doubles: [u32, 2]
-    ///         PoxHashTy.quad: u64
+    ///     PoxHashDigest
+    ///         PoxHashDigest.sexdigest: String
+    ///         PoxHashDigest.vigdigest: String
+    ///         PoxHashDigest.hexdigest: String
+    ///         PoxHashDigest.tetdigest: String
+    ///         PoxHashDigest.duodigest: String
+    ///         PoxHashDigest.octdigest: String
+    ///         PoxHashDigest.sendigest: String
+    ///         PoxHashDigest.bindigest: String
+    ///         PoxHashDigest.bytes: [u8; 8]
+    ///         PoxHashDigest.words: [u16; 4]
+    ///         PoxHashDigest.doubles: [u32, 2]
+    ///         PoxHashDigest.quad: u64
     let padded_u16 = convert::byte_vec_to_word_vec_and_pad(data);
     let mut factor_array: types::ArrType = [
         consts::POX_PRIME_INIT_A,
@@ -689,7 +689,7 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashTy {
     let doubles = convert::word_array_to_double_array(&factor_array);
     let quad = convert::word_array_to_quad(&factor_array);
 
-    PoxHashTy {
+    PoxHashDigest {
         sexdigest,
         vigdigest,
         hexdigest,
