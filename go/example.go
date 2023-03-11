@@ -69,8 +69,10 @@ var wrongFLAGS = [numWRONG_FLAGS][2]byte{
 }
 
 func errorOut(message string) {
+	fmt.Println()
 	fmt.Printf(message)
-	fmt.Printf("\n\033[1;31mError ocurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n")
+	fmt.Println()
+	fmt.Printf("\033[1;31mError ocurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n")
 	os.Exit(1)
 }
 
