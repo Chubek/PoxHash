@@ -84,10 +84,13 @@
         doubles -> The 4 words put together into 2 doubles
         quad -> The 4 words put together into 1 quad
     non-decimal-digest ->
-        sexdigest -> The 4 factors in sexadecimal or base 60
+        sexdigest -> The 4 factors in sexagesimal or base 60
+        vigdigest -> The 4 factors in vigesimal or base 20
         hexdigest -> The 4 factors in hexadecimal or base 16
+        tetdigest -> The 4 factors in tetradecimal for base 14
         duodigest -> The 4 factors in duoadecimal or base 12
         octdigest -> The 4 factors in octal or base 8
+        sendgiest -> The 4 factors in senary or base 6
         bindigest -> The 4 factors in binary or base 2
     base-factors -> The array of size 4 containi$ng our 4 main word-size primes, of type u16
     temp-factors -> A temporary version of our factors
@@ -431,14 +434,15 @@
             ret $qd
 
     /// PART G.3: NON-DECIMAL DIGESTS LETTER CONVENTION
-    /// The process for converting the factors to non-decimal digests is impleemnted in all of
-    /// the formal implementations so it does not seem there to be a need for repeating as it is 
-    /// basic algebra. However we should mention the letter naming convention for sexdigest, hexdigest
-    /// and duodigest as they may differ across different standards.
+    /// Conversion of the 4 factors into non-decimal bases is achieved through the usual method of 
+    /// converting a decimal number to a non-decimal number. In the digest, the first factor's digits in
+    /// the non-decimal base should come first, then the second factor, then the third and finally the
+    /// fourth. It should be mentioned that for non-decimal bases that require letters for digits which
+    /// the decimal systeme has no letters for, the following letters must be used:
 
-        //// SEXADECIMAL LETTERS 
+        //// SEXAGESIMAL LETTER-DIGITS
             +----------------------------------------------------------+
-            | n  |  c  || n  |  c  || n  |  c  || n  |  c  || n  |  c  |
+            | n  |  d  || n  |  d  || n  |  d  || n  |  d  || n  |  d  |
             |====|=====||===|======|=====|=====|=====|=====|=====|=====|
             | 0  | '0' || 1  | '1' || 2  | '2' || 3  | '3' || 4  | '4' | 
             | 5  | '5' || 6  | '6' || 7  | '7' || 8  | '8' || 9  | '9' | 
@@ -454,9 +458,21 @@
             | 55 | 't' || 56 | 'u' || 57 | 'v' || 58 | 'w' || 59 | 'x' | 
             +----------------------------------------------------------+
 
-        //// HEXADECIMAL LETTERS
+
+        //// VIGESIMAL LETTER-DIGITS
+            +----------------------------------------------------------+
+            | n  | d   || n  |  d  || n  |  d  || n  |  d  || n  |  d  |
+            |====|=====||====|=====||====|=====||====|=====||====|=====|   
+            | 0  | 'A' || 1  | 'B' || 2  | 'C' || 3  | 'D' || 4  | 'E' |
+            | 5  | 'F' || 6  | 'G' || 7  | 'H' || 8  | 'I' || 9  | 'J' | 
+            | 10 | '@' || 11 | '^' || 12 | '&' || 13 | '*' || 14 | '$' | 
+            | 15 | '+' || 16 | '!' || 17 | ';' || 18 | ':' || 19 | '~' |
+            +----------------------------------------------------------+
+       
+       
+        //// HEXADECIMAL LETTER-DIGITS
             +----------------------------------------------+
-            | n  |  c  || n  |  c  || n  |  c  || n  |  c  |
+            | n  |  d  || n  |  d  || n  |  d  || n  |  d  |
             |====|=====||====|=====||====|=====||====|=====|
             | 0  | '0' || 1  | '1' || 2  | '2' || 3  | '3' | 
             | 4  | '4' || 5  | '5' || 6  | '6' || 7  | '7' | 
@@ -464,13 +480,44 @@
             | 12 | 'C' || 13 | 'D' || 14 | 'E' || 15 | 'F' |
             +----------------------------------------------+
 
-        //// DUODECIMAL LETTERS
+        //// TETRADECIMAL LETTER-DIGITS
+            +-------------------------------------------------------+
+            | n |  d  || n |  d  || n |  d  || n  |  d  || n  |  d  |
+            |===|=====||===|=====||===|=====||====|=====||====|=====|  
+            | 0 | '0' || 1 | '1' || 2 | '2' || 3  | '3' || 4  | '4' | 
+            | 7 | '7' || 8 | '8' || 9 | '9' || 10 | 'T' || 11 | 'E' |
+            +-------------------------------------------------------+
+
+
+        //// DUODECIMAL LETTER-DIGITS
             +---------------------------------+
-            | n |  c  || n  |  c  || n  |  c  |
+            | n |  d  || n  |  d  || n  |  d  |
             |===|=====||====|=====||====|=====|
             | 0 | '0' || 1  | '1' || 2  | '2' | 
             | 3 | '3' || 4  | '4' || 5  | '5' | 
             | 6 | '6' || 7  | '7' || 8  | '8' | 
             | 9 | '9' || 10 | '*' || 11 | '#' |
-            +---------------------------------+ 
+            +---------------------------------+
+
+        //// Octal, senary and binary are 0-7, 0-5 and 0-1 respectively.
+        
+        //// Number of digits of #MAX_UINT16 in these bases:
+            +----------------------+
+            | Sexagesimal  |   3   |
+            | Vigesimal    |   4   |
+            | Hexadecimal  |   4   |
+            | Tetradecimal |   5   |
+            | Duodecimal   |   5   |
+            | Octal        |   6   |
+            | Senary       |   7   |
+            | Binary       |   16  |
+            +----------------------+
+        //// Note: if the factor must be padded by the equivalent of digit 0
+        //// in that base
+        
+/ Finished version 1 of the PoxHash specs. 
+/ Please report all errors to Chubak#7400 on Discord
+/ Or chubakbidpaa@gmail.com
+/ Or @bidpaafx on Telegram
+/ Thanks and have nice day!
 ```
