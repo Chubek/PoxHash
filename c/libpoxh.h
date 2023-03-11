@@ -625,8 +625,8 @@ static inline uint16_t get_8b_prime(uint16_t num)
         }                                                                         \
     } while (0)
 
-#define POX_PROCESS_BLOCK(factor_array, data, block_array, portion_array, bstart, bend)                \
-    COPY_WORDS_TO_SUBARRAY(data, block_array, bstart, bend);                                           \
+#define POX_PROCESS_BLOCK(factor_array, message, block_array, portion_array, bstart, bend)                \
+    COPY_WORDS_TO_SUBARRAY(message, block_array, bstart, bend);                                           \
     for (int __ip = 0; __ip < POX_BLOCK_NUM; __ip += POX_CHUNK_NUM)                                    \
     {                                                                                                  \
         for (int __jt = __ip; __jt < __ip + POX_CHUNK_NUM; __jt += POX_PORTION_NUM)                    \
@@ -671,9 +671,9 @@ typedef struct PoxHashDigest
     memcpy(poxhash.words, factor_array, SIZE_WORD_ARR(POX_PORTION_NUM));
 
 /**
- * Converts the given byte array into a struct PoxHashDigest (alias poxhash_t) object
+ * Converts the given message into a struct PoxHashDigest (alias poxhash_t) object
  * Parameters:
- *      char *data
+ *      char *message
  *
  * Returns:
  *      struct PoxHashDigest (poxhash_t)
@@ -690,24 +690,24 @@ typedef struct PoxHashDigest
  *          PoxHashDigest.doubles uint32_t[2]
  *          PoxHashDigest.quad  uint64_t
  */
-extern inline poxhash_t pox_hash(char *data)
+extern inline poxhash_t pox_hash(char *message)
 {
-    size_t length_data = strlen(data);
+    size_t length_message = strlen(message);
 
     char block_array[POX_BLOCK_NUM] = {0};
     char portion_array[POX_PORTION_NUM] = {0};
     uint16_t factor_array[POX_PORTION_NUM] = {
         cPOX_PRIME_INIT_A, cPOX_PRIME_INIT_B, cPOX_PRIME_INIT_C, cPOX_PRIME_INIT_D};
 
-    size_t lengh_old = length_data;
-    PAD_SIZE(length_data);
-    char data_padded[length_data];
-    memset(data_padded, 0, SIZE_BYTE_ARR(length_data));
-    memcpy(data_padded, data, SIZE_BYTE_ARR(lengh_old));
+    size_t lengh_old = length_message;
+    PAD_SIZE(length_message);
+    char message_padded[length_message];
+    memset(message_padded, 0, SIZE_BYTE_ARR(length_message));
+    memcpy(message_padded, message, SIZE_BYTE_ARR(lengh_old));
 
-    for (int i = 0; i < length_data; i += POX_BLOCK_NUM)
+    for (int i = 0; i < length_message; i += POX_BLOCK_NUM)
     {
-        POX_PROCESS_BLOCK(factor_array, data_padded, block_array, portion_array, i, i + POX_BLOCK_NUM);
+        POX_PROCESS_BLOCK(factor_array, message_padded, block_array, portion_array, i, i + POX_BLOCK_NUM);
     }
 
     poxhash_t result;

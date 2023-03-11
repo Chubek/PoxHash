@@ -639,10 +639,10 @@ pub struct PoxHashDigest {
 }
 
 #[allow(unused_doc_comments)]
-pub fn pox_hash(data: Vec<u8>) -> PoxHashDigest {
-    /// Converts the given data into a PoxHashDigest object
+pub fn pox_hash(message: Vec<u8>) -> PoxHashDigest {
+    /// Converts the given message into a PoxHashDigest object
     /// Parameters:
-    ///     data: Vec<u8>
+    ///     message: Vec<u8>
     ///
     /// Returns:
     ///     PoxHashDigest
@@ -658,7 +658,7 @@ pub fn pox_hash(data: Vec<u8>) -> PoxHashDigest {
     ///         PoxHashDigest.words: [u16; 4]
     ///         PoxHashDigest.doubles: [u32, 2]
     ///         PoxHashDigest.quad: u64
-    let padded_u16 = convert::byte_vec_to_word_vec_and_pad(data);
+    let padded_u16 = convert::byte_vec_to_word_vec_and_pad(message);
     let mut factor_array: types::ArrType = [
         consts::POX_PRIME_INIT_A,
         consts::POX_PRIME_INIT_B,

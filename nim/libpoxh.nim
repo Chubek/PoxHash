@@ -561,10 +561,10 @@ type
         doubles*: array[2, uint32]
         quad*: uint64
 
-proc PoxHash*(data: ByteSeq): PoxHashDigest =
-    ## Converts the given byte seq into a PoxHashDigest object
+proc PoxHash*(message: ByteSeq): PoxHashDigest =
+    ## Converts the given message into a PoxHashDigest object
     ## Parameters:
-    ##       data: seq[byte]
+    ##       message: seq[byte]
     ## 
     ## Returns:
     ##      PoxHashDigest
@@ -580,7 +580,7 @@ proc PoxHash*(data: ByteSeq): PoxHashDigest =
     ##          PoxHashDigest.words: array[4, uint16]
     ##          PoxHashDigest.doubles: array[2, uint32]
     ##          PoxHashDigest.quad: uint64
-    var padded = byteArrayToPortionArrayAndPad(data)
+    var padded = byteArrayToPortionArrayAndPad(message)
     var factorArray: FactorArray = [POX_PRIME_INIT_A, POX_PRIME_INIT_B, POX_PRIME_INIT_C, POX_PRIME_INIT_D]
     var blockArray: BlockArray
 

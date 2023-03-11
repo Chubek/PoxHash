@@ -443,11 +443,11 @@ func newPortion(block blockType, start int) factorType {
 	return ret
 }
 
-func newBlock(data []uint16, start int) blockType {
+func newBlock(message []uint16, start int) blockType {
 	var ret blockType
 	z := 0
 	for i := start; i < start+poxBLOCK_NUM; i++ {
-		ret[z] = data[i]
+		ret[z] = message[i]
 		z++
 	}
 	return ret
@@ -655,10 +655,10 @@ type PoxHashDigest struct {
 	Quad      uint64    `json:"quad"`
 }
 
-func PoxHash(data []byte) PoxHashDigest {
-	// Converts the given data to a PoxHashDigest object
+func PoxHash(message []byte) PoxHashDigest {
+	// Converts the given message to a PoxHashDigest object
 	// Parameters:
-	//		data: []byte
+	//		message: []byte
 	//
 	// Returns:
 	//		PoxHashDigest
@@ -674,7 +674,7 @@ func PoxHash(data []byte) PoxHashDigest {
 	//			PoxHashDigest.Words: [4]uint16
 	//			PoxHashDigest.Doubles [2]uint32
 	//			PoxHashDigest.Quad 	uint64
-	padded := byteArrToWordArrAndPad(data)
+	padded := byteArrToWordArrAndPad(message)
 	factorArray := newFactorArray()
 
 	for i := 0; i < len(padded); i += poxBLOCK_NUM {

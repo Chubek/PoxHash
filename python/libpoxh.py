@@ -629,12 +629,12 @@ class PoxHashDigest:
         self.quad = quad
 
 
-def pox_hash(data: bytearray) -> PoxHashDigest:
+def pox_hash(message: bytearray) -> PoxHashDigest:
     """
-    Converts the given argument to a PoxHashDigest object
+    Converts the given message to a PoxHashDigest object
 
     Parametes:
-        data: bytearray
+        message: bytearray
     
     Returns:
         PoxHashDigest
@@ -652,7 +652,7 @@ def pox_hash(data: bytearray) -> PoxHashDigest:
             PoxHashDigest.quad: array.array('Q', 1)    
     """
 
-    integer_list = __byte_to_array(data)
+    integer_list = __byte_to_array(message)
     integer_list = __pad_array_with_zero(integer_list)
     blocks = [
         integer_list[i:i + __POX_BLOCK_NUM]

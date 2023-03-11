@@ -657,11 +657,11 @@ function PoxHashDigest(
   this.quad = quad;
 }
 
-poxHash = (data) => {
+poxHash = (message) => {
   /**
-   * Converts the given data into a PoxHashDigest object
+   * Converts the given message into a PoxHashDigest object
    * Parameters:
-   *      data: string or Uint8Array
+   *      message: string or Uint8Array
    *
    * Returns:
    *      PoxHashDigest
@@ -678,7 +678,7 @@ poxHash = (data) => {
    *          PoxHashDigest.doubles: Uint32Array[2]
    *          PoxHashDigest.quad: BigInt.asUintN(64)
    */
-  const processedInput = processInput(data);
+  const processedInput = processInput(message);
   if (processInput == null) {
     console.log(
       "Error occured, wrong input! Must be Uint8Array, Int8Array or string."
