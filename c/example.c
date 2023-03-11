@@ -19,7 +19,7 @@
 #endif
 
 #define SEC_TO_US(sec) ((sec)*1000000)
-#define NS_TO_US(ns)    ((ns)/1000)
+#define NS_TO_US(ns) ((ns) / 1000)
 
 #define MAX_FLAG_SIZE 24
 #define MIN_FLAG_SIZE 3
@@ -27,11 +27,10 @@
 #define SPACE 32
 #define MIN_ARG_NUM 3
 
-#define ERR_OUT(message)                                       \
-    printf("\n");                                              \
-    printf(message);                                           \
-    printf("\n");                                              \
-    printf("Please pass \033[1;34m-?-\033[0m to show help\n"); \
+#define ERR_OUT(message)                                                                          \
+    printf(message);                                                                              \
+    printf("\n");                                                                                 \
+    printf("\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n\n"); \
     exit(1)
 
 typedef enum FLAGS
@@ -69,7 +68,7 @@ void print_help(char *exec)
     printf("%s -htd- a_word\n", exec);
     printf("\n");
     printf("\033[1;32mFlags:\033[0m\n");
-    printf("\033[1;35m\t`^`\033[0m: Benchmark run\n");
+    printf("\033[1;35m\t`^`\033[0m: Benchmark run (pass two to only show benchmark)\n");
     printf("\033[1;35m\t`+`\033[0m: Join arguments\n");
     printf("\033[1;35m\t`*`\033[0m: Print every digest\n");
     printf("\033[1;35m\t`$`\033[0m: Print every non-decimal digest\n");
@@ -109,16 +108,46 @@ char *get_exec_name(char *argv0)
     return exec_name;
 }
 
-int arg_has_flag(char *arg, int len_flags, flag_t must_have)
+int arg_has_flag(char *flag_arg, int len_flags, flag_t must_have)
 {
     for (int i = 1; i < len_flags - 1; i++)
     {
-        if (arg[i] == must_have)
+        if (flag_arg[i] == must_have)
         {
             return 1;
         }
     }
     return 0;
+}
+
+char search_for_flag_reocurrance(char *flag_arg, int len_flags)
+{
+    char occurance_array[128];
+    memset(occurance_array, 0, 128);
+    for (int i = 0; i < len_flags; i++)
+    {
+        occurance_array[flag_arg[i]] += 1;
+    }
+
+    char ret = 0;
+
+    if (occurance_array[94] == 2)
+        ret = '^';
+
+    if (occurance_array[94] > 2)
+    {
+        ERR_OUT("`^` can appear at most twice");
+    }
+
+    for (int i = 0; i < 128; i++)
+    {
+        if (i == 94 || i == 45)
+            continue;
+        if (occurance_array[i] > 1)
+            ret = (char)i;
+    }
+
+    return ret;
 }
 
 int validate_flags(int argc, char **argv)
@@ -147,6 +176,13 @@ int validate_flags(int argc, char **argv)
     if (help_passed && len_flags > MIN_FLAG_SIZE)
     {
         ERR_OUT("You may not pass the `?` flag along with other flags");
+    }
+
+    char reoccrance = search_for_flag_reocurrance(argv[1], len_flags);
+    if (reoccrance != '\0' && reoccrance != '^')
+    {
+        printf("Flag %c appears twice\n", reoccrance);
+        ERR_OUT("Only `^` can appear twice");
     }
 
     if (argc < MIN_ARG_NUM)
@@ -308,8 +344,10 @@ uint64_t get_time_in_us()
 
 int all_are_false(int *arr, int size)
 {
-    for (int i = 0; i < size; i++) {
-        if (arr[i] == 1) {
+    for (int i = 0; i < size; i++)
+    {
+        if (arr[i] == 1)
+        {
             return 0;
         }
     }
@@ -320,6 +358,12 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
 {
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
         printf("Total microseconds spent for hashing %d bytestring(s): %luus\n", len_hashes, total_time);
+    
+    char reoccurance = search_for_flag_reocurrance(flags, len_flags);
+    if (reoccurance == FLAG_BENCHMARK) {
+        printf("\n");
+        exit(0);
+    }
 
     int everything = arg_has_flag(flags, len_flags, FLAG_EVERTHING);
     int all_flags_decimal = arg_has_flag(flags, len_flags, FLAG_ALL_DECIMAL);
@@ -359,6 +403,8 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
 
     if (all_false)
     {
+        
+
         ERR_OUT("You have not specfied any digests to be printed. Please pass at least one, or `*` for all");
     }
 
@@ -396,8 +442,8 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
 
 int main(int argc, char **argv)
 {
-    int len_flags = validate_flags(argc, argv);
     printf("\n");
+    int len_flags = validate_flags(argc, argv);
 
     poxhash_t hashes[argc - 2];
     uint64_t total_time, t1, t2;
