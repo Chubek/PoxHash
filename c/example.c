@@ -29,8 +29,8 @@
 #define NUM_ASCII 128
 #define LEN_WRONG_FLAGS 28
 
-#define ERR_OUT(message)    \
-    printf("\n");                                                                    \
+#define ERR_OUT(message)                                                                          \
+    printf("\n");                                                                                 \
     printf(message);                                                                              \
     printf("\n");                                                                                 \
     printf("\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n\n"); \
@@ -60,26 +60,39 @@ typedef enum FLAGS
 } flag_t;
 
 const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
-    {'G', 'g'}, {'V', 'v'}, 
-    {'O', 'o'}, {'T', 't'}, 
-    {'S', 's'}, {'H', 'h'}, 
-    {'n', 'N'}, {'W', '4'},     
-    {'w', '4'},  {'q', '1'}, 
-    {'Q', '1'}, {'3', '2'}, 
-    {'5', '4'}, {'6', '^'},
-    {'7', '8'}, {'9', '8'},
-    {'0', '1'}, {'/', '?'}, 
-    {'=', '+'}, {'B', 'b'},
-    {'E', '*'}, {'A', '*'},
-    {'>', '?'}, {'&', '*'},
-    {'r', 't'}, {'y', 't'},
-    {'f', 'g'}, {'x', 'h'},
+    {'G', 'g'},
+    {'V', 'v'},
+    {'O', 'o'},
+    {'T', 't'},
+    {'S', 's'},
+    {'H', 'h'},
+    {'n', 'N'},
+    {'W', '4'},
+    {'w', '4'},
+    {'q', '1'},
+    {'Q', '1'},
+    {'3', '2'},
+    {'5', '4'},
+    {'6', '^'},
+    {'7', '8'},
+    {'9', '8'},
+    {'0', '1'},
+    {'/', '?'},
+    {'=', '+'},
+    {'B', 'b'},
+    {'E', '*'},
+    {'A', '*'},
+    {'>', '?'},
+    {'&', '*'},
+    {'r', 't'},
+    {'y', 't'},
+    {'f', 'g'},
+    {'x', 'h'},
 };
 
 void print_help(char *exec)
 {
-    printf("\n\033[1;33mPoxHash\033[0m Implementation in C --- Example Runner\n");
-    printf("By Chubak Bidpaa; March 2023 -- GPLv3\n");
+    printf("\033[1;42mHelp\t | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa@gmail.com\033[0m\n");
     printf("\n");
     printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
     printf("%s -g^8o- myword1\n", exec);
@@ -89,22 +102,22 @@ void print_help(char *exec)
     printf("\n");
     printf("\033[1;32mFlags:\033[0m\n");
     printf("\033[1;35m\t`^`\033[0m: Benchmark run (pass two to only show benchmark)\n");
-    printf("\033[1;35m\t`+`\033[0m: Join arguments\n");
+    printf("\033[1;35m\t`+`\033[0m: Join arguments with space (byte 32)\n");
     printf("\033[1;35m\t`*`\033[0m: Print every digest\n");
     printf("\033[1;35m\t`N`\033[0m: Print every non-decimal digest\n");
     printf("\033[1;35m\t`D`\033[0m: Print every decimal digest\n");
-    printf("\033[1;35m\t`8`\033[0m: Print bytes digest\n");
-    printf("\033[1;35m\t`4`\033[0m: Print words digest\n");
-    printf("\033[1;35m\t`2`\033[0m: Print doubles digest\n");
-    printf("\033[1;35m\t`1`\033[0m: Print quad digest\n");
-    printf("\033[1;35m\t`g`\033[0m: Print sexagesimal digest\n");
-    printf("\033[1;35m\t`v`\033[0m: Print viggesimal digest\n");
-    printf("\033[1;35m\t`h`\033[0m: Print hexadecimal digest\n");
-    printf("\033[1;35m\t`t`\033[0m: Print tetradecimal digest\n");
-    printf("\033[1;35m\t`d`\033[0m: Print duodecimal digest\n");
-    printf("\033[1;35m\t`o`\033[0m: Print octal digest\n");
-    printf("\033[1;35m\t`s`\033[0m: Print senary digest\n");
-    printf("\033[1;35m\t`b`\033[0m: Print binary digest\n");
+    printf("\033[1;35m\t`8`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n");
+    printf("\033[1;35m\t`4`\033[0m: Print words digest (four unsigned 16-bit integers)\n");
+    printf("\033[1;35m\t`2`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n");
+    printf("\033[1;35m\t`1`\033[0m: Print quad digest (one unsigned 64-bit integer)\n");
+    printf("\033[1;35m\t`g`\033[0m: Print sexagesimal digest (base sixty)\n");
+    printf("\033[1;35m\t`v`\033[0m: Print vigesimal digest (base twenty)\n");
+    printf("\033[1;35m\t`h`\033[0m: Print hexadecimal digest (base sixteen)\n");
+    printf("\033[1;35m\t`t`\033[0m: Print tetradecimal digest (base fourteen)\n");
+    printf("\033[1;35m\t`d`\033[0m: Print duodecimal digest (base twelve)\n");
+    printf("\033[1;35m\t`o`\033[0m: Print octal digest (base eight)\n");
+    printf("\033[1;35m\t`s`\033[0m: Print senary digest (base six)\n");
+    printf("\033[1;35m\t`b`\033[0m: Print binary digest (base two)\n");
     printf("\033[1;35m\t`?`\033[0m: Print Help\n\n");
     free(exec);
     exit(1);
@@ -178,12 +191,15 @@ char search_for_flag_reocurrance(char *flag_arg, int len_flags)
         ERR_OUT("`^` can appear at most twice");
     }
 
-    for (int i = 0; i < 128; i++)
+    for (int i = 0; i < NUM_ASCII; i++)
     {
         if (i == 94 || i == 45)
             continue;
         if (occurance_array[i] > 1)
+        {
             ret = (char)i;
+            return ret;
+        }
     }
 
     return ret;
@@ -222,7 +238,7 @@ int validate_flags(int argc, char **argv)
     char reoccrance = search_for_flag_reocurrance(argv[1], len_flags);
     if (reoccrance != '\0' && reoccrance != FLAG_BENCHMARK)
     {
-        printf("Flag %c appears twice\n", reoccrance);
+        printf("Flag `%c` appears twice\n", reoccrance);
         ERR_OUT("Only `^` can appear twice");
     }
 
@@ -452,7 +468,8 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
 
     for (int i = 0; i < len_hashes; i++)
     {
-        printf("\nRequested digests for byte string #%u%s\n", i + 1, joined);
+        printf("----\n");
+        printf("Requested digests for byte string #%u%s\n", i + 1, joined);
         if (everything || all_flags_decimal || byte)
             printf("\tBytes: U8[%hu, %u, %u, %u, %u, %u, %u, %u]\n", hashes[i].bytes[0], hashes[i].bytes[1], hashes[i].bytes[2], hashes[i].bytes[3], hashes[i].bytes[4], hashes[i].bytes[5], hashes[i].bytes[6], hashes[i].bytes[7]);
         if (everything || all_flags_decimal || word)
@@ -477,14 +494,13 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
             printf("\tSendgiest: %s\n", hashes[i].sendigest);
         if (everything || all_flags_non_decimal || bin)
             printf("\tBindigest: %s\n", hashes[i].bindigest);
-        printf("----\n\n");
     }
     printf("\nFinished run for PoxHash example code (C implementation)\n");
 }
 
 int main(int argc, char **argv)
 {
-    printf("PoxHash (Header-Only C)\n");
+    printf("\033[1;47mPoxHash\t\t(Header-Only C)\t\tMarch 2023 - Chubak Bidpa\t\tGPLv3\033[0m\n");
     int len_flags = validate_flags(argc, argv);
 
     poxhash_t hashes[argc - 2];

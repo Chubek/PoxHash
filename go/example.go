@@ -10,8 +10,6 @@ import (
 const (
 	sizeMIN_FLAGS  = 3
 	sizeMAX_FLAGS  = 24
-	sizeHELP_SIZE  = 3
-	byteSPACE      = 32
 	numMIN_ARGS    = 3
 	numASCII       = 128
 	numWRONG_FLAGS = 28
@@ -69,7 +67,7 @@ var wrongFLAGS = [numWRONG_FLAGS][2]byte{
 }
 
 func errorOut(message string) {
-	fmt.Println()
+	fmt.Println();
 	fmt.Printf(message)
 	fmt.Println()
 	fmt.Printf("\033[1;31mError ocurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n")
@@ -77,9 +75,8 @@ func errorOut(message string) {
 }
 
 func printHelp(exec string) {
-	fmt.Printf("\n\033[1;33mPoxHash\033[0m Implementation in Go --- Example Runner\n")
-	fmt.Printf("By Chubak Bidpaa March 2023 -- GPLv3\n")
-	fmt.Println()
+	fmt.Printf("\033[1;42mHelp\t | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa@gmail.com\033[0m\n")
+	fmt.Println();
 	fmt.Printf("Examples \033[1m(flag go between two dashes!)\033[0m:\n")
 	fmt.Printf("%s -g^8o- myword1\n", exec)
 	fmt.Printf("%s -E+- mywod to be joined\n", exec)
@@ -88,35 +85,35 @@ func printHelp(exec string) {
 	fmt.Println()
 	fmt.Printf("\033[1;32mFlags:\033[0m\n")
 	fmt.Printf("\033[1;35m\t`^`\033[0m: Benchmark run (pass two to only show benchmark)\n")
-	fmt.Printf("\033[1;35m\t`+`\033[0m: Join arguments\n")
+	fmt.Printf("\033[1;35m\t`+`\033[0m: Join arguments with space (byte 32)\n")
 	fmt.Printf("\033[1;35m\t`*`\033[0m: Print every digest\n")
 	fmt.Printf("\033[1;35m\t`N`\033[0m: Print every non-decimal digest\n")
 	fmt.Printf("\033[1;35m\t`D`\033[0m: Print every decimal digest\n")
-	fmt.Printf("\033[1;35m\t`4`\033[0m: Print bytes digest\n")
-	fmt.Printf("\033[1;35m\t`2`\033[0m: Print words digest\n")
-	fmt.Printf("\033[1;35m\t`1`\033[0m: Print doubles digest\n")
-	fmt.Printf("\033[1;35m\t`Q`\033[0m: Print quad digest\n")
-	fmt.Printf("\033[1;35m\t`g`\033[0m: Print sexagesimal digest\n")
-	fmt.Printf("\033[1;35m\t`v`\033[0m: Print viggesimal digest\n")
-	fmt.Printf("\033[1;35m\t`h`\033[0m: Print hexadecimal digest\n")
-	fmt.Printf("\033[1;35m\t`t`\033[0m: Print tetradecimal digest\n")
-	fmt.Printf("\033[1;35m\t`d`\033[0m: Print duodecimal digest\n")
-	fmt.Printf("\033[1;35m\t`o`\033[0m: Print octal digest\n")
-	fmt.Printf("\033[1;35m\t`s`\033[0m: Print senary digest\n")
-	fmt.Printf("\033[1;35m\t`b`\033[0m: Print binary digest\n")
+	fmt.Printf("\033[1;35m\t`4`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n")
+	fmt.Printf("\033[1;35m\t`2`\033[0m: Print words digest (four unsigned 16-bit integers)\n")
+	fmt.Printf("\033[1;35m\t`1`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n")
+	fmt.Printf("\033[1;35m\t`Q`\033[0m: Print quad digest (one unsigned 64-bit integer)\n")
+	fmt.Printf("\033[1;35m\t`g`\033[0m: Print sexagesimal digest (base sixty)\n")
+	fmt.Printf("\033[1;35m\t`v`\033[0m: Print vigesimal digest (base twenty)\n")
+	fmt.Printf("\033[1;35m\t`h`\033[0m: Print hexadecimal digest (base sixteen)\n")
+	fmt.Printf("\033[1;35m\t`t`\033[0m: Print tetradecimal digest (base fourteen)\n")
+	fmt.Printf("\033[1;35m\t`d`\033[0m: Print duodecimal digest (base twelve)\n")
+	fmt.Printf("\033[1;35m\t`o`\033[0m: Print octal digest (base eight)\n")
+	fmt.Printf("\033[1;35m\t`s`\033[0m: Print senary digest (base six)\n")
+	fmt.Printf("\033[1;35m\t`b`\033[0m: Print binary digest (base two)\n")
 	fmt.Printf("\033[1;35m\t`?`\033[0m: Print Help\n\n")
 	os.Exit(1)
 }
 
 func getExecName(args0 string) string {
-	execName := ""
+	slashIndex := 0
 	for i := len(args0) - 1; i >= 0; i-- {
 		if args0[i] == '/' {
 			break
 		}
-		execName += string(args0[i])
+		slashIndex = i
 	}
-	return execName
+	return string([]byte(args0[slashIndex:]))
 }
 
 func checkForWrongFlags(flags []byte) {
@@ -162,6 +159,7 @@ func searchFlagsForOccurance(flagBytes []byte) byte {
 		}
 		if sum > 1 {
 			ret = byte(i)
+			return ret
 		}
 	}
 
@@ -196,7 +194,7 @@ func validateFlags(lenArgs int, args []string) {
 
 	reoccrance := searchFlagsForOccurance(argFlagsBytes)
 	if reoccrance != 0 && reoccrance != byte(flagBENCHMARK) {
-		fmt.Printf("Flag %c appears twice\n", reoccrance)
+		fmt.Printf("Flag `%c` appears twice\n", reoccrance)
 		errorOut("Only `^` can appear twice")
 	}
 
@@ -376,7 +374,8 @@ func printHashes(hashes []libpoxh.PoxHashDigest, flag []byte, totalTime int64, j
 	}
 
 	for i, hash := range hashes {
-		fmt.Printf("\nRequested digests for bytestring #%d%s\n", i+1, joined)
+		fmt.Printf("----\n")
+		fmt.Printf("Requested digests for bytestring #%d%s\n", i+1, joined)
 		if everything || allFlagsDecimal || byte {
 			fmt.Printf("\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n", hash.Bytes[0], hash.Bytes[1], hash.Bytes[2], hash.Bytes[3], hash.Bytes[4], hash.Bytes[5], hash.Bytes[6], hash.Bytes[7])
 		}
@@ -413,13 +412,12 @@ func printHashes(hashes []libpoxh.PoxHashDigest, flag []byte, totalTime int64, j
 		if everything || allFLagsNondecimal || bin {
 			fmt.Printf("\tBindigest: %s\n", hash.Bindigest)
 		}
-		fmt.Printf("----\n")
 	}
 	fmt.Printf("\nFinished run for PoxHash example code (Go implementation)\n")
 }
 
 func main() {
-	fmt.Printf("PoxHash (Golang)\n")
+	fmt.Printf("\033[1;47mPoxHash\t\t(Golang)\t\tMarch 2023 - Chubak Bidpa\t\tGPLv3\033[0m\n")
 	validateFlags(len(os.Args), os.Args)
 
 	hashes := make([]libpoxh.PoxHashDigest, len(os.Args)-2)
