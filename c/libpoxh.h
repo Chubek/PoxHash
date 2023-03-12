@@ -587,28 +587,22 @@ static inline uint16_t get_8b_prime(uint16_t num)
     POX_ROUND_APPLY_SHUFFLE(temp_array);                                                                         \
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);
 
-#define POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index)  \
-    uint16_t portion_unsigned[POX_PORTION_NUM] = {                      \
-        (uint16_t)((uint8_t)portion[0]),                                \
-        (uint16_t)((uint8_t)portion[1]),                                \
-        (uint16_t)((uint8_t)portion[2]),                                \
-        (uint16_t)((uint8_t)portion[3]),                                \
-    };                                                                  \
-    uint16_t tmt, dca, odd_factor_tmt, odd_factor_dca;                  \
-    tmt = 0;                                                            \
-    dca = 0;                                                            \
-    TAMAAM(portion_unsigned, tmt);                                      \
-    DECA(portion_unsigned, dca);                                        \
-    odd_factor_tmt = UINT16_MAX * (tmt % 2);                            \
-    odd_factor_dca = UINT16_MAX * (dca % 2);                            \
-    ng = (portion_unsigned[0] + index) % POX_PORTION_NUM;               \
-    chu = (portion_unsigned[1] + index) % POX_PORTION_NUM;              \
-    yo = (portion_unsigned[2] + index) % POX_PORTION_NUM;               \
-    eo = (portion_unsigned[3] + index) % POX_PORTION_NUM;               \
-    factor_array[ng] ^= (portion_unsigned[eo] | tmt) ^ odd_factor_dca;  \
-    factor_array[chu] ^= (portion_unsigned[yo] & dca) ^ odd_factor_tmt; \
-    factor_array[yo] ^= (portion_unsigned[chu] ^ tmt) ^ odd_factor_dca; \
-    factor_array[eo] ^= (portion_unsigned[ng] | dca) ^ odd_factor_tmt;
+#define POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index) \
+    uint16_t tmt, dca, odd_factor_tmt, odd_factor_dca;                 \
+    tmt = 0;                                                           \
+    dca = 0;                                                           \
+    TAMAAM(portion, tmt);                                              \
+    DECA(portion, dca);                                                \
+    odd_factor_tmt = UINT16_MAX * (tmt % 2);                           \
+    odd_factor_dca = UINT16_MAX * (dca % 2);                           \
+    ng = (portion[0] + index) % POX_PORTION_NUM;                       \
+    chu = (portion[1] + index) % POX_PORTION_NUM;                      \
+    yo = (portion[2] + index) % POX_PORTION_NUM;                       \
+    eo = (portion[3] + index) % POX_PORTION_NUM;                       \
+    factor_array[ng] ^= (portion[eo] | tmt) ^ odd_factor_dca;          \
+    factor_array[chu] ^= (portion[yo] & dca) ^ odd_factor_tmt;         \
+    factor_array[yo] ^= (portion[chu] ^ tmt) ^ odd_factor_dca;         \
+    factor_array[eo] ^= (portion[ng] | dca) ^ odd_factor_tmt;
 
 #define POX_ROUND_ACTION(factor_array, portion, ng, chu, yo, eo, index) \
     POX_APPLY_BYTES(factor_array, portion, ng, chu, yo, eo, index);     \
@@ -625,8 +619,8 @@ static inline uint16_t get_8b_prime(uint16_t num)
         }                                                                         \
     } while (0)
 
-#define POX_PROCESS_BLOCK(factor_array, message, block_array, portion_array, bstart, bend)                \
-    COPY_WORDS_TO_SUBARRAY(message, block_array, bstart, bend);                                           \
+#define POX_PROCESS_BLOCK(factor_array, message, block_array, portion_array, bstart, bend)             \
+    COPY_WORDS_TO_SUBARRAY(message, block_array, bstart, bend);                                        \
     for (int __ip = 0; __ip < POX_BLOCK_NUM; __ip += POX_CHUNK_NUM)                                    \
     {                                                                                                  \
         for (int __jt = __ip; __jt < __ip + POX_CHUNK_NUM; __jt += POX_PORTION_NUM)                    \
@@ -673,7 +667,7 @@ typedef struct PoxHashDigest
 /**
  * Converts the given message into a struct PoxHashDigest (alias poxhash_t) object
  * Parameters:
- *      char *message
+ *      uint8_t *message
  *
  * Returns:
  *      struct PoxHashDigest (poxhash_t)
@@ -690,18 +684,18 @@ typedef struct PoxHashDigest
  *          PoxHashDigest.doubles uint32_t[2]
  *          PoxHashDigest.quad  uint64_t
  */
-extern inline poxhash_t pox_hash(char *message)
+extern inline poxhash_t pox_hash(uint8_t *message)
 {
     size_t length_message = strlen(message);
 
-    char block_array[POX_BLOCK_NUM] = {0};
-    char portion_array[POX_PORTION_NUM] = {0};
+    uint8_t block_array[POX_BLOCK_NUM] = {0};
+    uint8_t portion_array[POX_PORTION_NUM] = {0};
     uint16_t factor_array[POX_PORTION_NUM] = {
         cPOX_PRIME_INIT_A, cPOX_PRIME_INIT_B, cPOX_PRIME_INIT_C, cPOX_PRIME_INIT_D};
 
     size_t lengh_old = length_message;
     PAD_SIZE(length_message);
-    char message_padded[length_message];
+    uint8_t message_padded[length_message];
     memset(message_padded, 0, SIZE_BYTE_ARR(length_message));
     memcpy(message_padded, message, SIZE_BYTE_ARR(lengh_old));
 

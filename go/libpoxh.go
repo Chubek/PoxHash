@@ -655,10 +655,10 @@ type PoxHashDigest struct {
 	Quad      uint64    `json:"quad"`
 }
 
-func PoxHash(message []byte) PoxHashDigest {
+func PoxHash(message []uint8) PoxHashDigest {
 	// Converts the given message to a PoxHashDigest object
 	// Parameters:
-	//		message: []byte
+	//		message: []uint8
 	//
 	// Returns:
 	//		PoxHashDigest
