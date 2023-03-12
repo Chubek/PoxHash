@@ -1,2 +1,2 @@
-rm -f /tmp/cpo
-gcc c/example.c -o /tmp/cpox && /tmp/cpox $@
+rm -f /tmp/cpoxhash
+gcc c/example.c -o /tmp/cpoxhash && /tmp/cpoxhash $@

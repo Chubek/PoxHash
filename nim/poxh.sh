@@ -1,4 +1,4 @@
-rm -f /tmp/nimpox/nmpx
+rm -f /tmp/nimpox/nimpoxhash
 mkdir -p /tmp/nimpox
-nim c -d:release  -o:nmpx --outdir:/tmp/nimpox nim/example.nim &> /dev/null
-/tmp/nimpox/nmpx $@
+nim c -d:release  -o:nimpoxhash --outdir:/tmp/nimpox nim/example.nim &> /dev/null
+/tmp/nimpox/nimpoxhash $@
