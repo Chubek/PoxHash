@@ -470,7 +470,7 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
     for (int i = 0; i < len_hashes; i++)
     {
         printf("----\n");
-        printf("Requested digests for byte string #%u%s\n", i + 1, joined);
+        printf("Requested digests for bytestring #%u%s\n", i + 1, joined);
         if (everything || all_flags_decimal || byte)
             printf("\tBytes: U8[%hu, %u, %u, %u, %u, %u, %u, %u]\n", hashes[i].bytes[0], hashes[i].bytes[1], hashes[i].bytes[2], hashes[i].bytes[3], hashes[i].bytes[4], hashes[i].bytes[5], hashes[i].bytes[6], hashes[i].bytes[7]);
         if (everything || all_flags_decimal || word)

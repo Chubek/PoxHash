@@ -422,8 +422,6 @@ proc joinArgs(args: seq[string]): string =
     result += arg
   result = result[1..result.len() - 1]
 
-
-
 proc printHashes(hashes: seq[PoxHashDigest], flags: string, totalTime: uint64,
     joined: string) =
   var
@@ -483,7 +481,7 @@ proc printHashes(hashes: seq[PoxHashDigest], flags: string, totalTime: uint64,
   for (i, hash) in enumerate(hashes):
     printFormatted("----\n")
     printFormatted(
-      "Requested digests for byte string #%d%s\n",
+      "Requested digests for bytestring #%d%s\n",
       i + 1,
       joined
     )

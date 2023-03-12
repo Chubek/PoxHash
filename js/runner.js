@@ -471,7 +471,7 @@ const printHashes = (hashes, flags, totalTime, joined) => {
   for (let i = 0; i < lenHashes; i++) {
     printFormatted("----\n");
     printFormatted(
-      "Requested digests for byte string #%d%s\n",
+      "Requested digests for bytestring #%d%s\n",
       i + 1,
       joined
     );
