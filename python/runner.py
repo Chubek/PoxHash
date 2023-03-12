@@ -1,40 +1,479 @@
-from libpoxh import pox_hash
 import sys
+from time import time_ns
+
+from libpoxh import PoxHashDigest, pox_hash
+
+MAX_FLAG_SIZE = 24
+MIN_FLAG_SIZE = 3
+MIN_ARG_NUM = 1
+NUM_ASCII = 128
+FORMAT_MARKER = '%'
+FORMAT_STR = 's'
+FORMAT_DIGIT = 'd'
+FORMAT_CHAR = 'c'
+NS_TO_US = 1000
+CARET_BYTE = 94
+
+FLAG_BENCHMARK = '^'
+FLAG_JOIN = '+'
+FLAG_EVERTHING = '*'
+FLAG_ALL_NON_DEC = 'N'
+FLAG_ALL_DECIMAL = 'D'
+FLAG_BYTES = '8'
+FLAG_WORDS = '4'
+FLAG_DOUBLES = '2'
+FLAG_QUAD = '1'
+FLAG_SEX = 'g'
+FLAG_VIG = 'v'
+FLAG_HEX = 'h'
+FLAG_TET = 't'
+FLAG_DUO = 'd'
+FLAG_OCT = 'o'
+FLAG_SEN = 's'
+FLAG_BIN = 'b'
+FLAG_HELP = '?'
+FLAG_DASH = '-'
+
+WRONG_FLAGS = [
+('G', 'g'),
+('V', 'v'),
+('O', 'o'),
+('T', 't'),
+('S', 's'),
+('H', 'h'),
+('n', 'N'),
+('W', '4'),
+('w', '4'),
+('q', '1'),
+('Q', '1'),
+('3', '2'),
+('5', '4'),
+('6', '^'),
+('7', '8'),
+('9', '8'),
+('0', '1'),
+('/', '?'),
+('=', '+'),
+('B', 'b'),
+('E', '*'),
+('A', '*'),
+('>', '?'),
+('&', '*'),
+('r', 't'),
+('y', 't'),
+('f', 'g'),
+('x', 'h'),
+]
+
+
+def print_formatted(*argc, **_) -> None:
+    message = argc[0]
+    len_message = len(message)
+    finalMessage = ""
+    currChar = ''
+    peekChar = ''
+    index = 0
+    cursor = 1
+
+    while index < len_message - 1:
+        currChar = message[index]
+        peekChar = message[index + 1]
+        if currChar == FORMAT_MARKER:
+            if peekChar == FORMAT_CHAR or peekChar == FORMAT_DIGIT or peekChar == FORMAT_STR:
+                finalMessage += str(argc[cursor])
+                cursor += 1
+                index += 2
+                continue
+        finalMessage += currChar
+        index += 1
+    finalMessage += message[-1]
+    sys.stdout.write(finalMessage)
+
+
+def print_ln() -> None: 
+    sys.stdout.write("\n")
+
+
+def error_out(message: str) -> None:
+    print_ln()
+    print_formatted(message)
+    print_ln()
+    print_formatted(
+    "\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[134m-?-\x1b[0m to show help\n"
+    )
+    exit(1)
+
+
+def printHelp(exec_name: str) -> None:
+    print_formatted("\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n")
+    print_formatted("\n")
+    print_formatted("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
+    print_formatted("%s -g^8o- myword1\n", exec_name)
+    print_formatted("%s -E+- mywod to be joined\n", exec_name)
+    print_formatted("%s -*E- word1 word 2\n", exec_name)
+    print_formatted("%s -htd- a_word\n", exec_name)
+    print_formatted("\n")
+    print_formatted("\x1b[1;32mFlags:\x1b[0m\n")
+    print_formatted(
+        "\x1b[1;35m\t`^`\x1b[0m: Benchmark run (pass two to only show benchmark)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`+`\x1b[0m: Join arguments with space (byte 32)\n"
+    )
+    print_formatted("\x1b[1;35m\t`*`\x1b[0m: Print every digest\n")
+    print_formatted("\x1b[1;35m\t`N`\x1b[0m: Print every non-decimal digest\n")
+    print_formatted("\x1b[1;35m\t`D`\x1b[0m: Print every decimal digest\n")
+    print_formatted(
+        "\x1b[1;35m\t`8`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`4`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`2`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`1`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`g`\x1b[0m: Print sexagesimal digest (base sixty)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`v`\x1b[0m: Print vigesimal digest (base twenty)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`h`\x1b[0m: Print hexadecimal digest (base sixteen)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`t`\x1b[0m: Print tetradecimal digest (base fourteen)\n"
+    )
+    print_formatted(
+        "\x1b[1;35m\t`d`\x1b[0m: Print duodecimal digest (base twelve)\n"
+    )
+    print_formatted("\x1b[1;35m\t`o`\x1b[0m: Print octal digest (base eight)\n")
+    print_formatted("\x1b[1;35m\t`s`\x1b[0m: Print senary digest (base six)\n")
+    print_formatted("\x1b[1;35m\t`b`\x1b[0m: Print binary digest (base two)\n")
+    print_formatted("\x1b[1;35m\t`?`\x1b[0m: Print Help\n\n")
+    exit(1)
+
+
+def get_script_name(path: str) -> str:
+    return path.split("/")[-1]
+
+def check_for_wrong_flags(flags: str) -> None:
+    for flag in flags:
+        for (wrong_flag, right_flag) in WRONG_FLAGS:
+            if flag == wrong_flag:
+                print_formatted(
+                    "No flag for `%c`, perhaps you meant `%c`?",
+                    flag,
+                    right_flag
+                )
+                error_out("Flag erreror")
+
+
+def arg_has_flag(flags: str, must_have: str) -> bool:
+    for flag in flags:
+        if flag == must_have:
+            return True
+    return False
+
+def search_for_flag_occurrances(flags: str) -> str:
+    count_bm = flags.count(FLAG_BENCHMARK)
+    if count_bm == 2:
+        return FLAG_BENCHMARK
+    if count_bm > 2:
+        error_out("`^` can appear at most twice")
+
+    for flg in flags:
+        if flags.count(flg) > 1:
+            return flg
+        
+    return '\0'
+
+def validate_flags(exec: str, argv: list[str]) -> None:
+    len_argv = len(argv)
+    flags_arg = argv[0]
+    len_flags = len(flags_arg)
+    exec_name = get_script_name(exec)
+
+    if len_argv < MIN_ARG_NUM:
+        error_out("No flags passed")
+
+    if len_flags < MIN_FLAG_SIZE or len_flags > MAX_FLAG_SIZE:
+        error_out("Length of the first argument must at least be 3 and at most 24")
+
+    if flags_arg[0] != FLAG_DASH or flags_arg[-1] != FLAG_DASH:
+        error_out("The flag argument must begin and end with `-`")
+
+    check_for_wrong_flags(flags_arg)
+
+    if flags_arg == "-?-":
+        printHelp(exec_name)
+
+    helpPassed = arg_has_flag(flags_arg, FLAG_HELP)
+    if helpPassed and len_flags > MIN_FLAG_SIZE:
+        error_out("You may not pass the `?` flag along with other flags")
+
+    reoccurrance = search_for_flag_occurrances(flags_arg[1:-1])
+    if reoccurrance != '\0' and reoccurrance != FLAG_BENCHMARK:
+        print_formatted("Flag `%c` appears twice", reoccurrance)
+        error_out("Only `^` can appear twice")
+
+    if len_argv < MIN_ARG_NUM + 1:
+        error_out("You must pass at least one argument to hash")
+
+    all_flags_passed = arg_has_flag(flags_arg, FLAG_EVERTHING)
+    all_flags_dec_passed = arg_has_flag(flags_arg, FLAG_ALL_DECIMAL)
+    all_flags_non_dec_passed = arg_has_flag(flags_arg, FLAG_ALL_NON_DEC)
+
+    for flag in flags_arg[1:-1]:
+        if flag  == FLAG_BENCHMARK:
+            continue
+        if flag  == FLAG_JOIN:
+            continue
+        if flag  == FLAG_EVERTHING:
+            if all_flags_dec_passed or all_flags_non_dec_passed:
+                error_out("You may not pass `*` when you have passed `N` or `D`")
+            continue
+        if flag  == FLAG_ALL_NON_DEC:
+            if all_flags_passed:
+                error_out("You may not pass `N` when `*` is passed")
+            continue
+        if flag  == FLAG_ALL_DECIMAL:
+            if all_flags_passed:
+                error_out("You may not pass `D` when `*` is passed")
+            continue
+        if flag  == FLAG_BYTES:
+            if all_flags_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a decimal digest flag when `*` or `D` is passed"
+            )
+            continue
+        if flag  == FLAG_WORDS:
+            if all_flags_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a decimal digest flag when `*` or `D` is passed"
+            )
+            continue
+        if flag  == FLAG_DOUBLES:
+            if all_flags_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a decimal digest flag when `*` or `D` is passed"
+            )
+            continue
+        if flag  == FLAG_QUAD:
+            if all_flags_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a decimal digest flag when `*` or `D` is passed"
+            )
+            continue
+        if flag  == FLAG_SEX:
+            if all_flags_non_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+            )
+            continue
+        if flag  == FLAG_VIG:
+            if all_flags_non_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+            )
+            continue
+        if flag  == FLAG_HEX:
+            if all_flags_non_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+            )
+            continue
+        if flag  == FLAG_TET:
+            if all_flags_non_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+            )
+            continue
+        if flag  == FLAG_DUO:
+            if all_flags_non_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+            )
+            continue
+        if flag  == FLAG_OCT:
+            if all_flags_non_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+            )
+            continue
+        if flag  == FLAG_SEN:
+            if all_flags_non_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+            )
+            continue
+        if flag  == FLAG_BIN:
+            if all_flags_non_dec_passed or all_flags_passed:
+                error_out(
+            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+            )
+            continue
+        if flag  == FLAG_HELP:
+            if len_flags > MIN_FLAG_SIZE:
+                error_out("You may not pass the `?` flag along with other flags")
+
+        if flag  == FLAG_DASH:
+                error_out(
+            "You may not use `-` in the first argument other than in the first, and the last letter"
+        )
+        else:
+            error_out("Unknown flag detected!")
+
+def get_time_in_us() -> int:
+    return time_ns() // NS_TO_US
+
+
+def all_are_false(bools: list[bool]) -> bool:
+    for bl in bools:
+        if bl:
+            return False
+    return True
+
+def join_args(args: list[str]) -> str:
+    return ' '.join(args)
+
+def print_hashes(hashes: list[PoxHashDigest], flags: str, total_time: int,
+    joined: str) -> None:
+    len_hashes = len(hashes)
+    reoccurrance = search_for_flag_occurrances(flags[1:-1])
+
+    if arg_has_flag(flags, FLAG_BENCHMARK):
+        print_formatted(
+            "Total time for hashing %d bytestring(s): %dus \n",
+            len_hashes,
+            total_time
+        )
+
+    if reoccurrance == FLAG_BENCHMARK:
+        print_ln()
+        exit(0)
+
+
+    everything = arg_has_flag(flags, FLAG_EVERTHING)
+    all_flags_decimal = arg_has_flag(flags, FLAG_ALL_DECIMAL)
+    all_flags_non_decimal = arg_has_flag(flags, FLAG_ALL_NON_DEC)
+    by = arg_has_flag(flags, FLAG_BYTES)
+    word = arg_has_flag(flags, FLAG_WORDS)
+    dub = arg_has_flag(flags, FLAG_DOUBLES)
+    quad = arg_has_flag(flags, FLAG_QUAD)
+    sex = arg_has_flag(flags, FLAG_SEX)
+    vig = arg_has_flag(flags, FLAG_VIG)
+    hex = arg_has_flag(flags, FLAG_HEX)
+    tet = arg_has_flag(flags, FLAG_TET)
+    duo = arg_has_flag(flags, FLAG_TET)
+    oct = arg_has_flag(flags, FLAG_OCT)
+    sen = arg_has_flag(flags, FLAG_SEN)
+    bin = arg_has_flag(flags, FLAG_BIN)
+
+    all_false = all_are_false([
+        everything,
+        all_flags_decimal,
+        all_flags_non_decimal,
+        by,
+        word,
+        dub,
+        quad,
+        sex,
+        vig,
+        hex,
+        tet,
+        duo,
+        oct,
+        sen,
+        bin,
+    ])
+
+    if all_false:
+        print_formatted("You had not specfied any digests to be printed\n")
+        exit(0)
+
+    for (i, hash) in enumerate(hashes):
+        print_formatted("----\n")
+        print_formatted(
+        "Requested digests for bytestring #%d%s\n",
+        i + 1,
+        joined
+        )
+        if everything or all_flags_decimal or by:
+            print_formatted(
+                "\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
+                hash.bytes[0],
+                hash.bytes[1],
+                hash.bytes[2],
+                hash.bytes[3],
+                hash.bytes[4],
+                hash.bytes[5],
+                hash.bytes[6],
+                hash.bytes[7]
+            )
+        if everything or all_flags_decimal or word:
+            print_formatted(
+                "\tWords: U16[%d, %d, %d, %d]\n",
+                hash.words[0],
+                hash.words[1],
+                hash.words[2],
+                hash.words[3]
+            )
+        if everything or all_flags_decimal or dub:
+            print_formatted(
+                "\tdoubles: U32[%d, %d]\n",
+                hash.doubles[0],
+                hash.doubles[1]
+            )
+        if everything or all_flags_decimal or quad:
+            print_formatted("\tQuad: U64[%d]\n", hash.quad)
+        if everything or all_flags_non_decimal or sex:
+            print_formatted("\tSexdigest: %s\n", hash.sexdigest)
+        if everything or all_flags_non_decimal or vig:
+            print_formatted("\tVigdigest: %s\n", hash.vigdigest)
+        if everything or all_flags_non_decimal or hex:
+            print_formatted("\tHexdigest: %s\n", hash.hexdigest)
+        if everything or all_flags_non_decimal or tet:
+            print_formatted("\tTetdigest: %s\n", hash.tetdigest)
+        if everything or all_flags_non_decimal or duo:
+            print_formatted("\tDuodigest: %s\n", hash.duodigest)
+        if everything or all_flags_non_decimal or oct:
+            print_formatted("\tOctdigest: %s\n", hash.octdigest)
+        if everything or all_flags_non_decimal or sen:
+            print_formatted("\tSendgiest: %s\n", hash.sendigest)
+        if everything or all_flags_non_decimal or bin:
+            print_formatted("\tBindigest: %s\n", hash.bindigest)
+    
+    print_formatted("\nFinished run for PoxHash example code (Python implementation)\n")
+
+def main(exec_name: str, argv: list[str]) -> None:
+    print_formatted("\x1b[1;47mPoxHash   |    Python   |  March 2023 - Chubak Bidpa  |  GPLv3  \x1b[0m\n")
+    validate_flags(exec_name, argv)
+    
+    flagsArg = argv[0]
+    len_hashes = len(argv) - 1
+    hashes = [None] * len_hashes
+
+    total_time = 0
+    if arg_has_flag(flagsArg, FLAG_JOIN):
+        argsJoined = join_args(argv[1:])
+        t1 = get_time_in_us()
+        hashes[0] = pox_hash(argsJoined.encode())
+        t2 = get_time_in_us()
+        print_hashes(hashes[:1], flagsArg, t2 - t1, " (joined arguments):")
+    else:
+        cursor = 0
+        for arg in argv[1:]:
+            t1 = get_time_in_us()
+            hashes[cursor] = pox_hash(arg.encode())
+            t2 = get_time_in_us()
+            cursor += 1
+            total_time += t2 - t1
+        print_hashes(hashes, flagsArg, total_time, ":")
+
 
 if __name__ == "__main__":
-    print("Pox (Python) hashes for passed strings in various forms:")
-    for i, arg in enumerate(sys.argv[1:]):
-        hash = pox_hash(arg.encode())
-        sexdigest = hash.sexdigest
-        vigdigest = hash.vigdigest
-        hexdigest = hash.hexdigest
-        tetdigest = hash.tetdigest
-        duodigest = hash.duodigest
-        octdigest = hash.octdigest
-        sendigest = hash.sendigest
-        bindigest = hash.bindigest
-        hdigest = hash.hexdigest
-        hexdigest = hash.hexdigest
-        bytes = hash.bytes
-        words = hash.words
-        doubles = hash.doubles
-        quad = hash.quad[0]
-        print("\n")
-        print(f"\tArg #{i + 1} as follows")
-        print(f"\t\tsexdigest: {sexdigest}")
-        print(f"\t\tvigdigest: {vigdigest}")
-        print(f"\t\thexdigest: {hexdigest}")
-        print(f"\t\ttetdigest: {tetdigest}")
-        print(f"\t\tduodigest: {duodigest}")
-        print(f"\t\toctdigest: {octdigest}")
-        print(f"\t\tsendigest: {sendigest}")
-        print(f"\t\tbindigest: {bindigest}")
-        print(
-            f"\t\tbytes: uint8({bytes[0]}, {bytes[1]}, {bytes[2]}, {bytes[3]}, {bytes[4]}, {bytes[5]}, {bytes[6]}, {bytes[7]})"
-        )
-        print(
-            f"\t\twords: uint16({words[0]}, {words[1]}, {words[2]}, {words[3]})"
-        )
-        print(f"\t\tdoubles: uint32({doubles[0]}, {doubles[1]})")
-        print(f"\t\tquad: uint64({quad})")
-        print("\n")
+    main(sys.argv[0], sys.argv[1:])
