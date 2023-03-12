@@ -1,1 +1,1 @@
-node js/example.js $@
+node js/runner.js $@

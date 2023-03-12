@@ -1,1 +1,1 @@
-python3 python/example.py $@
+python3 python/runner.py $@

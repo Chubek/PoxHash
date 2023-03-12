@@ -41,10 +41,10 @@
     is -> This means this is a constant literal
 
     /// Bit Units
-    byte -> 8bits
-    word -> 16bits
-    double -> 32bits
-    quad -> 64bits
+    byte -> 8-bits
+    word -> 16-bits
+    double -> 32-bits
+    quad -> 64-bits
 
     /// Integer Types
     i8 -> signed byte-sized integer
@@ -188,7 +188,7 @@
 
     @OMEGA(u32 $num) -> ret ($num and xMASK_DWORD_4F4Z) shr #WORD_WIDTH
     @EPSILON(u32 $num) -> ret $num and xMASK_DWORD_4Z4F
-    /// Basically, bitwise rotation of 16bits
+    /// Basically, bitwise rotation of 16-bits
     @LAMED(u32 $num, $by) -> ret ($num shl $by) or ($num shr (#WORD_WIDTH sub $by))
 
 // PART C: BESPOKE OPERATIONS
