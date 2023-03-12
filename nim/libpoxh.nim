@@ -5,104 +5,105 @@
 ##      License: GPLv3                  ##
 ##########################################
 
-const POX_ROUND_PRIMES: array[32, uint16] = [
-    0xe537u16, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
-    0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
-    0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
-    0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549
-]
-const POX_8B_PRIMES: array[54, uint16] = [
-    0x2u16, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
-    0x2b, 0x2f, 0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61,
-    0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d,
-    0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3,
-    0xe5, 0xe9, 0xef, 0xf1, 0xfb
-]
-const POX_MAGIC_PRIMES: array[2, uint16] = [0x33u16, 0x65]
-const POX_SINGLE_DIGIT_PRIMES: array[3, uint16] = [0x3u16, 0x5, 0x7]
+const
+   POX_ROUND_PRIMES: array[32, uint16] = [
+        0xe537u16, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
+        0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
+        0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
+        0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549
+   ]
+   POX_8B_PRIMES: array[54, uint16] = [
+        0x2u16, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
+        0x2b, 0x2f, 0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61,
+        0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d,
+        0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3,
+        0xe5, 0xe9, 0xef, 0xf1, 0xfb
+   ]
+   POX_MAGIC_PRIMES: array[2, uint16] = [0x33u16, 0x65]
+   POX_SINGLE_DIGIT_PRIMES: array[3, uint16] = [0x3u16, 0x5, 0x7]
 
-const POX_PRIME_INIT_A = 0x9f91u16
-const POX_PRIME_INIT_B = 0xdb3bu16
-const POX_PRIME_INIT_C = 0xc091u16
-const POX_PRIME_INIT_D = 0xac8bu16
+   POX_PRIME_INIT_A = 0x9f91u16
+   POX_PRIME_INIT_B = 0xdb3bu16
+   POX_PRIME_INIT_C = 0xc091u16
+   POX_PRIME_INIT_D = 0xac8bu16
 
-const POX_BLOCK_NUM = 64
-const POX_8BPRIME_NUM = 54
-const POX_ROUND_PRIME_NUM  = 32
-const POX_CHUNK_NUM = 16
-const POX_ROUND_NUM = 8
-const POX_PORTION_NUM = 4
-const POX_SD_PRIME_NUM = 3
-const POX_MAGIC_PRIME_NUM = 2
+   POX_BLOCK_NUM = 64
+   POX_8BPRIME_NUM = 54
+   POX_ROUND_PRIME_NUM  = 32
+   POX_CHUNK_NUM = 16
+   POX_ROUND_NUM = 8
+   POX_PORTION_NUM = 4
+   POX_SD_PRIME_NUM = 3
+   POX_MAGIC_PRIME_NUM = 2
 
 
-const BIT_WORD_WIDTH_U16 = 16u16
-const BIT_WORD_WIDTH_U32 = 16u32
-const BIT_BYTE_WIDTH_U16 = 8u16
-const BIT_UINT16_MAX_U16 = 65535u16
-const BIT_UINT16_MAX_U32 = 65535u32
+   BIT_WORD_WIDTH_U16 = 16u16
+   BIT_WORD_WIDTH_U32 = 16u32
+   BIT_BYTE_WIDTH_U16 = 8u16
+   BIT_UINT16_MAX_U16 = 65535u16
+   BIT_UINT16_MAX_U32 = 65535u32
 
-const MASK_DWORD_4F4Z = 0xffff0000u32
-const MASK_DWORD_4Z4F = 0x0000ffffu32
-const MASK_WORD_FZFZ = 0xf0f0u16
-const MASK_WORD_ZFZF = 0x0f0fu16
-const MASK_WORD_FZZZ = 0xf000u16
-const MASK_WORD_ZZFZ = 0x00f0u16
-const MASK_WORD_ZZZF = 0x000fu16
-const MASK_WORD_ZZFF = 0x00ffu16
-const MASK_WORD_FFZZ = 0xff00u16
-const MASK_WORD_FZZF = 0xf00fu16
-const MASK_WORD_FFFZ = 0xfff0u16
-const MASK_WORD_ZFFF = 0x0fffu16
-const MASK_WORD_01 = 0b01u16
-const MASK_WORD_10 = 0b10u16
-const MASK_WORD_11 = 0b11u16
-const MASK_WORD_00 = 0b00u16
+   MASK_DWORD_4F4Z = 0xffff0000u32
+   MASK_DWORD_4Z4F = 0x0000ffffu32
+   MASK_WORD_FZFZ = 0xf0f0u16
+   MASK_WORD_ZFZF = 0x0f0fu16
+   MASK_WORD_FZZZ = 0xf000u16
+   MASK_WORD_ZZFZ = 0x00f0u16
+   MASK_WORD_ZZZF = 0x000fu16
+   MASK_WORD_ZZFF = 0x00ffu16
+   MASK_WORD_FFZZ = 0xff00u16
+   MASK_WORD_FZZF = 0xf00fu16
+   MASK_WORD_FFFZ = 0xfff0u16
+   MASK_WORD_ZFFF = 0x0fffu16
+   MASK_WORD_01 = 0b01u16
+   MASK_WORD_10 = 0b10u16
+   MASK_WORD_11 = 0b11u16
+   MASK_WORD_00 = 0b00u16
 
-const COMB_BIONOM = @[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+   COMB_BIONOM = @[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 
-const SEX_CHARS: array[60, char] = [
-  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
-]
-const VIG_CHARS: array[20, char] = [
+   SEX_CHARS: array[60, char] = [
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
+   ]
+   VIG_CHARS: array[20, char] = [
      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', '@', '^', '&', '*', '$', '+', '!', ';',
         ':', '~',
-]
-const HEX_CHARS: array[16, char] = [
+   ]
+   HEX_CHARS: array[16, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
-    ]
-const TET_CHARS: array[14, char] = [
+   ]
+   TET_CHARS: array[14, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'E', 'W', 'R',
-]
-const DUO_CHARS: array[12, char] = [
+   ]
+   DUO_CHARS: array[12, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#',
-    ]
-const OCT_CHARS: array[8, char] = [
+   ]
+   OCT_CHARS: array[8, char] = [
         '0', '1', '2', '3', '4', '5', '6', '7',
-    ]
-const SEN_CHARS: array[6, char] = [
+   ]
+   SEN_CHARS: array[6, char] = [
         '0', '1', '2', '3', '4', '5',
-    ]
-const BIN_CHARS: array[2, char] = [
+   ]
+   BIN_CHARS: array[2, char] = [
     '0', '1',
-    ]
+   ]
 
-const SEX_SIZE = 3
-const VIG_SIZE = 4
-const HEX_SIZE = 4
-const TET_SIZE = 5
-const DUO_SIZE = 5
-const OCT_SIZE = 6
-const SEN_SIZE = 7
-const BIN_SIZE = 16
-const SEX_BASE: uint16 = 60
-const VIG_BASE: uint16 = 20
-const HEX_BASE: uint16 = 16
-const TET_BASE: uint16 = 14
-const DUO_BASE: uint16 = 12
-const OCT_BASE: uint16 = 8
-const SEN_BASE: uint16 = 6
-const BIN_BASE: uint16 = 2
+   SEX_SIZE = 3
+   VIG_SIZE = 4
+   HEX_SIZE = 4
+   TET_SIZE = 5
+   DUO_SIZE = 5
+   OCT_SIZE = 6
+   SEN_SIZE = 7
+   BIN_SIZE = 16
+   SEX_BASE: uint16 = 60
+   VIG_BASE: uint16 = 20
+   HEX_BASE: uint16 = 16
+   TET_BASE: uint16 = 14
+   DUO_BASE: uint16 = 12
+   OCT_BASE: uint16 = 8
+   SEN_BASE: uint16 = 6
+   BIN_BASE: uint16 = 2
 
 type
     FactorArray = array[POX_PORTION_NUM, uint16]
