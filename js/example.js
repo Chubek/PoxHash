@@ -9,8 +9,7 @@ const FORMAT_MARKER = "%";
 const FORMAT_STR = "s";
 const FORMAT_DIGIT = "d";
 const FORMAT_CHAR = "c";
-const USECS = 1000000;
-const MSECS = 1000;
+const CARET_BYTE = 94;
 
 const FLAG_BENCHMARK = "^";
 const FLAG_JOIN = "+";
@@ -106,13 +105,13 @@ const errorOut = (message) => {
   printFormatted(message);
   printLn();
   printFormatted(
-    "\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n\n"
+    "\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n"
   );
   process.exit(1);
 };
 
 const printHelp = (execApp, execScript) => {
-  printFormatted("\033[1;42mHelp\t | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa@gmail.com\033[0m\n")
+  printFormatted("\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n")
   printFormatted("\n");
   printFormatted("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
   printFormatted("%s %s -g^8o- myword1\n", execApp, execScript);
@@ -218,16 +217,16 @@ const searchForFlagReoccurrances = (flagsArg) => {
 
   let ret = "\0";
 
-  if (occurranceArray[94] == 2) {
+  if (occurranceArray[CARET_BYTE] == 2) {
     ret = "^";
   }
 
-  if (occurranceArray[94] > 2) {
+  if (occurranceArray[CARET_BYTE] > 2) {
     errorOut("`^` can appear at most twice");
   }
 
   for (let i = 0; i < NUM_ASCII; i++) {
-    if (i == 94 || i == 45) {
+    if (i == CARET_BYTE || i == 45) {
       continue;
     }
     if (occurranceArray[i] > 1) {
@@ -267,9 +266,9 @@ const validateFlags = (argv0, argv1, argv) => {
     errorOut("You may not pass the `?` flag along with other flags");
   }
 
-  const reoccrance = searchForFlagReoccurrances(flagsArg);
-  if (reoccrance != "\0" && reoccrance != FLAG_BENCHMARK) {
-    printFormatted("Flag `%c` appears twice\n", reoccrance);
+  const reoccurrance = searchForFlagReoccurrances(flagsArg);
+  if (reoccurrance != "\0" && reoccurrance != FLAG_BENCHMARK) {
+    printFormatted("Flag `%c` appears twice", reoccurrance);
     errorOut("Only `^` can appear twice");
   }
 
@@ -424,8 +423,8 @@ const printHashes = (hashes, flags, totalTime, joined) => {
       totalTime
     );
 
-  const reoccurance = searchForFlagReoccurrances(flags, lenFlags);
-  if (reoccurance == FLAG_BENCHMARK) {
+  const reoccurrance = searchForFlagReoccurrances(flags, lenFlags);
+  if (reoccurrance == FLAG_BENCHMARK) {
     printLn();
     process.exit(0);
   }
@@ -551,7 +550,7 @@ const joinArgs = (args) => {
 };
 
 const main = (argv0, argv1, argv) => {
-  printFormatted("\033[1;47mPoxHash\t\t(JavaScript)\t\tMarch 2023 - Chubak Bidpa\t\tGPLv3\033[0m\n");
+  printFormatted("\033[1;47mPoxHash   |  JavaScript   |  March 2023 - Chubak Bidpa  |  GPLv3  \033[0m\n");
   validateFlags(argv0, argv1, argv);
   const flagsArg = argv[0];
   const lenHashes = argv.length - 1;

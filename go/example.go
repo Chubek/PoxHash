@@ -13,26 +13,27 @@ const (
 	numMIN_ARGS    = 3
 	numASCII       = 128
 	numWRONG_FLAGS = 28
+	byteCaret      = 94
 
 	flagBENCHMARK   byte = 94
-	flagJOIN             = 43
-	flagEVERTHING        = 42
-	flagALL_NON_DEC      = 78
-	flagALL_DECIMAL      = 68
-	flagBYTES            = 56
-	flagWORDS            = 52
-	flagDOUBLES          = 50
-	flagQUAD             = 49
-	flagSEX              = 103
-	flagVIG              = 118
-	flagHEX              = 104
-	flagTET              = 116
-	flagDUO              = 100
-	flagOCT              = 111
-	flagSEN              = 115
-	flagBIN              = 98
-	flagHELP             = 63
-	flagDASH             = 45
+	flagJOIN        byte = 43
+	flagEVERTHING   byte = 42
+	flagALL_NON_DEC byte = 78
+	flagALL_DECIMAL byte = 68
+	flagBYTES       byte = 56
+	flagWORDS       byte = 52
+	flagDOUBLES     byte = 50
+	flagQUAD        byte = 49
+	flagSEX         byte = 103
+	flagVIG         byte = 118
+	flagHEX         byte = 104
+	flagTET         byte = 116
+	flagDUO         byte = 100
+	flagOCT         byte = 111
+	flagSEN         byte = 115
+	flagBIN         byte = 98
+	flagHELP        byte = 63
+	flagDASH        byte = 45
 )
 
 var wrongFLAGS = [numWRONG_FLAGS][2]byte{
@@ -67,7 +68,7 @@ var wrongFLAGS = [numWRONG_FLAGS][2]byte{
 }
 
 func errorOut(message string) {
-	fmt.Println();
+	fmt.Println()
 	fmt.Printf(message)
 	fmt.Println()
 	fmt.Printf("\033[1;31mError ocurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n")
@@ -75,8 +76,8 @@ func errorOut(message string) {
 }
 
 func printHelp(exec string) {
-	fmt.Printf("\033[1;42mHelp\t | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa@gmail.com\033[0m\n")
-	fmt.Println();
+	fmt.Printf("\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n")
+	fmt.Println()
 	fmt.Printf("Examples \033[1m(flag go between two dashes!)\033[0m:\n")
 	fmt.Printf("%s -g^8o- myword1\n", exec)
 	fmt.Printf("%s -E+- mywod to be joined\n", exec)
@@ -145,16 +146,16 @@ func searchFlagsForOccurance(flagBytes []byte) byte {
 
 	var ret byte = 0
 
-	if occuranceArray[94] == 2 {
+	if occuranceArray[byteCaret] == 2 {
 		ret = '^'
 	}
 
-	if occuranceArray[94] > 2 {
+	if occuranceArray[byteCaret] > 2 {
 		errorOut("`^` can appear at most twice")
 	}
 
 	for i, sum := range occuranceArray {
-		if i == 94 || i == 45 {
+		if i == byteCaret || i == 45 {
 			continue
 		}
 		if sum > 1 {
@@ -187,14 +188,15 @@ func validateFlags(lenArgs int, args []string) {
 	if args[1] == "-?-" {
 		printHelp(execName)
 	}
+
 	helpPassed := argHasFlag(argFlagsBytes, flagHELP)
 	if helpPassed && lenFlags > sizeMIN_FLAGS {
 		errorOut("You may not pass the `?` flag along with other flag")
 	}
 
-	reoccrance := searchFlagsForOccurance(argFlagsBytes)
-	if reoccrance != 0 && reoccrance != byte(flagBENCHMARK) {
-		fmt.Printf("Flag `%c` appears twice\n", reoccrance)
+	reoccurrance := searchFlagsForOccurance(argFlagsBytes)
+	if reoccurrance != 0 && reoccurrance != byte(flagBENCHMARK) {
+		fmt.Printf("Flag `%c` appears twice", reoccurrance)
 		errorOut("Only `^` can appear twice")
 	}
 
@@ -206,7 +208,7 @@ func validateFlags(lenArgs int, args []string) {
 	allFlagsDecPassed := argHasFlag(argFlagsBytes, flagALL_DECIMAL)
 	allFlagsNondecPassed := argHasFlag(argFlagsBytes, flagALL_NON_DEC)
 
-	for _, flag := range argFlagsBytes[1 : lenArgs-2] {
+	for _, flag := range argFlagsBytes[1 : len(argFlagsBytes) - 1] {
 		switch flag {
 		case flagBENCHMARK:
 			continue
@@ -328,8 +330,8 @@ func printHashes(hashes []libpoxh.PoxHashDigest, flag []byte, totalTime int64, j
 		fmt.Printf("Total time for hashing %d bytestring(s): %dus\n", len(hashes), totalTime)
 	}
 
-	reoccurance := searchFlagsForOccurance([]byte(flag))
-	if reoccurance == flagBENCHMARK {
+	reoccurrance := searchFlagsForOccurance([]byte(flag))
+	if reoccurrance == flagBENCHMARK {
 		fmt.Println()
 		os.Exit(0)
 	}
@@ -417,7 +419,7 @@ func printHashes(hashes []libpoxh.PoxHashDigest, flag []byte, totalTime int64, j
 }
 
 func main() {
-	fmt.Printf("\033[1;47mPoxHash\t\t(Golang)\t\tMarch 2023 - Chubak Bidpa\t\tGPLv3\033[0m\n")
+	fmt.Printf("\033[1;47mPoxHash   |    Go    |  March 2023 - Chubak Bidpa  |  GPLv3  \033[0m\n")
 	validateFlags(len(os.Args), os.Args)
 
 	hashes := make([]libpoxh.PoxHashDigest, len(os.Args)-2)
@@ -426,14 +428,14 @@ func main() {
 	if argHasFlag(flagsByte, flagJOIN) {
 		argsJoined := joinArgs(os.Args[2:])
 		t1 = getTimeInUS()
-		hashes[0] = libpoxh.PoxHash([]byte(argsJoined))
+		hashes[0] = libpoxh.PoxHash([]uint8(argsJoined))
 		t2 = getTimeInUS()
 		printHashes(hashes[:1], flagsByte, t2-t1, " (joined arguments):")
 	} else {
 		cursor := 0
 		for _, arg := range os.Args[2:] {
 			t1 = getTimeInUS()
-			hashes[cursor] = libpoxh.PoxHash([]byte(arg))
+			hashes[cursor] = libpoxh.PoxHash([]uint8(arg))
 			t2 = getTimeInUS()
 			totalTime += t2 - t1
 			cursor += 1

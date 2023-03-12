@@ -28,12 +28,13 @@
 #define MIN_ARG_NUM 3
 #define NUM_ASCII 128
 #define LEN_WRONG_FLAGS 28
+#define CARET_BYTE 94
 
-#define ERR_OUT(message)                                                                          \
-    printf("\n");                                                                                 \
-    printf(message);                                                                              \
-    printf("\n");                                                                                 \
-    printf("\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n\n"); \
+#define ERR_OUT(message)                                                                        \
+    printf("\n");                                                                               \
+    printf(message);                                                                            \
+    printf("\n");                                                                               \
+    printf("\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n"); \
     exit(1)
 
 typedef enum FLAGS
@@ -92,7 +93,7 @@ const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
 
 void print_help(char *exec)
 {
-    printf("\033[1;42mHelp\t | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa@gmail.com\033[0m\n");
+    printf("\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n");
     printf("\n");
     printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
     printf("%s -g^8o- myword1\n", exec);
@@ -235,10 +236,10 @@ int validate_flags(int argc, char **argv)
         ERR_OUT("You may not pass the `?` flag along with other flags");
     }
 
-    char reoccrance = search_for_flag_reocurrance(argv[1], len_flags);
-    if (reoccrance != '\0' && reoccrance != FLAG_BENCHMARK)
+    char reoccurrance = search_for_flag_reocurrance(argv[1], len_flags);
+    if (reoccurrance != '\0' && reoccurrance != FLAG_BENCHMARK)
     {
-        printf("Flag `%c` appears twice\n", reoccrance);
+        printf("Flag `%c` appears twice", reoccurrance);
         ERR_OUT("Only `^` can appear twice");
     }
 
@@ -416,8 +417,8 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
         printf("Total time for hashing %d bytestring(s): %luus\n", len_hashes, total_time);
 
-    char reoccurance = search_for_flag_reocurrance(flags, len_flags);
-    if (reoccurance == FLAG_BENCHMARK)
+    char reoccurrance = search_for_flag_reocurrance(flags, len_flags);
+    if (reoccurrance == FLAG_BENCHMARK)
     {
         printf("\n");
         exit(0);
@@ -498,9 +499,20 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
     printf("\nFinished run for PoxHash example code (C implementation)\n");
 }
 
+uint8_t *char_to_uint8(char *carr)
+{
+    int size = strlen(carr);
+    uint8_t *ret = calloc(size, 1);
+    for (int i = 0; i < size; i++)
+    {
+        ret[i] = (uint8_t)carr[i];
+    }
+    return ret;
+}
+
 int main(int argc, char **argv)
 {
-    printf("\033[1;47mPoxHash\t\t(Header-Only C)\t\tMarch 2023 - Chubak Bidpa\t\tGPLv3\033[0m\n");
+    printf("\033[1;47mPoxHash   |  (Header-Only C)  |  March 2023 - Chubak Bidpa  |  GPLv3  \033[0m\n");
     int len_flags = validate_flags(argc, argv);
 
     poxhash_t hashes[argc - 2];
@@ -510,10 +522,12 @@ int main(int argc, char **argv)
     if (arg_has_flag(argv[1], len_flags, FLAG_JOIN))
     {
         char *args_joined = join_args(argc, argv);
+        uint8_t *args_joined_uint8 = char_to_uint8(args_joined);
         t1 = get_time_in_us();
-        hashes[0] = pox_hash(args_joined);
+        hashes[0] = pox_hash(args_joined_uint8);
         t2 = get_time_in_us();
         free(args_joined);
+        free(args_joined_uint8);
         print_hashes(hashes, 1, argv[1], len_flags, t2 - t1, " (joined arguments):");
     }
     else
@@ -522,8 +536,10 @@ int main(int argc, char **argv)
         for (int i = 2; i < argc; i++)
         {
             t1 = get_time_in_us();
-            hashes[cursor++] = pox_hash(argv[i]);
+            uint8_t *arg_uint8 = char_to_uint8(argv[i]);
+            hashes[cursor++] = pox_hash(arg_uint8);
             t2 = get_time_in_us();
+            free(arg_uint8);
             total_time += t2 - t1;
         }
         print_hashes(hashes, argc - 2, argv[1], len_flags, total_time, ":");
