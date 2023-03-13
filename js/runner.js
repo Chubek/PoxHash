@@ -112,7 +112,7 @@ const errorOut = (message) => {
 
 const printHelp = (execApp, execScript) => {
   printf(
-    "\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n"
+    "\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n"
   );
   println();
   printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
@@ -572,7 +572,7 @@ const joinArgs = (args) => {
 
 const main = (argv0, argv1, argv) => {
   printf(
-    "\033[1;47mPoxHashRunner   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
+    "\033[1;30;47mPoxHashRunner   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
   );
   validateFlags(argv0, argv1, argv);
   const flagsArg = argv[0];

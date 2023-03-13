@@ -93,7 +93,7 @@ const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
 
 void print_help(char *exec)
 {
-    printf("\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n");
+    printf("\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n");
     printf("\n");
     printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
     printf("%s -N82- myword1\n", exec);
@@ -513,7 +513,7 @@ uint8_t *char_to_uint8(char *carr)
 
 int main(int argc, char **argv)
 {
-    printf("\033[1;47mPoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
+    printf("\033[1;30;47mPoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
     int len_flags = validate_flags(argc, argv);
 
     poxhash_t hashes[argc - 2];

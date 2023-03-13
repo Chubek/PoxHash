@@ -67,7 +67,7 @@ macro_rules! error_out {
 }
 
 fn print_help(exec: String) {
-    print!("\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n");
+    print!("\x1b[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n");
     println!();
     print!("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n");
     print!("{} -N82- myword1\n", exec);
@@ -471,7 +471,7 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128, joine
 
 #[allow(unused_assignments)]
 fn main() {
-    print!("\x1b[1;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n");
+    print!("\x1b[1;30;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n");
     let argv: Vec<String> = std::env::args().collect();
     validate_flags(&argv);
     let flag_arg = argv.get(1).unwrap();

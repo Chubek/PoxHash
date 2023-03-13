@@ -152,7 +152,7 @@ template errorOut(message: untyped): untyped =
   quit(1)
 
 proc printHelp(execName: string) =
-  printf("\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n")
+  printf("\x1b[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n")
   println()
   printf("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
   printf("%s -N82- myword1\n", execName)
@@ -522,7 +522,7 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
 
 
 proc main(exec: string, argv: seq[string]) =
-  printf("\x1b[1;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
+  printf("\x1b[1;30;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
   validateFlags(exec, argv)
   var
     flagsArg = argv[0]

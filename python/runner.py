@@ -106,7 +106,7 @@ def error_out(message: str) -> None:
 
 def printHelp(exec_name: str, script_name: str) -> None:
     printf(
-        "\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n"
+        "\x1b[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n"
     )
     println()
     printf("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
@@ -438,7 +438,7 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int,
 
 def main(exec_name: str, argv: list[str]) -> None:
     printf(
-        "\x1b[1;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
+        "\x1b[1;30;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
     )
     validate_flags(exec_name, argv)
 

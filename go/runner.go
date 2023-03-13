@@ -76,7 +76,7 @@ func errorOut(message string) {
 }
 
 func printHelp(exec string) {
-	fmt.Printf("\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n")
+	fmt.Printf("\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n")
 	fmt.Println()
 	fmt.Printf("Examples \033[1m(flag go between two dashes!)\033[0m:\n")
 	fmt.Printf("%s -N82- myword1\n", exec)
@@ -420,7 +420,7 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64, joine
 }
 
 func main() {
-	fmt.Printf("\033[1;47mPoxHashRunner   |    Go    |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n")
+	fmt.Printf("\033[1;30;47mPoxHashRunner   |    Go    |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n")
 	validateFlags(len(os.Args), os.Args)
 
 	hashes := make([]libpoxh.PoxDigest, len(os.Args)-2)
