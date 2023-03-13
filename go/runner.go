@@ -416,7 +416,6 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64, joine
 			fmt.Printf("\tBindigest: %s\n", hash.Bindigest)
 		}
 	}
-	fmt.Printf("\nFinished run for PoxHash example code (Go implementation)\n")
 }
 
 func main() {

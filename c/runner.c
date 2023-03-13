@@ -497,7 +497,6 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
         if (everything || all_flags_non_decimal || bin)
             printf("\tBindigest: %s\n", hashes[i].bindigest);
     }
-    printf("\nFinished run for PoxHash example code (C implementation)\n");
 }
 
 uint8_t *char_to_uint8(char *carr)

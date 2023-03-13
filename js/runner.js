@@ -555,7 +555,6 @@ const printHashes = (hashes, flags, totalTime, joined) => {
       printf("\tBindigest: %s\n", hashes[i].bindigest);
     }
   }
-  printf("\nFinished run for PoxHash example code (JS implementation)\n");
 };
 
 const newNullArray = (size) => {
