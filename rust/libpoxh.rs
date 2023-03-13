@@ -580,7 +580,7 @@ mod round {
         temp_array = apply_alphabet_operation(&temp_array);
         temp_array = apply_prime(&temp_array);
         temp_array = apply_shuffle(&temp_array);
-        let add_result = apply_add_temp_to_facts(factor_array, &temp_array);
+        let add__result = apply_add_temp_to_facts(factor_array, &temp_array);
         add_result
     }
 }
@@ -623,7 +623,7 @@ mod block {
     }
 }
 
-pub struct PoxHashDigest {
+pub struct PoxDigest {
     pub sexdigest: String,
     pub vigdigest: String,
     pub hexdigest: String,
@@ -638,26 +638,143 @@ pub struct PoxHashDigest {
     pub quad: u64,
 }
 
+impl std::default::Default for PoxDigest {
+    fn default() -> Self {
+        Self {
+            sexdigest: String::from("unset"),
+            vigdigest: String::from("unset"),
+            hexdigest: String::from("unset"),
+            tetdigest: String::from("unset"),
+            duodigest: String::from("unset"),
+            octdigest: String::from("unset"),
+            sendigest: String::from("unset"),
+            bindigest: String::from("unset"),
+            bytes: [0u8; 8],
+            words: [0u16; 4],
+            doubles: [0u32; 2],
+            quad: 0u64,
+        }
+    }
+}
+
+impl Clone for PoxDigest {
+    fn clone(&self) -> Self {
+        let mut bytes_clone = [0u8; 8];
+        let mut words_clone = [0u16; 4];
+        let mut doubles_clone = [0u32; 2];
+        let quad_clone = self.quad;
+
+        for i in 0..8 {
+            bytes_clone[i] = self.bytes[i];
+        }
+        for i in 0..4 {
+            words_clone[i] = self.words[i];
+        }
+        for i in 0..2 {
+            doubles_clone[i] = self.doubles[i];
+        }
+        let sexdigest_clone = self.sexdigest.clone();
+        let vigdigest_clone = self.vigdigest.clone();
+        let hexdigest_clone = self.hexdigest.clone();
+        let tetdigest_clone = self.tetdigest.clone();
+        let duodigest_clone = self.duodigest.clone();
+        let octdigest_clone = self.octdigest.clone();
+        let sendigest_clone = self.sendigest.clone();
+        let bindigest_clone = self.bindigest.clone();
+
+        Self {
+            sexdigest: sexdigest_clone,
+            vigdigest: vigdigest_clone,
+            hexdigest: hexdigest_clone,
+            tetdigest: tetdigest_clone,
+            duodigest: duodigest_clone,
+            octdigest: octdigest_clone,
+            sendigest: sendigest_clone,
+            bindigest: bindigest_clone,
+            bytes: bytes_clone,
+            words: words_clone,
+            doubles: doubles_clone,
+            quad: quad_clone,
+        }
+    }
+}
+
+impl std::fmt::Display for PoxDigest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut _result = write!(f, "Sexdigest: {}\n", &self.sexdigest);
+        _result = write!(f, "Vigdigest: {}\n", &self.vigdigest);
+        _result = write!(f, "Hexdigest: {}\n", &self.hexdigest);
+        _result = write!(f, "Tetdigest: {}\n", &self.tetdigest);
+        _result = write!(f, "Duodigest: {}\n", &self.duodigest);
+        _result = write!(f, "Octdigest: {}\n", &self.octdigest);
+        _result = write!(f, "Sendigest: {}\n", &self.sendigest);
+        _result = write!(f, "Bindigest: {}\n", &self.bindigest);
+        _result = write!(f, "Sexdigest: {}\n", &self.sexdigest);
+        _result = write!(
+            f,
+            "Bytes:    U8[{}, {}, {}, {}, {}, {}, {}, {}]\n",
+            &self.bytes[0],
+            &self.bytes[1],
+            &self.bytes[2],
+            &self.bytes[3],
+            &self.bytes[4],
+            &self.bytes[5],
+            &self.bytes[6],
+            &self.bytes[7]
+        );
+        _result = write!(
+            f,
+            "Words:    U16[{}, {}, {}, {}]\n",
+            &self.words[0], &self.words[1], &self.words[2], &self.words[3]
+        );
+        _result = write!(
+            f,
+            "Doubles:  U32[{}, {}]\n",
+            &self.doubles[0], &self.doubles[1]
+        );
+        write!(f, "Quad:     U64[{}]", &self.quad)
+    }
+}
+
+impl std::fmt::Debug for PoxDigest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PoxDigest")
+            .field("Sexdigest", &self.sexdigest)
+            .field("Vigdigest", &self.vigdigest)
+            .field("Hexdigest", &self.hexdigest)
+            .field("Tetdigest", &self.tetdigest)
+            .field("Duodigest", &self.duodigest)
+            .field("Octdigest", &self.octdigest)
+            .field("Sendigest", &self.sendigest)
+            .field("Bindigest", &self.bindigest)
+            .field("Bytes", &self.bytes)
+            .field("Words", &self.words)
+            .field("Doubles", &self.doubles)
+            .field("Quad", &self.quad)
+            .finish()
+    }
+}
+
 #[allow(unused_doc_comments)]
-pub fn pox_hash(message: Vec<u8>) -> PoxHashDigest {
-    /// Converts the given message into a PoxHashDigest object
+pub fn pox_hash(message: Vec<u8>) -> PoxDigest {
+    /// Converts the given message into a PoxDigest object
     /// Parameters:
     ///     message: Vec<u8>
     ///
     /// Returns:
-    ///     PoxHashDigest
-    ///         PoxHashDigest.sexdigest: String
-    ///         PoxHashDigest.vigdigest: String
-    ///         PoxHashDigest.hexdigest: String
-    ///         PoxHashDigest.tetdigest: String
-    ///         PoxHashDigest.duodigest: String
-    ///         PoxHashDigest.octdigest: String
-    ///         PoxHashDigest.sendigest: String
-    ///         PoxHashDigest.bindigest: String
-    ///         PoxHashDigest.bytes: [u8; 8]
-    ///         PoxHashDigest.words: [u16; 4]
-    ///         PoxHashDigest.doubles: [u32, 2]
-    ///         PoxHashDigest.quad: u64
+    ///     PoxDigest
+    ///         PoxDigest.sexdigest: String
+    ///         PoxDigest.vigdigest: String
+    ///         PoxDigest.hexdigest: String
+    ///         PoxDigest.tetdigest: String
+    ///         PoxDigest.duodigest: String
+    ///         PoxDigest.octdigest: String
+    ///         PoxDigest.sendigest: String
+    ///         PoxDigest.bindigest: String
+    ///         PoxDigest.bytes: [u8; 8]
+    ///         PoxDigest.words: [u16; 4]
+    ///         PoxDigest.doubles: [u32, 2]
+    ///         PoxDigest.quad: u64
     let padded_u16 = convert::byte_vec_to_word_vec_and_pad(message);
     let mut factor_array: types::ArrType = [
         consts::POX_PRIME_INIT_A,
@@ -689,7 +806,7 @@ pub fn pox_hash(message: Vec<u8>) -> PoxHashDigest {
     let doubles = convert::word_array_to_double_array(&factor_array);
     let quad = convert::word_array_to_quad(&factor_array);
 
-    PoxHashDigest {
+    PoxDigest {
         sexdigest,
         vigdigest,
         hexdigest,
