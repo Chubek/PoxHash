@@ -414,10 +414,10 @@ mod convert {
         quad
     }
 
-    pub fn byte_vec_to_word_vec_and_pad(byte_array: Vec<u8>) -> Vec<u16> {
+    pub fn byte_vec_to_word_vec_and_pad(byte_array: &Vec<u8>) -> Vec<u16> {
         let mut word_vec = byte_array
             .into_iter()
-            .map(|b| b as u16)
+            .map(|b| *b as u16)
             .collect::<Vec<u16>>();
         while word_vec.len() % consts::POX_BLOCK_NUM != 0 {
             word_vec.push(0);
@@ -756,7 +756,7 @@ impl std::fmt::Debug for PoxDigest {
 }
 
 #[allow(unused_doc_comments)]
-pub fn pox_hash(message: Vec<u8>) -> PoxDigest {
+pub fn pox_hash(message: &Vec<u8>) -> PoxDigest {
     /// Converts the given message into a PoxDigest object
     /// Parameters:
     ///     message: Vec<u8>
