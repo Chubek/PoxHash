@@ -153,13 +153,14 @@ template errorOut(message: untyped): untyped =
 
 proc printHelp(execName: string) =
   printFormatted("\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n")
-  printFormatted("\n")
+  printLn()
   printFormatted("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
-  printFormatted("%s -g^8o- myword1\n", execName)
-  printFormatted("%s -E+- mywod to be joined\n", execName)
-  printFormatted("%s -*E- word1 word 2\n", execName)
-  printFormatted("%s -htd- a_word\n", execName)
-  printFormatted("\n")
+  printFormatted("%s -N82- myword1\n", execName)
+  printFormatted("%s -*+^- mywod to be joined\n", execName)
+  printFormatted("%s -Dhob- word1 word 2\n", execName)
+  printFormatted("%s -^^+- large seq  to join and  benchmark\n", execName)
+  printFormatted("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", execName)
+  printLn()
   printFormatted("\x1b[1;32mFlags:\x1b[0m\n")
   printFormatted(
     "\x1b[1;35m\t`^`\x1b[0m: Benchmark run (pass two to only show benchmark)\n"

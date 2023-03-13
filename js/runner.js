@@ -111,14 +111,25 @@ const errorOut = (message) => {
 };
 
 const printHelp = (execApp, execScript) => {
-  printFormatted("\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n")
-  printFormatted("\n");
+  printFormatted(
+    "\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n"
+  );
+  printLn();
   printFormatted("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
-  printFormatted("%s %s -g^8o- myword1\n", execApp, execScript);
-  printFormatted("%s %s -E+- mywod to be joined\n", execApp, execScript);
-  printFormatted("%s %s -*E- word1 word 2\n", execApp, execScript);
-  printFormatted("%s %s -htd- a_word\n", execApp, execScript);
-  printFormatted("\n");
+  printFormatted("%s %s -N82- myword1\n", execApp, execScript);
+  printFormatted("%s %s -*+^- mywod to be joined\n", execApp, execScript);
+  printFormatted("%s %s -Dhob- word1 word 2\n", execApp, execScript);
+  printFormatted(
+    "%s %s -^^+- large seq  to join and  benchmark\n",
+    execApp,
+    execScript
+  );
+  printFormatted(
+    "wget -qO- www.example.com | xargs bash -c '%s %s -h+- $@'\n",
+    execApp,
+    execScript
+  );
+  printLn();
   printFormatted("\033[1;32mFlags:\033[0m\n");
   printFormatted(
     "\033[1;35m\t`^`\033[0m: Benchmark run (pass two to only show benchmark)\n"
@@ -401,7 +412,7 @@ const validateFlags = (argv0, argv1, argv) => {
 };
 
 const getTimeInUS = () => {
-  return Number(Date.now() + String(process.hrtime()[1]).slice(3,6));
+  return Number(Date.now() + String(process.hrtime()[1]).slice(3, 6));
 };
 
 const allAreFalse = (arr) => {
@@ -416,7 +427,7 @@ const allAreFalse = (arr) => {
 const printHashes = (hashes, flags, totalTime, joined) => {
   const lenFlags = flags.length;
   const lenHashes = hashes.length;
-    if (argHasFlag(flags, FLAG_BENCHMARK))
+  if (argHasFlag(flags, FLAG_BENCHMARK))
     printFormatted(
       "Total time for hashing %d bytestring(s): %dus \n",
       lenHashes,
@@ -470,11 +481,7 @@ const printHashes = (hashes, flags, totalTime, joined) => {
 
   for (let i = 0; i < lenHashes; i++) {
     printFormatted("----\n");
-    printFormatted(
-      "Requested digests for bytestring #%d%s\n",
-      i + 1,
-      joined
-    );
+    printFormatted("Requested digests for bytestring #%d%s\n", i + 1, joined);
     if (everything || allFlagsDecimal || byte) {
       printFormatted(
         "\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
@@ -550,7 +557,9 @@ const joinArgs = (args) => {
 };
 
 const main = (argv0, argv1, argv) => {
-  printFormatted("\033[1;47mPoxHash   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
+  printFormatted(
+    "\033[1;47mPoxHash   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
+  );
   validateFlags(argv0, argv1, argv);
   const flagsArg = argv[0];
   const lenHashes = argv.length - 1;

@@ -96,10 +96,11 @@ void print_help(char *exec)
     printf("\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n");
     printf("\n");
     printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
-    printf("%s -g^8o- myword1\n", exec);
-    printf("%s -E+- mywod to be joined\n", exec);
-    printf("%s -*E- word1 word 2\n", exec);
-    printf("%s -htd- a_word\n", exec);
+    printf("%s -N82- myword1\n", exec);
+    printf("%s -*+^- mywod to be joined\n", exec);
+    printf("%s -Dhob- word1 word 2\n", exec);
+    printf("%s -^^+- large seq  to join and  benchmark\n", exec);
+    printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec);
     printf("\n");
     printf("\033[1;32mFlags:\033[0m\n");
     printf("\033[1;35m\t`^`\033[0m: Benchmark run (pass two to only show benchmark)\n");
