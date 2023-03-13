@@ -104,17 +104,21 @@ def error_out(message: str) -> None:
     exit(1)
 
 
-def printHelp(exec_name: str) -> None:
+def printHelp(exec_name: str, script_name: str) -> None:
     print_formatted(
         "\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n"
     )
-    print_formatted("\n")
+    print_ln()
     print_formatted("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
-    print_formatted("%s -g^8o- myword1\n", exec_name)
-    print_formatted("%s -E+- mywod to be joined\n", exec_name)
-    print_formatted("%s -*E- word1 word 2\n", exec_name)
-    print_formatted("%s -htd- a_word\n", exec_name)
-    print_formatted("\n")
+    print_formatted("%s %s -N82- myword1\n", exec_name, script_name)
+    print_formatted("%s %s -*+^- mywod to be joined\n", exec_name, script_name)
+    print_formatted("%s %s -Dhob- word1 word 2\n", exec_name, script_name)
+    print_formatted("%s %s -^^+- large seq  to join and  benchmark\n",
+                    exec_name, script_name)
+    print_formatted(
+        "wget -qO- www.example.com | xargs bash -c '%s %s -h+- $@'\n",
+        exec_name, script_name)
+    print_ln()
     print_formatted("\x1b[1;32mFlags:\x1b[0m\n")
     print_formatted(
         "\x1b[1;35m\t`^`\x1b[0m: Benchmark run (pass two to only show benchmark)\n"
@@ -154,7 +158,7 @@ def printHelp(exec_name: str) -> None:
     exit(1)
 
 
-def get_script_name(path: str) -> str:
+def get_script_and_exec_name(path: str) -> str:
     return path.split("/")[-1]
 
 
@@ -192,7 +196,7 @@ def validate_flags(exec: str, argv: list[str]) -> None:
     len_argv = len(argv)
     flags_arg = argv[0]
     len_flags = len(flags_arg)
-    exec_name = get_script_name(exec)
+    script_name = get_script_and_exec_name(exec)
 
     if len_argv < MIN_ARG_NUM:
         error_out("No flags passed")
@@ -205,9 +209,9 @@ def validate_flags(exec: str, argv: list[str]) -> None:
         error_out("The flag argument must begin and end with `-`")
 
     check_for_wrong_flags(flags_arg)
-
+    exec_name = get_script_and_exec_name(sys.executable)
     if flags_arg == "-?-":
-        printHelp(exec_name)
+        printHelp(exec_name, script_name)
 
     helpPassed = arg_has_flag(flags_arg, FLAG_HELP)
     if helpPassed and len_flags > MIN_FLAG_SIZE:
@@ -427,6 +431,7 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int,
             print_formatted("\tSendgiest: %s\n", hash.sendigest)
         if everything or all_flags_non_decimal or bin:
             print_formatted("\tBindigest: %s\n", hash.bindigest)
+
 
 def main(exec_name: str, argv: list[str]) -> None:
     print_formatted(
