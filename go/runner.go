@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	sizeMIN_FLAGS  = 3
-	sizeMAX_FLAGS  = 24
-	numMIN_ARGS    = 3
-	numASCII       = 128
-	numWRONG_FLAGS = 28
-	byteCaret      = 94
+	sizeMIN_FLAGS       = 3
+	sizeMAX_FLAGS       = 24
+	numMIN_ARGS         = 3
+	numASCII            = 128
+	numWRONG_FLAGS      = 28
+	indexBENCHMARK_BYTE = 94
 
 	flagBENCHMARK   byte = 94
 	flagJOIN        byte = 43
@@ -146,16 +146,16 @@ func searchFlagsForOccurance(flagBytes []byte) byte {
 
 	var ret byte = 0
 
-	if occuranceArray[byteCaret] == 2 {
+	if occuranceArray[indexBENCHMARK_BYTE] == 2 {
 		ret = '^'
 	}
 
-	if occuranceArray[byteCaret] > 2 {
+	if occuranceArray[indexBENCHMARK_BYTE] > 2 {
 		errorOut("`^` can appear at most twice")
 	}
 
 	for i, sum := range occuranceArray {
-		if i == byteCaret || i == 45 {
+		if i == indexBENCHMARK_BYTE || i == 45 {
 			continue
 		}
 		if sum > 1 {
@@ -208,7 +208,7 @@ func validateFlags(lenArgs int, args []string) {
 	allFlagsDecPassed := argHasFlag(argFlagsBytes, flagALL_DECIMAL)
 	allFlagsNondecPassed := argHasFlag(argFlagsBytes, flagALL_NON_DEC)
 
-	for _, flag := range argFlagsBytes[1 : len(argFlagsBytes) - 1] {
+	for _, flag := range argFlagsBytes[1 : len(argFlagsBytes)-1] {
 		switch flag {
 		case flagBENCHMARK:
 			continue
@@ -325,7 +325,7 @@ func allAreFalse(bools []bool) bool {
 	return true
 }
 
-func printHashes(hashes []libpoxh.PoxHashDigest, flag []byte, totalTime int64, joined string) {
+func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64, joined string) {
 	if argHasFlag(flag, flagBENCHMARK) {
 		fmt.Printf("Total time for hashing %d bytestring(s): %dus\n", len(hashes), totalTime)
 	}
@@ -422,7 +422,7 @@ func main() {
 	fmt.Printf("\033[1;47mPoxHash   |    Go    |  March 2023 - Chubak Bidpa  |  GPLv3  \033[0m\n")
 	validateFlags(len(os.Args), os.Args)
 
-	hashes := make([]libpoxh.PoxHashDigest, len(os.Args)-2)
+	hashes := make([]libpoxh.PoxDigest, len(os.Args)-2)
 	var totalTime, t1, t2 int64
 	flagsByte := []byte(os.Args[1])
 	if argHasFlag(flagsByte, flagJOIN) {

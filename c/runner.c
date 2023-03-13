@@ -28,7 +28,7 @@
 #define MIN_ARG_NUM 3
 #define NUM_ASCII 128
 #define LEN_WRONG_FLAGS 28
-#define CARET_BYTE 94
+#define BENCHMARK_BYTE_INDEX 94
 
 #define ERR_OUT(message)                                                                        \
     printf("\n");                                                                               \
@@ -512,7 +512,7 @@ uint8_t *char_to_uint8(char *carr)
 
 int main(int argc, char **argv)
 {
-    printf("\033[1;47mPoxHash   |  (Header-Only C)  |  March 2023 - Chubak Bidpa  |  GPLv3  \033[0m\n");
+    printf("\033[1;47mPoxHash   |   Header-Only C   |  March 2023 - Chubak Bidpa  |  GPLv3  \033[0m\n");
     int len_flags = validate_flags(argc, argv);
 
     poxhash_t hashes[argc - 2];

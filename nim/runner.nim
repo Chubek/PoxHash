@@ -12,7 +12,7 @@ const
   FORMAT_DIGIT: char = 'd'
   FORMAT_CHAR: char = 'c'
   NS_TO_US = 1000
-  CARET_BYTE = 94
+  BENCHMARK_BYTE_INDEX = 94
 
   FLAG_BENCHMARK = '^'
   FLAG_JOIN = '+'
@@ -204,7 +204,7 @@ proc printHelp(execName: string) =
   quit(1)
 
 proc getExecName(path: string): string =
-  var 
+  var
     slashIndex = 0
     pathLen = path.len() - 1
   for i in 0<..pathLen:
@@ -238,14 +238,14 @@ proc searchForFlagReoccurrances(flags: string): char =
   for c in **flags:
     occurranceArray[^^c] += 1
 
-  if occurranceArray[CARET_BYTE] == 2:
+  if occurranceArray[BENCHMARK_BYTE_INDEX] == 2:
     result = FLAG_BENCHMARK
 
-  if occurranceArray[CARET_BYTE] > 2:
+  if occurranceArray[BENCHMARK_BYTE_INDEX] > 2:
     errorOut("`^` can appear at most twice")
 
   for i in 0...NUM_ASCII:
-    if i == 45 or i == CARET_BYTE:
+    if i == 45 or i == BENCHMARK_BYTE_INDEX:
       continue
     if occurranceArray[i] > 1:
       return cast[char](i)
@@ -422,7 +422,7 @@ proc joinArgs(args: seq[string]): string =
     result += arg
   result = result[1..result.len() - 1]
 
-proc printHashes(hashes: seq[PoxHashDigest], flags: string, totalTime: uint64,
+proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
     joined: string) =
   var
     lenHashes = hashes.len()
@@ -541,9 +541,6 @@ proc printHashes(hashes: seq[PoxHashDigest], flags: string, totalTime: uint64,
     if everything or allFlagsNonDecimal or bin:
       printFormatted("\tBindigest: %s\n", hash.bindigest)
 
-  printFormatted(
-    "\nFinished run for PoxHash example code (Nim implementation)\n"
-  )
 
 proc main(exec: string, argv: seq[string]) =
   printFormatted("\x1b[1;47mPoxHash   |   Nim    |  March 2023 - Chubak Bidpa  |  GPLv3  \x1b[0m\n")
@@ -551,7 +548,7 @@ proc main(exec: string, argv: seq[string]) =
   var
     flagsArg = argv[0]
     lenHashes = argv.len() - 1
-    hashes = newSeq[PoxHashDigest](lenHashes)
+    hashes = newSeq[PoxDigest](lenHashes)
     totalTime, t1, t2: uint64
 
   totalTime = 0
@@ -570,7 +567,7 @@ proc main(exec: string, argv: seq[string]) =
       inc cursor
       totalTime += t2 - t1
     printHashes(hashes, flagsArg, totalTime, ":")
-  
+
 
 
 var

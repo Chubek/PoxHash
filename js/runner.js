@@ -9,7 +9,7 @@ const FORMAT_MARKER = "%";
 const FORMAT_STR = "s";
 const FORMAT_DIGIT = "d";
 const FORMAT_CHAR = "c";
-const CARET_BYTE = 94;
+const BENCHMARK_BYTE_INDEX = 94;
 
 const FLAG_BENCHMARK = "^";
 const FLAG_JOIN = "+";
@@ -217,16 +217,16 @@ const searchForFlagReoccurrances = (flagsArg) => {
 
   let ret = "\0";
 
-  if (occurranceArray[CARET_BYTE] == 2) {
+  if (occurranceArray[BENCHMARK_BYTE_INDEX] == 2) {
     ret = "^";
   }
 
-  if (occurranceArray[CARET_BYTE] > 2) {
+  if (occurranceArray[BENCHMARK_BYTE_INDEX] > 2) {
     errorOut("`^` can appear at most twice");
   }
 
   for (let i = 0; i < NUM_ASCII; i++) {
-    if (i == CARET_BYTE || i == 45) {
+    if (i == BENCHMARK_BYTE_INDEX || i == 45) {
       continue;
     }
     if (occurranceArray[i] > 1) {

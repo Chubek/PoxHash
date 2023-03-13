@@ -1,7 +1,7 @@
 import sys
 from time import time_ns
 
-from libpoxh import PoxHashDigest, pox_hash
+from libpoxh import PoxDigest, pox_hash
 
 MAX_FLAG_SIZE = 24
 MIN_FLAG_SIZE = 3
@@ -12,7 +12,7 @@ FORMAT_STR = 's'
 FORMAT_DIGIT = 'd'
 FORMAT_CHAR = 'c'
 NS_TO_US = 1000
-CARET_BYTE = 94
+BENCHMARK_BYTE_INDEX = 94
 
 FLAG_BENCHMARK = '^'
 FLAG_JOIN = '+'
@@ -35,34 +35,34 @@ FLAG_HELP = '?'
 FLAG_DASH = '-'
 
 WRONG_FLAGS = [
-('G', 'g'),
-('V', 'v'),
-('O', 'o'),
-('T', 't'),
-('S', 's'),
-('H', 'h'),
-('n', 'N'),
-('W', '4'),
-('w', '4'),
-('q', '1'),
-('Q', '1'),
-('3', '2'),
-('5', '4'),
-('6', '^'),
-('7', '8'),
-('9', '8'),
-('0', '1'),
-('/', '?'),
-('=', '+'),
-('B', 'b'),
-('E', '*'),
-('A', '*'),
-('>', '?'),
-('&', '*'),
-('r', 't'),
-('y', 't'),
-('f', 'g'),
-('x', 'h'),
+    ('G', 'g'),
+    ('V', 'v'),
+    ('O', 'o'),
+    ('T', 't'),
+    ('S', 's'),
+    ('H', 'h'),
+    ('n', 'N'),
+    ('W', '4'),
+    ('w', '4'),
+    ('q', '1'),
+    ('Q', '1'),
+    ('3', '2'),
+    ('5', '4'),
+    ('6', '^'),
+    ('7', '8'),
+    ('9', '8'),
+    ('0', '1'),
+    ('/', '?'),
+    ('=', '+'),
+    ('B', 'b'),
+    ('E', '*'),
+    ('A', '*'),
+    ('>', '?'),
+    ('&', '*'),
+    ('r', 't'),
+    ('y', 't'),
+    ('f', 'g'),
+    ('x', 'h'),
 ]
 
 
@@ -90,7 +90,7 @@ def print_formatted(*argc, **_) -> None:
     sys.stdout.write(finalMessage)
 
 
-def print_ln() -> None: 
+def print_ln() -> None:
     sys.stdout.write("\n")
 
 
@@ -99,13 +99,15 @@ def error_out(message: str) -> None:
     print_formatted(message)
     print_ln()
     print_formatted(
-    "\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[134m-?-\x1b[0m to show help\n"
+        "\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[134m-?-\x1b[0m to show help\n"
     )
     exit(1)
 
 
 def printHelp(exec_name: str) -> None:
-    print_formatted("\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n")
+    print_formatted(
+        "\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n"
+    )
     print_formatted("\n")
     print_formatted("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
     print_formatted("%s -g^8o- myword1\n", exec_name)
@@ -118,8 +120,7 @@ def printHelp(exec_name: str) -> None:
         "\x1b[1;35m\t`^`\x1b[0m: Benchmark run (pass two to only show benchmark)\n"
     )
     print_formatted(
-        "\x1b[1;35m\t`+`\x1b[0m: Join arguments with space (byte 32)\n"
-    )
+        "\x1b[1;35m\t`+`\x1b[0m: Join arguments with space (byte 32)\n")
     print_formatted("\x1b[1;35m\t`*`\x1b[0m: Print every digest\n")
     print_formatted("\x1b[1;35m\t`N`\x1b[0m: Print every non-decimal digest\n")
     print_formatted("\x1b[1;35m\t`D`\x1b[0m: Print every decimal digest\n")
@@ -136,21 +137,17 @@ def printHelp(exec_name: str) -> None:
         "\x1b[1;35m\t`1`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n"
     )
     print_formatted(
-        "\x1b[1;35m\t`g`\x1b[0m: Print sexagesimal digest (base sixty)\n"
-    )
+        "\x1b[1;35m\t`g`\x1b[0m: Print sexagesimal digest (base sixty)\n")
     print_formatted(
-        "\x1b[1;35m\t`v`\x1b[0m: Print vigesimal digest (base twenty)\n"
-    )
+        "\x1b[1;35m\t`v`\x1b[0m: Print vigesimal digest (base twenty)\n")
     print_formatted(
-        "\x1b[1;35m\t`h`\x1b[0m: Print hexadecimal digest (base sixteen)\n"
-    )
+        "\x1b[1;35m\t`h`\x1b[0m: Print hexadecimal digest (base sixteen)\n")
     print_formatted(
-        "\x1b[1;35m\t`t`\x1b[0m: Print tetradecimal digest (base fourteen)\n"
-    )
+        "\x1b[1;35m\t`t`\x1b[0m: Print tetradecimal digest (base fourteen)\n")
     print_formatted(
-        "\x1b[1;35m\t`d`\x1b[0m: Print duodecimal digest (base twelve)\n"
-    )
-    print_formatted("\x1b[1;35m\t`o`\x1b[0m: Print octal digest (base eight)\n")
+        "\x1b[1;35m\t`d`\x1b[0m: Print duodecimal digest (base twelve)\n")
+    print_formatted(
+        "\x1b[1;35m\t`o`\x1b[0m: Print octal digest (base eight)\n")
     print_formatted("\x1b[1;35m\t`s`\x1b[0m: Print senary digest (base six)\n")
     print_formatted("\x1b[1;35m\t`b`\x1b[0m: Print binary digest (base two)\n")
     print_formatted("\x1b[1;35m\t`?`\x1b[0m: Print Help\n\n")
@@ -160,15 +157,13 @@ def printHelp(exec_name: str) -> None:
 def get_script_name(path: str) -> str:
     return path.split("/")[-1]
 
+
 def check_for_wrong_flags(flags: str) -> None:
     for flag in flags:
         for (wrong_flag, right_flag) in WRONG_FLAGS:
             if flag == wrong_flag:
-                print_formatted(
-                    "No flag for `%c`, perhaps you meant `%c`?",
-                    flag,
-                    right_flag
-                )
+                print_formatted("No flag for `%c`, perhaps you meant `%c`?",
+                                flag, right_flag)
                 error_out("Flag erreror")
 
 
@@ -177,6 +172,7 @@ def arg_has_flag(flags: str, must_have: str) -> bool:
         if flag == must_have:
             return True
     return False
+
 
 def search_for_flag_occurrances(flags: str) -> str:
     count_bm = flags.count(FLAG_BENCHMARK)
@@ -188,8 +184,9 @@ def search_for_flag_occurrances(flags: str) -> str:
     for flg in flags:
         if flags.count(flg) > 1:
             return flg
-        
+
     return '\0'
+
 
 def validate_flags(exec: str, argv: list[str]) -> None:
     len_argv = len(argv)
@@ -201,9 +198,10 @@ def validate_flags(exec: str, argv: list[str]) -> None:
         error_out("No flags passed")
 
     if len_flags < MIN_FLAG_SIZE or len_flags > MAX_FLAG_SIZE:
-        error_out("Length of the first argument must at least be 3 and at most 24")
+        error_out(
+            "Length of the first argument must at least be 3 and at most 24")
 
-    if flags_arg[0] != FLAG_DASH or flags_arg[-1] != FLAG_DASH:
+    if not (flags_arg.startswith(FLAG_DASH) and flags_arg.endswith(FLAG_DASH)):
         error_out("The flag argument must begin and end with `-`")
 
     check_for_wrong_flags(flags_arg)
@@ -228,104 +226,107 @@ def validate_flags(exec: str, argv: list[str]) -> None:
     all_flags_non_dec_passed = arg_has_flag(flags_arg, FLAG_ALL_NON_DEC)
 
     for flag in flags_arg[1:-1]:
-        if flag  == FLAG_BENCHMARK:
+        if flag == FLAG_BENCHMARK:
             continue
-        if flag  == FLAG_JOIN:
+        if flag == FLAG_JOIN:
             continue
-        if flag  == FLAG_EVERTHING:
+        if flag == FLAG_EVERTHING:
             if all_flags_dec_passed or all_flags_non_dec_passed:
-                error_out("You may not pass `*` when you have passed `N` or `D`")
+                error_out(
+                    "You may not pass `*` when you have passed `N` or `D`")
             continue
-        if flag  == FLAG_ALL_NON_DEC:
+        if flag == FLAG_ALL_NON_DEC:
             if all_flags_passed:
                 error_out("You may not pass `N` when `*` is passed")
             continue
-        if flag  == FLAG_ALL_DECIMAL:
+        if flag == FLAG_ALL_DECIMAL:
             if all_flags_passed:
                 error_out("You may not pass `D` when `*` is passed")
             continue
-        if flag  == FLAG_BYTES:
+        if flag == FLAG_BYTES:
             if all_flags_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a decimal digest flag when `*` or `D` is passed"
-            )
+                    "You may not pass a decimal digest flag when `*` or `D` is passed"
+                )
             continue
-        if flag  == FLAG_WORDS:
+        if flag == FLAG_WORDS:
             if all_flags_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a decimal digest flag when `*` or `D` is passed"
-            )
+                    "You may not pass a decimal digest flag when `*` or `D` is passed"
+                )
             continue
-        if flag  == FLAG_DOUBLES:
+        if flag == FLAG_DOUBLES:
             if all_flags_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a decimal digest flag when `*` or `D` is passed"
-            )
+                    "You may not pass a decimal digest flag when `*` or `D` is passed"
+                )
             continue
-        if flag  == FLAG_QUAD:
+        if flag == FLAG_QUAD:
             if all_flags_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a decimal digest flag when `*` or `D` is passed"
-            )
+                    "You may not pass a decimal digest flag when `*` or `D` is passed"
+                )
             continue
-        if flag  == FLAG_SEX:
+        if flag == FLAG_SEX:
             if all_flags_non_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
-            )
+                    "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+                )
             continue
-        if flag  == FLAG_VIG:
+        if flag == FLAG_VIG:
             if all_flags_non_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
-            )
+                    "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+                )
             continue
-        if flag  == FLAG_HEX:
+        if flag == FLAG_HEX:
             if all_flags_non_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
-            )
+                    "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+                )
             continue
-        if flag  == FLAG_TET:
+        if flag == FLAG_TET:
             if all_flags_non_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
-            )
+                    "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+                )
             continue
-        if flag  == FLAG_DUO:
+        if flag == FLAG_DUO:
             if all_flags_non_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
-            )
+                    "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+                )
             continue
-        if flag  == FLAG_OCT:
+        if flag == FLAG_OCT:
             if all_flags_non_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
-            )
+                    "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+                )
             continue
-        if flag  == FLAG_SEN:
+        if flag == FLAG_SEN:
             if all_flags_non_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
-            )
+                    "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+                )
             continue
-        if flag  == FLAG_BIN:
+        if flag == FLAG_BIN:
             if all_flags_non_dec_passed or all_flags_passed:
                 error_out(
-            "You may not pass a non-decimal digest flag when `*` or `N` is passed"
-            )
+                    "You may not pass a non-decimal digest flag when `*` or `N` is passed"
+                )
             continue
-        if flag  == FLAG_HELP:
+        if flag == FLAG_HELP:
             if len_flags > MIN_FLAG_SIZE:
-                error_out("You may not pass the `?` flag along with other flags")
-
-        if flag  == FLAG_DASH:
                 error_out(
-            "You may not use `-` in the first argument other than in the first, and the last letter"
-        )
+                    "You may not pass the `?` flag along with other flags")
+
+        if flag == FLAG_DASH:
+            error_out(
+                "You may not use `-` in the first argument other than in the first, and the last letter"
+            )
         else:
             error_out("Unknown flag detected!")
+
 
 def get_time_in_us() -> int:
     return time_ns() // NS_TO_US
@@ -337,25 +338,23 @@ def all_are_false(bools: list[bool]) -> bool:
             return False
     return True
 
+
 def join_args(args: list[str]) -> str:
     return ' '.join(args)
 
-def print_hashes(hashes: list[PoxHashDigest], flags: str, total_time: int,
-    joined: str) -> None:
+
+def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int,
+                 joined: str) -> None:
     len_hashes = len(hashes)
     reoccurrance = search_for_flag_occurrances(flags[1:-1])
 
     if arg_has_flag(flags, FLAG_BENCHMARK):
-        print_formatted(
-            "Total time for hashing %d bytestring(s): %dus \n",
-            len_hashes,
-            total_time
-        )
+        print_formatted("Total time for hashing %d bytestring(s): %dus \n",
+                        len_hashes, total_time)
 
     if reoccurrance == FLAG_BENCHMARK:
         print_ln()
         exit(0)
-
 
     everything = arg_has_flag(flags, FLAG_EVERTHING)
     all_flags_decimal = arg_has_flag(flags, FLAG_ALL_DECIMAL)
@@ -397,37 +396,19 @@ def print_hashes(hashes: list[PoxHashDigest], flags: str, total_time: int,
 
     for (i, hash) in enumerate(hashes):
         print_formatted("----\n")
-        print_formatted(
-        "Requested digests for bytestring #%d%s\n",
-        i + 1,
-        joined
-        )
+        print_formatted("Requested digests for bytestring #%d%s\n", i + 1,
+                        joined)
         if everything or all_flags_decimal or by:
-            print_formatted(
-                "\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
-                hash.bytes[0],
-                hash.bytes[1],
-                hash.bytes[2],
-                hash.bytes[3],
-                hash.bytes[4],
-                hash.bytes[5],
-                hash.bytes[6],
-                hash.bytes[7]
-            )
+            print_formatted("\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
+                            hash.bytes[0], hash.bytes[1], hash.bytes[2],
+                            hash.bytes[3], hash.bytes[4], hash.bytes[5],
+                            hash.bytes[6], hash.bytes[7])
         if everything or all_flags_decimal or word:
-            print_formatted(
-                "\tWords: U16[%d, %d, %d, %d]\n",
-                hash.words[0],
-                hash.words[1],
-                hash.words[2],
-                hash.words[3]
-            )
+            print_formatted("\tWords: U16[%d, %d, %d, %d]\n", hash.words[0],
+                            hash.words[1], hash.words[2], hash.words[3])
         if everything or all_flags_decimal or dub:
-            print_formatted(
-                "\tdoubles: U32[%d, %d]\n",
-                hash.doubles[0],
-                hash.doubles[1]
-            )
+            print_formatted("\tdoubles: U32[%d, %d]\n", hash.doubles[0],
+                            hash.doubles[1])
         if everything or all_flags_decimal or quad:
             print_formatted("\tQuad: U64[%d]\n", hash.quad)
         if everything or all_flags_non_decimal or sex:
@@ -446,13 +427,13 @@ def print_hashes(hashes: list[PoxHashDigest], flags: str, total_time: int,
             print_formatted("\tSendgiest: %s\n", hash.sendigest)
         if everything or all_flags_non_decimal or bin:
             print_formatted("\tBindigest: %s\n", hash.bindigest)
-    
-    print_formatted("\nFinished run for PoxHash example code (Python implementation)\n")
 
 def main(exec_name: str, argv: list[str]) -> None:
-    print_formatted("\x1b[1;47mPoxHash   |    Python   |  March 2023 - Chubak Bidpa  |  GPLv3  \x1b[0m\n")
+    print_formatted(
+        "\x1b[1;47mPoxHash   |    Python   |  March 2023 - Chubak Bidpa  |  GPLv3  \x1b[0m\n"
+    )
     validate_flags(exec_name, argv)
-    
+
     flagsArg = argv[0]
     len_hashes = len(argv) - 1
     hashes = [None] * len_hashes
