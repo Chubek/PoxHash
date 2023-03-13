@@ -1,43 +1,505 @@
 extern crate libpoxh;
-use libpoxh::pox_hash;
+use libpoxh::{pox_hash, PoxDigest};
 
+const MAX_FLAG_SIZE: usize = 24;
+const MIN_FLAG_SIZE: usize = 3;
+const MIN_ARG_NUM: usize = 2;
+
+const FLAG_BENCHMARK: char = '^';
+const FLAG_JOIN: char = '+';
+const FLAG_EVERTHING: char = '*';
+const FLAG_ALL_NON_DEC: char = 'N';
+const FLAG_ALL_DECIMAL: char = 'D';
+const FLAG_BYTES: char = '8';
+const FLAG_WORDS: char = '4';
+const FLAG_DOUBLES: char = '2';
+const FLAG_QUAD: char = '1';
+const FLAG_SEX: char = 'g';
+const FLAG_VIG: char = 'v';
+const FLAG_HEX: char = 'h';
+const FLAG_TET: char = 't';
+const FLAG_DUO: char = 'd';
+const FLAG_OCT: char = 'o';
+const FLAG_SEN: char = 's';
+const FLAG_BIN: char = 'b';
+const FLAG_HELP: char = '?';
+const FLAG_DASH: char = '-';
+
+const WRONG_FLAGS: &'static [(char, char)] = &[
+    ('G', 'g'),
+    ('V', 'v'),
+    ('O', 'o'),
+    ('T', 't'),
+    ('S', 's'),
+    ('H', 'h'),
+    ('n', 'N'),
+    ('W', '4'),
+    ('w', '4'),
+    ('q', '1'),
+    ('Q', '1'),
+    ('3', '2'),
+    ('5', '4'),
+    ('6', '^'),
+    ('7', '8'),
+    ('9', '8'),
+    ('0', '1'),
+    ('/', '?'),
+    ('=', '+'),
+    ('B', 'b'),
+    ('E', '*'),
+    ('A', '*'),
+    ('>', '?'),
+    ('&', '*'),
+    ('r', 't'),
+    ('y', 't'),
+    ('f', 'g'),
+    ('x', 'h'),
+];
+
+macro_rules! error_out {
+    ($message: literal) => {{
+        println!();
+        print!($message);
+        println!();
+        print!("\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[1;34m-?-\x1b[0m to show help\n");
+        std::process::exit(1);
+    }};
+}
+
+fn print_help(exec: String) {
+    print!("\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n");
+    println!();
+    print!("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n");
+    print!("{} -N82- myword1\n", exec);
+    print!("{} -*+^- mywod to be joined\n", exec);
+    print!("{} -Dhob- word1 word 2\n", exec);
+    print!("{} -^^+- large seq  to join and  benchmark\n", exec);
+    print!(
+        "wget -qO- www.example.com | xargs bash -c '{} -h+- $@'\n",
+        exec
+    );
+    println!();
+    print!("\x1b[1;32mFlags:\x1b[0m\n");
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Benchmark run (pass two to only show benchmark)\n",
+        FLAG_BENCHMARK
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Join arguments with space (byte 32)\n",
+        FLAG_JOIN
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print every digest\n",
+        FLAG_EVERTHING
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print every non-decimal digest\n",
+        FLAG_ALL_NON_DEC
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print every decimal digest\n",
+        FLAG_ALL_DECIMAL
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
+        FLAG_BYTES
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n",
+        FLAG_WORDS
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n",
+        FLAG_DOUBLES
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n",
+        FLAG_QUAD
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print sexagesimal digest (base sixty)\n",
+        FLAG_SEX
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print vigesimal digest (base twenty)\n",
+        FLAG_VIG
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print hexadecimal digest (base sixteen)\n",
+        FLAG_HEX
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print tetradecimal digest (base fourteen)\n",
+        FLAG_TET
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print duodecimal digest (base twelve)\n",
+        FLAG_DUO
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print octal digest (base eight)\n",
+        FLAG_OCT
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print senary digest (base six)\n",
+        FLAG_SEN
+    );
+    print!(
+        "\x1b[1;35m\t`{}`\x1b[0m: Print binary digest (base two)\n",
+        FLAG_BIN
+    );
+    print!("\x1b[1;35m\t`{}`\x1b[0m: Print Help\n\n", FLAG_HELP);
+    std::process::exit(1);
+}
+
+fn check_for_wrong_flags(flags: &String) {
+    for flag in flags.chars() {
+        for (wrong_flag, right_flag) in WRONG_FLAGS {
+            if flag == *wrong_flag {
+                print!(
+                    "No flag for `{}`, perhaps you meant `{}`?",
+                    flag, right_flag
+                );
+                error_out!("Flag erreror");
+            }
+        }
+    }
+}
+
+fn get_exec_name(argv0: &String) -> String {
+    let argv0_split = argv0.split("/");
+    argv0_split.last().unwrap().to_string()
+}
+
+fn arg_has_flag(flag_arg: &String, must_have: char) -> bool {
+    flag_arg[0..flag_arg.len() - 1]
+        .chars()
+        .filter(|c| *c == must_have)
+        .count()
+        > 0
+}
+
+fn search_for_flag_reocurrance(flag_arg: &String) -> char {
+    let count_benchmark = flag_arg.chars().filter(|c| *c == FLAG_BENCHMARK).count();
+    if count_benchmark == 2 {
+        return FLAG_BENCHMARK;
+    } else if count_benchmark > 2 {
+        error_out!("`^` can appear at most twice");
+    }
+
+    for ch in flag_arg.chars() {
+        if flag_arg.chars().filter(|c| *c == ch).count() > 1 {
+            return ch;
+        }
+    }
+
+    '\0'
+}
+
+fn validate_flags(argv: &Vec<String>) {
+    let num_argv = argv.len();
+
+    if num_argv < MIN_ARG_NUM - 1 {
+        error_out!("No flags passed");
+    }
+
+    let exec = argv.get(0).unwrap();
+    let flag_arg = argv.get(1).unwrap();
+
+    let len_flags = flag_arg.len();
+    if len_flags < MIN_FLAG_SIZE || len_flags > MAX_FLAG_SIZE {
+        error_out!("Length of the first argument must at least be 3 and at most 24");
+    }
+
+    if flag_arg.chars().next() != Some(FLAG_DASH) || flag_arg.chars().last() != Some(FLAG_DASH) {
+        error_out!("The flag argument must begin and end with `-`");
+    }
+
+    check_for_wrong_flags(flag_arg);
+
+    let exec_name = get_exec_name(exec);
+    if flag_arg == "-?-" {
+        print_help(exec_name);
+    }
+
+    let help_passed = arg_has_flag(flag_arg, FLAG_HELP);
+    if help_passed && len_flags > MIN_FLAG_SIZE {
+        error_out!("You may not pass the `?` flag along with other flags");
+    }
+
+    let reoccurrance = search_for_flag_reocurrance(&flag_arg[1..flag_arg.len() - 1].to_string());
+    if reoccurrance != '\0' && reoccurrance != FLAG_BENCHMARK {
+        print!("Flag `{}` appears twice", reoccurrance);
+        error_out!("Only `^` can appear twice");
+    }
+
+    if num_argv < MIN_ARG_NUM {
+        error_out!("You must pass at least one argument to hash");
+    }
+
+    let all_flags_passed = arg_has_flag(flag_arg, FLAG_EVERTHING);
+    let all_flags_dec_passed = arg_has_flag(flag_arg, FLAG_ALL_DECIMAL);
+    let all_flags_nondec_passed = arg_has_flag(flag_arg, FLAG_ALL_NON_DEC);
+
+    for flag in flag_arg[1..len_flags - 1].chars() {
+        match flag {
+            FLAG_BENCHMARK => continue,
+            FLAG_JOIN =>  continue,
+            FLAG_EVERTHING => {
+                if all_flags_dec_passed || all_flags_nondec_passed{
+                    error_out!("You may not pass `*` when you have passed `N` or `D`");
+                }
+                continue;
+            },
+            FLAG_ALL_NON_DEC => {
+                if all_flags_passed {
+                    error_out!("You may not pass `N` when `*` is passed");
+                }
+                continue;
+            },
+            FLAG_ALL_DECIMAL => {
+                if all_flags_passed {
+                    error_out!("You may not pass `D` when `*` is passed");
+                }
+                continue;
+            },
+            FLAG_BYTES => {
+                if all_flags_dec_passed || all_flags_passed {
+                    error_out!("You may not pass a decimal digest flag when `*` or `D` is passed");
+                }
+                continue;
+            },
+            FLAG_WORDS => {
+                if all_flags_dec_passed || all_flags_passed {
+                    error_out!("You may not pass a decimal digest flag when `*` or `D` is passed");
+                }
+                continue;
+            },
+            FLAG_DOUBLES => {
+                if all_flags_dec_passed || all_flags_passed  {
+                    error_out!("You may not pass a decimal digest flag when `*` or `D` is passed");
+                }
+                continue;
+            },
+            FLAG_QUAD => {
+                if all_flags_dec_passed || all_flags_passed  {
+                    error_out!("You may not pass a decimal digest flag when `*` or `D` is passed");
+                }
+                continue;
+            },
+            FLAG_SEX => {
+                if all_flags_nondec_passed || all_flags_passed {
+                    error_out!("You may not pass a non-decimal digest flag when `*` or `N` is passed");
+                }
+                continue;
+            },
+            FLAG_VIG => {
+                if all_flags_nondec_passed || all_flags_passed {
+                    error_out!("You may not pass a non-decimal digest flag when `*` or `N` is passed");
+                }
+                continue;
+            },
+            FLAG_HEX => {
+                if all_flags_nondec_passed || all_flags_passed {
+                    error_out!("You may not pass a non-decimal digest flag when `*` or `N` is passed");
+                }
+                continue;
+            },
+            FLAG_TET => {
+                if all_flags_nondec_passed || all_flags_passed {
+                    error_out!("You may not pass a non-decimal digest flag when `*` or `N` is passed");
+                }
+                continue;
+            },
+            FLAG_DUO => {
+                if all_flags_nondec_passed || all_flags_passed {
+                    error_out!("You may not pass a non-decimal digest flag when `*` or `N` is passed");
+                }
+                continue;
+            },
+            FLAG_OCT => {
+                if all_flags_nondec_passed || all_flags_passed {
+                    error_out!("You may not pass a non-decimal digest flag when `*` or `N` is passed");
+                }
+                continue;
+            },
+            FLAG_SEN => {
+                if all_flags_nondec_passed || all_flags_passed {
+                    error_out!("You may not pass a non-decimal digest flag when `*` or `N` is passed");
+                }
+                continue;
+            },
+            FLAG_BIN => {
+                if all_flags_nondec_passed || all_flags_passed {
+                    error_out!("You may not pass a non-decimal digest flag when `*` or `N` is passed");
+                }
+                continue;
+            },
+            FLAG_HELP => {
+                if len_flags > MIN_FLAG_SIZE {
+                    error_out!("You may not pass the `?` flag along with other flags");
+                }
+            },
+            FLAG_DASH => error_out!("You may not use `-` in the first argument other than in the first, and the last letter"),
+            _ => error_out!("Unknown flag detected!"),
+        }
+    }
+}
+
+fn join_args(argv: &Vec<String>) -> String {
+    argv.join(" ")
+}
+
+fn get_time_in_us() -> u128 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("Error getting time")
+        .as_micros()
+}
+
+fn all_are_false(bools: Vec<bool>) -> bool {
+    bools.into_iter().filter(|b| *b).count() == 0
+}
+
+fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128, joined: &str) {
+    if arg_has_flag(flags, FLAG_BENCHMARK) {
+        print!(
+            "Total time for hashing {} bytestring(s): {}us\n",
+            hashes.len(),
+            total_time
+        );
+    }
+    let reoccurrance = search_for_flag_reocurrance(&flags[1..flags.len() - 1].to_string());
+    if reoccurrance == FLAG_BENCHMARK {
+        println!();
+        std::process::exit(0);
+    }
+
+    let everything = arg_has_flag(flags, FLAG_EVERTHING);
+    let all_flags_decimal = arg_has_flag(flags, FLAG_ALL_DECIMAL);
+    let all_flags_non_decimal = arg_has_flag(flags, FLAG_ALL_NON_DEC);
+    let byte = arg_has_flag(flags, FLAG_BYTES);
+    let word = arg_has_flag(flags, FLAG_WORDS);
+    let dub = arg_has_flag(flags, FLAG_DOUBLES);
+    let quad = arg_has_flag(flags, FLAG_QUAD);
+    let sex = arg_has_flag(flags, FLAG_SEX);
+    let vig = arg_has_flag(flags, FLAG_VIG);
+    let hex = arg_has_flag(flags, FLAG_HEX);
+    let tet = arg_has_flag(flags, FLAG_TET);
+    let duo = arg_has_flag(flags, FLAG_TET);
+    let oct = arg_has_flag(flags, FLAG_OCT);
+    let sen = arg_has_flag(flags, FLAG_SEN);
+    let bin = arg_has_flag(flags, FLAG_BIN);
+
+    let all_false = all_are_false(vec![
+        everything,
+        all_flags_decimal,
+        all_flags_non_decimal,
+        byte,
+        word,
+        dub,
+        quad,
+        sex,
+        vig,
+        hex,
+        tet,
+        duo,
+        oct,
+        sen,
+        bin,
+    ]);
+
+    if all_false {
+        print!("You had not specfied any digests to be printed\n");
+        std::process::exit(0);
+    }
+
+    for (i, hash) in hashes.into_iter().enumerate() {
+        print!("----\n");
+        print!("Requested digests for bytestring #{}{}\n", i + 1, joined);
+        if everything || all_flags_decimal || byte {
+            print!(
+                "\tBytes: U8[{}, {}, {}, {}, {}, {}, {}, {}]\n",
+                hash.bytes[0],
+                hash.bytes[1],
+                hash.bytes[2],
+                hash.bytes[3],
+                hash.bytes[4],
+                hash.bytes[5],
+                hash.bytes[6],
+                hash.bytes[7]
+            );
+        }
+        if everything || all_flags_decimal || word {
+            print!(
+                "\tWords: U16[{}, {}, {}, {}]\n",
+                hash.words[0], hash.words[1], hash.words[2], hash.words[3]
+            );
+        }
+        if everything || all_flags_decimal || dub {
+            print!("\tdoubles: U32[{}, {}]\n", hash.doubles[0], hash.doubles[1]);
+        }
+        if everything || all_flags_decimal || quad {
+            print!("\tQuad: U64[{}]\n", hash.quad);
+        }
+        if everything || all_flags_non_decimal || sex {
+            print!("\tSexdigest: {}\n", hash.sexdigest);
+        }
+        if everything || all_flags_non_decimal || vig {
+            print!("\tVigdigest: {}\n", hash.vigdigest);
+        }
+        if everything || all_flags_non_decimal || hex {
+            print!("\tHexdigest: {}\n", hash.hexdigest);
+        }
+        if everything || all_flags_non_decimal || tet {
+            print!("\tTetdigest: {}\n", hash.tetdigest);
+        }
+        if everything || all_flags_non_decimal || duo {
+            print!("\tDuodigest: {}\n", hash.duodigest);
+        }
+        if everything || all_flags_non_decimal || oct {
+            print!("\tOctdigest: {}\n", hash.octdigest);
+        }
+        if everything || all_flags_non_decimal || sen {
+            print!("\tSendgiest: {}\n", hash.sendigest);
+        }
+        if everything || all_flags_non_decimal || bin {
+            print!("\tBindigest: {}\n", hash.bindigest);
+        }
+    }
+}
+
+#[allow(unused_assignments)]
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    println!("Pox (Rust) hashes for passed strings in various forms:");
-    for (i, arg) in (&args[1..]).to_vec().into_iter().enumerate() {
-        let hash = pox_hash(arg.as_bytes().to_vec());
-        let sexdigest = hash.sexdigest;
-        let vigdigest = hash.vigdigest;
-        let hexdigest = hash.hexdigest;
-        let tetdigest = hash.tetdigest;
-        let duodigest = hash.duodigest;
-        let octdigest = hash.octdigest;
-        let sendigest = hash.sendigest;
-        let bindigest = hash.bindigest;
-        let bytes = hash.bytes;
-        let words = hash.words;
-        let doubles = hash.doubles;
-        let quad = hash.quad;
-        println!("\n");
-        println!("\tArg #{i} as follows");
-        println!("\t\tsexdigest: {sexdigest}");
-        println!("\t\tvigdigest: {vigdigest}");
-        println!("\t\thexdigest: {hexdigest}");
-        println!("\t\ttetdigest: {tetdigest}");
-        println!("\t\tduodigest: {duodigest}");
-        println!("\t\toctdigest: {octdigest}");
-        println!("\t\tsendigest: {sendigest}");
-        println!("\t\tbindigest: {bindigest}");
-        println!(
-            "\t\tbytes: uint8({}, {}, {}, {}, {}, {}, {}, {})",
-            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]
-        );
-        println!(
-            "\t\twords: uint16({}, {}, {}, {})",
-            words[0], words[1], words[2], words[3],
-        );
-        println!("\t\tdouble: uint32({}, {})", doubles[0], doubles[1]);
-        println!("\t\tquad: uint64({})", quad);
-        println!("\n")
+    print!("\x1b[1;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n");
+    let argv: Vec<String> = std::env::args().collect();
+    validate_flags(&argv);
+    let flag_arg = argv.get(1).unwrap();
+
+    let mut hashes = vec![PoxDigest::default(); argv.len() - 2];
+
+    match arg_has_flag(&flag_arg, FLAG_JOIN) {
+        true => {
+            let args_joined = join_args(&argv[2..].to_vec());
+            let t1 = get_time_in_us();
+            hashes[0] = pox_hash(&args_joined.as_bytes().to_vec());
+            let t2 = get_time_in_us();
+            print_hashes(
+                &hashes[..1].to_vec(),
+                &flag_arg,
+                t2 - t1,
+                " (joined arguments):",
+            );
+        }
+        false => {
+            let (mut t1, mut t2, mut total_time) = (0u128, 0u128, 0u128);
+            for (i, arg) in argv[2..].into_iter().enumerate() {
+                t1 = get_time_in_us();
+                hashes[i] = pox_hash(&arg.as_bytes().to_vec());
+                t2 = get_time_in_us();
+                total_time += t2 - t1;
+            }
+            print_hashes(&hashes, &flag_arg, total_time, ":");
+        }
     }
 }
