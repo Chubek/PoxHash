@@ -62,7 +62,7 @@ const WRONG_FLAGS = [
   ["x", "h"],
 ];
 
-function printFormatted() {
+function printf() {
   let message = arguments[0];
   if (arguments.length == 1) {
     process.stdout.write(message);
@@ -96,81 +96,101 @@ function printFormatted() {
   process.stdout.write(finalMessage);
 }
 
-const printLn = () => {
+const println = () => {
   process.stdout.write("\n");
 };
 
 const errorOut = (message) => {
-  printLn();
-  printFormatted(message);
-  printLn();
-  printFormatted(
+  println();
+  printf(message);
+  println();
+  printf(
     "\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n"
   );
   process.exit(1);
 };
 
 const printHelp = (execApp, execScript) => {
-  printFormatted(
+  printf(
     "\033[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n"
   );
-  printLn();
-  printFormatted("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
-  printFormatted("%s %s -N82- myword1\n", execApp, execScript);
-  printFormatted("%s %s -*+^- mywod to be joined\n", execApp, execScript);
-  printFormatted("%s %s -Dhob- word1 word 2\n", execApp, execScript);
-  printFormatted(
+  println();
+  printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
+  printf("%s %s -N82- myword1\n", execApp, execScript);
+  printf("%s %s -*+^- mywod to be joined\n", execApp, execScript);
+  printf("%s %s -Dhob- word1 word 2\n", execApp, execScript);
+  printf(
     "%s %s -^^+- large seq  to join and  benchmark\n",
     execApp,
     execScript
   );
-  printFormatted(
+  printf(
     "wget -qO- www.example.com | xargs bash -c '%s %s -h+- $@'\n",
     execApp,
     execScript
   );
-  printLn();
-  printFormatted("\033[1;32mFlags:\033[0m\n");
-  printFormatted(
-    "\033[1;35m\t`^`\033[0m: Benchmark run (pass two to only show benchmark)\n"
+  println();
+  printf("\033[1;32mFlags:\033[0m\n");
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n",
+    FLAG_BENCHMARK
   );
-  printFormatted(
-    "\033[1;35m\t`+`\033[0m: Join arguments with space (byte 32)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Join arguments with space (byte 32)\n",
+    FLAG_JOIN
   );
-  printFormatted("\033[1;35m\t`*`\033[0m: Print every digest\n");
-  printFormatted("\033[1;35m\t`N`\033[0m: Print every non-decimal digest\n");
-  printFormatted("\033[1;35m\t`D`\033[0m: Print every decimal digest\n");
-  printFormatted(
-    "\033[1;35m\t`8`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n"
+  printf("\033[1;35m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING);
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print every non-decimal digest\n",
+    FLAG_ALL_NON_DEC
   );
-  printFormatted(
-    "\033[1;35m\t`4`\033[0m: Print words digest (four unsigned 16-bit integers)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print every decimal digest\n",
+    FLAG_ALL_DECIMAL
   );
-  printFormatted(
-    "\033[1;35m\t`2`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
+    FLAG_BYTES
   );
-  printFormatted(
-    "\033[1;35m\t`1`\033[0m: Print quad digest (one unsigned 64-bit integer)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n",
+    FLAG_WORDS
   );
-  printFormatted(
-    "\033[1;35m\t`g`\033[0m: Print sexagesimal digest (base sixty)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n",
+    FLAG_DOUBLES
   );
-  printFormatted(
-    "\033[1;35m\t`v`\033[0m: Print vigesimal digest (base twenty)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n",
+    FLAG_QUAD
   );
-  printFormatted(
-    "\033[1;35m\t`h`\033[0m: Print hexadecimal digest (base sixteen)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n",
+    FLAG_SEX
   );
-  printFormatted(
-    "\033[1;35m\t`t`\033[0m: Print tetradecimal digest (base fourteen)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n",
+    FLAG_VIG
   );
-  printFormatted(
-    "\033[1;35m\t`d`\033[0m: Print duodecimal digest (base twelve)\n"
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n",
+    FLAG_HEX
   );
-  printFormatted("\033[1;35m\t`o`\033[0m: Print octal digest (base eight)\n");
-  printFormatted("\033[1;35m\t`s`\033[0m: Print senary digest (base six)\n");
-  printFormatted("\033[1;35m\t`b`\033[0m: Print binary digest (base two)\n");
-  printFormatted("\033[1;35m\t`?`\033[0m: Print Help\n\n");
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n",
+    FLAG_TET
+  );
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n",
+    FLAG_DUO
+  );
+  printf(
+    "\033[1;35m\t`%c`\033[0m: Print octal digest (base eight)\n",
+    FLAG_OCT
+  );
+  printf("\033[1;35m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
+  printf("\033[1;35m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
+  printf("\033[1;35m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
   process.exit(1);
 };
 
@@ -183,11 +203,7 @@ const checkForWrongFlags = (flags) => {
       wrong_flag = WRONG_FLAGS[j][0];
       right_flag = WRONG_FLAGS[j][1];
       if (flag == wrong_flag) {
-        printFormatted(
-          "No flag for `%c`, perhaps you meant `%c`?",
-          flag,
-          right_flag
-        );
+        printf("No flag for `%c`, perhaps you meant `%c`?", flag, right_flag);
         errorOut("Flag erreror");
       }
     }
@@ -279,7 +295,7 @@ const validateFlags = (argv0, argv1, argv) => {
 
   const reoccurrance = searchForFlagReoccurrances(flagsArg);
   if (reoccurrance != "\0" && reoccurrance != FLAG_BENCHMARK) {
-    printFormatted("Flag `%c` appears twice", reoccurrance);
+    printf("Flag `%c` appears twice", reoccurrance);
     errorOut("Only `^` can appear twice");
   }
 
@@ -428,7 +444,7 @@ const printHashes = (hashes, flags, totalTime, joined) => {
   const lenFlags = flags.length;
   const lenHashes = hashes.length;
   if (argHasFlag(flags, FLAG_BENCHMARK))
-    printFormatted(
+    printf(
       "Total time for hashing %d bytestring(s): %dus \n",
       lenHashes,
       totalTime
@@ -436,7 +452,7 @@ const printHashes = (hashes, flags, totalTime, joined) => {
 
   const reoccurrance = searchForFlagReoccurrances(flags, lenFlags);
   if (reoccurrance == FLAG_BENCHMARK) {
-    printLn();
+    println();
     process.exit(0);
   }
 
@@ -475,15 +491,15 @@ const printHashes = (hashes, flags, totalTime, joined) => {
   ]);
 
   if (allFalse) {
-    printFormatted("You had not specfied any digests to be printed\n");
+    printf("You had not specfied any digests to be printed\n");
     exit(0);
   }
 
   for (let i = 0; i < lenHashes; i++) {
-    printFormatted("----\n");
-    printFormatted("Requested digests for bytestring #%d%s\n", i + 1, joined);
+    printf("----\n");
+    printf("Requested digests for bytestring #%d%s\n", i + 1, joined);
     if (everything || allFlagsDecimal || byte) {
-      printFormatted(
+      printf(
         "\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
         hashes[i].bytes[0],
         hashes[i].bytes[1],
@@ -496,7 +512,7 @@ const printHashes = (hashes, flags, totalTime, joined) => {
       );
     }
     if (everything || allFlagsDecimal || word) {
-      printFormatted(
+      printf(
         "\tWords: U16[%d, %d, %d, %d]\n",
         hashes[i].words[0],
         hashes[i].words[1],
@@ -505,43 +521,41 @@ const printHashes = (hashes, flags, totalTime, joined) => {
       );
     }
     if (everything || allFlagsDecimal || dub) {
-      printFormatted(
+      printf(
         "\tdoubles: U32[%d, %d]\n",
         hashes[i].doubles[0],
         hashes[i].doubles[1]
       );
     }
     if (everything || allFlagsDecimal || quad) {
-      printFormatted("\tQuad: U64[%d]\n", hashes[i].quad);
+      printf("\tQuad: U64[%d]\n", hashes[i].quad);
     }
     if (everything || allFlagsNonDecimal || sex) {
-      printFormatted("\tSexdigest: %s\n", hashes[i].sexdigest);
+      printf("\tSexdigest: %s\n", hashes[i].sexdigest);
     }
     if (everything || allFlagsNonDecimal || vig) {
-      printFormatted("\tVigdigest: %s\n", hashes[i].vigdigest);
+      printf("\tVigdigest: %s\n", hashes[i].vigdigest);
     }
     if (everything || allFlagsNonDecimal || hex) {
-      printFormatted("\tHexdigest: %s\n", hashes[i].hexdigest);
+      printf("\tHexdigest: %s\n", hashes[i].hexdigest);
     }
     if (everything || allFlagsNonDecimal || tet) {
-      printFormatted("\tTetdigest: %s\n", hashes[i].tetdigest);
+      printf("\tTetdigest: %s\n", hashes[i].tetdigest);
     }
     if (everything || allFlagsNonDecimal || duo) {
-      printFormatted("\tDuodigest: %s\n", hashes[i].duodigest);
+      printf("\tDuodigest: %s\n", hashes[i].duodigest);
     }
     if (everything || allFlagsNonDecimal || oct) {
-      printFormatted("\tOctdigest: %s\n", hashes[i].octdigest);
+      printf("\tOctdigest: %s\n", hashes[i].octdigest);
     }
     if (everything || allFlagsNonDecimal || sen) {
-      printFormatted("\tSendgiest: %s\n", hashes[i].sendigest);
+      printf("\tSendgiest: %s\n", hashes[i].sendigest);
     }
     if (everything || allFlagsNonDecimal || bin) {
-      printFormatted("\tBindigest: %s\n", hashes[i].bindigest);
+      printf("\tBindigest: %s\n", hashes[i].bindigest);
     }
   }
-  printFormatted(
-    "\nFinished run for PoxHash example code (JS implementation)\n"
-  );
+  printf("\nFinished run for PoxHash example code (JS implementation)\n");
 };
 
 const newNullArray = (size) => {
@@ -557,8 +571,8 @@ const joinArgs = (args) => {
 };
 
 const main = (argv0, argv1, argv) => {
-  printFormatted(
-    "\033[1;47mPoxHash   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
+  printf(
+    "\033[1;47mPoxHashRunner   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
   );
   validateFlags(argv0, argv1, argv);
   const flagsArg = argv[0];

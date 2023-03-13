@@ -66,7 +66,7 @@ WRONG_FLAGS = [
 ]
 
 
-def print_formatted(*argc, **_) -> None:
+def printf(*argc, **_) -> None:
     message = argc[0]
     len_message = len(message)
     finalMessage = ""
@@ -90,71 +90,76 @@ def print_formatted(*argc, **_) -> None:
     sys.stdout.write(finalMessage)
 
 
-def print_ln() -> None:
+def println() -> None:
     sys.stdout.write("\n")
 
 
 def error_out(message: str) -> None:
-    print_ln()
-    print_formatted(message)
-    print_ln()
-    print_formatted(
+    println()
+    printf(message)
+    println()
+    printf(
         "\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[134m-?-\x1b[0m to show help\n"
     )
     exit(1)
 
 
 def printHelp(exec_name: str, script_name: str) -> None:
-    print_formatted(
+    printf(
         "\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n"
     )
-    print_ln()
-    print_formatted("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
-    print_formatted("%s %s -N82- myword1\n", exec_name, script_name)
-    print_formatted("%s %s -*+^- mywod to be joined\n", exec_name, script_name)
-    print_formatted("%s %s -Dhob- word1 word 2\n", exec_name, script_name)
-    print_formatted("%s %s -^^+- large seq  to join and  benchmark\n",
-                    exec_name, script_name)
-    print_formatted(
-        "wget -qO- www.example.com | xargs bash -c '%s %s -h+- $@'\n",
-        exec_name, script_name)
-    print_ln()
-    print_formatted("\x1b[1;32mFlags:\x1b[0m\n")
-    print_formatted(
-        "\x1b[1;35m\t`^`\x1b[0m: Benchmark run (pass two to only show benchmark)\n"
-    )
-    print_formatted(
-        "\x1b[1;35m\t`+`\x1b[0m: Join arguments with space (byte 32)\n")
-    print_formatted("\x1b[1;35m\t`*`\x1b[0m: Print every digest\n")
-    print_formatted("\x1b[1;35m\t`N`\x1b[0m: Print every non-decimal digest\n")
-    print_formatted("\x1b[1;35m\t`D`\x1b[0m: Print every decimal digest\n")
-    print_formatted(
-        "\x1b[1;35m\t`8`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n"
-    )
-    print_formatted(
-        "\x1b[1;35m\t`4`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n"
-    )
-    print_formatted(
-        "\x1b[1;35m\t`2`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n"
-    )
-    print_formatted(
-        "\x1b[1;35m\t`1`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n"
-    )
-    print_formatted(
-        "\x1b[1;35m\t`g`\x1b[0m: Print sexagesimal digest (base sixty)\n")
-    print_formatted(
-        "\x1b[1;35m\t`v`\x1b[0m: Print vigesimal digest (base twenty)\n")
-    print_formatted(
-        "\x1b[1;35m\t`h`\x1b[0m: Print hexadecimal digest (base sixteen)\n")
-    print_formatted(
-        "\x1b[1;35m\t`t`\x1b[0m: Print tetradecimal digest (base fourteen)\n")
-    print_formatted(
-        "\x1b[1;35m\t`d`\x1b[0m: Print duodecimal digest (base twelve)\n")
-    print_formatted(
-        "\x1b[1;35m\t`o`\x1b[0m: Print octal digest (base eight)\n")
-    print_formatted("\x1b[1;35m\t`s`\x1b[0m: Print senary digest (base six)\n")
-    print_formatted("\x1b[1;35m\t`b`\x1b[0m: Print binary digest (base two)\n")
-    print_formatted("\x1b[1;35m\t`?`\x1b[0m: Print Help\n\n")
+    println()
+    printf("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
+    printf("%s %s -N82- myword1\n", exec_name, script_name)
+    printf("%s %s -*+^- mywod to be joined\n", exec_name, script_name)
+    printf("%s %s -Dhob- word1 word 2\n", exec_name, script_name)
+    printf("%s %s -^^+- large seq  to join and  benchmark\n", exec_name,
+           script_name)
+    printf("wget -qO- www.example.com | xargs bash -c '%s %s -h+- $@'\n",
+           exec_name, script_name)
+    println()
+    printf("\x1b[1;32mFlags:\x1b[0m\n")
+    printf(
+        "\033[1;35m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n",
+        FLAG_BENCHMARK)
+    printf("\033[1;35m\t`%c`\033[0m: Join arguments with space (byte 32)\n",
+           FLAG_JOIN)
+    printf("\033[1;35m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING)
+    printf("\033[1;35m\t`%c`\033[0m: Print every non-decimal digest\n",
+           FLAG_ALL_NON_DEC)
+    printf("\033[1;35m\t`%c`\033[0m: Print every decimal digest\n",
+           FLAG_ALL_DECIMAL)
+    printf(
+        "\033[1;35m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
+        FLAG_BYTES)
+    printf(
+        "\033[1;35m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n",
+        FLAG_WORDS)
+    printf(
+        "\033[1;35m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n",
+        FLAG_DOUBLES)
+    printf(
+        "\033[1;35m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n",
+        FLAG_QUAD)
+    printf("\033[1;35m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n",
+           FLAG_SEX)
+    printf("\033[1;35m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n",
+           FLAG_VIG)
+    printf(
+        "\033[1;35m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n",
+        FLAG_HEX)
+    printf(
+        "\033[1;35m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n",
+        FLAG_TET)
+    printf("\033[1;35m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n",
+           FLAG_DUO)
+    printf("\033[1;35m\t`%c`\033[0m: Print octal digest (base eight)\n",
+           FLAG_OCT)
+    printf("\033[1;35m\t`%c`\033[0m: Print senary digest (base six)\n",
+           FLAG_SEN)
+    printf("\033[1;35m\t`%c`\033[0m: Print binary digest (base two)\n",
+           FLAG_BIN)
+    printf("\033[1;35m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP)
     exit(1)
 
 
@@ -166,8 +171,8 @@ def check_for_wrong_flags(flags: str) -> None:
     for flag in flags:
         for (wrong_flag, right_flag) in WRONG_FLAGS:
             if flag == wrong_flag:
-                print_formatted("No flag for `%c`, perhaps you meant `%c`?",
-                                flag, right_flag)
+                printf("No flag for `%c`, perhaps you meant `%c`?", flag,
+                       right_flag)
                 error_out("Flag erreror")
 
 
@@ -219,7 +224,7 @@ def validate_flags(exec: str, argv: list[str]) -> None:
 
     reoccurrance = search_for_flag_occurrances(flags_arg[1:-1])
     if reoccurrance != '\0' and reoccurrance != FLAG_BENCHMARK:
-        print_formatted("Flag `%c` appears twice", reoccurrance)
+        printf("Flag `%c` appears twice", reoccurrance)
         error_out("Only `^` can appear twice")
 
     if len_argv < MIN_ARG_NUM + 1:
@@ -353,11 +358,11 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int,
     reoccurrance = search_for_flag_occurrances(flags[1:-1])
 
     if arg_has_flag(flags, FLAG_BENCHMARK):
-        print_formatted("Total time for hashing %d bytestring(s): %dus \n",
-                        len_hashes, total_time)
+        printf("Total time for hashing %d bytestring(s): %dus \n", len_hashes,
+               total_time)
 
     if reoccurrance == FLAG_BENCHMARK:
-        print_ln()
+        println()
         exit(0)
 
     everything = arg_has_flag(flags, FLAG_EVERTHING)
@@ -395,47 +400,45 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int,
     ])
 
     if all_false:
-        print_formatted("You had not specfied any digests to be printed\n")
+        printf("You had not specfied any digests to be printed\n")
         exit(0)
 
     for (i, hash) in enumerate(hashes):
-        print_formatted("----\n")
-        print_formatted("Requested digests for bytestring #%d%s\n", i + 1,
-                        joined)
+        printf("----\n")
+        printf("Requested digests for bytestring #%d%s\n", i + 1, joined)
         if everything or all_flags_decimal or by:
-            print_formatted("\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
-                            hash.bytes[0], hash.bytes[1], hash.bytes[2],
-                            hash.bytes[3], hash.bytes[4], hash.bytes[5],
-                            hash.bytes[6], hash.bytes[7])
+            printf("\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
+                   hash.bytes[0], hash.bytes[1], hash.bytes[2], hash.bytes[3],
+                   hash.bytes[4], hash.bytes[5], hash.bytes[6], hash.bytes[7])
         if everything or all_flags_decimal or word:
-            print_formatted("\tWords: U16[%d, %d, %d, %d]\n", hash.words[0],
-                            hash.words[1], hash.words[2], hash.words[3])
+            printf("\tWords: U16[%d, %d, %d, %d]\n", hash.words[0],
+                   hash.words[1], hash.words[2], hash.words[3])
         if everything or all_flags_decimal or dub:
-            print_formatted("\tdoubles: U32[%d, %d]\n", hash.doubles[0],
-                            hash.doubles[1])
+            printf("\tdoubles: U32[%d, %d]\n", hash.doubles[0],
+                   hash.doubles[1])
         if everything or all_flags_decimal or quad:
-            print_formatted("\tQuad: U64[%d]\n", hash.quad)
+            printf("\tQuad: U64[%d]\n", hash.quad)
         if everything or all_flags_non_decimal or sex:
-            print_formatted("\tSexdigest: %s\n", hash.sexdigest)
+            printf("\tSexdigest: %s\n", hash.sexdigest)
         if everything or all_flags_non_decimal or vig:
-            print_formatted("\tVigdigest: %s\n", hash.vigdigest)
+            printf("\tVigdigest: %s\n", hash.vigdigest)
         if everything or all_flags_non_decimal or hex:
-            print_formatted("\tHexdigest: %s\n", hash.hexdigest)
+            printf("\tHexdigest: %s\n", hash.hexdigest)
         if everything or all_flags_non_decimal or tet:
-            print_formatted("\tTetdigest: %s\n", hash.tetdigest)
+            printf("\tTetdigest: %s\n", hash.tetdigest)
         if everything or all_flags_non_decimal or duo:
-            print_formatted("\tDuodigest: %s\n", hash.duodigest)
+            printf("\tDuodigest: %s\n", hash.duodigest)
         if everything or all_flags_non_decimal or oct:
-            print_formatted("\tOctdigest: %s\n", hash.octdigest)
+            printf("\tOctdigest: %s\n", hash.octdigest)
         if everything or all_flags_non_decimal or sen:
-            print_formatted("\tSendgiest: %s\n", hash.sendigest)
+            printf("\tSendgiest: %s\n", hash.sendigest)
         if everything or all_flags_non_decimal or bin:
-            print_formatted("\tBindigest: %s\n", hash.bindigest)
+            printf("\tBindigest: %s\n", hash.bindigest)
 
 
 def main(exec_name: str, argv: list[str]) -> None:
-    print_formatted(
-        "\x1b[1;47mPoxHash   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
+    printf(
+        "\x1b[1;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
     )
     validate_flags(exec_name, argv)
 

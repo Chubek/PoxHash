@@ -103,24 +103,24 @@ void print_help(char *exec)
     printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec);
     printf("\n");
     printf("\033[1;32mFlags:\033[0m\n");
-    printf("\033[1;35m\t`^`\033[0m: Benchmark run (pass two to only show benchmark)\n");
-    printf("\033[1;35m\t`+`\033[0m: Join arguments with space (byte 32)\n");
-    printf("\033[1;35m\t`*`\033[0m: Print every digest\n");
-    printf("\033[1;35m\t`N`\033[0m: Print every non-decimal digest\n");
-    printf("\033[1;35m\t`D`\033[0m: Print every decimal digest\n");
-    printf("\033[1;35m\t`8`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n");
-    printf("\033[1;35m\t`4`\033[0m: Print words digest (four unsigned 16-bit integers)\n");
-    printf("\033[1;35m\t`2`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n");
-    printf("\033[1;35m\t`1`\033[0m: Print quad digest (one unsigned 64-bit integer)\n");
-    printf("\033[1;35m\t`g`\033[0m: Print sexagesimal digest (base sixty)\n");
-    printf("\033[1;35m\t`v`\033[0m: Print vigesimal digest (base twenty)\n");
-    printf("\033[1;35m\t`h`\033[0m: Print hexadecimal digest (base sixteen)\n");
-    printf("\033[1;35m\t`t`\033[0m: Print tetradecimal digest (base fourteen)\n");
-    printf("\033[1;35m\t`d`\033[0m: Print duodecimal digest (base twelve)\n");
-    printf("\033[1;35m\t`o`\033[0m: Print octal digest (base eight)\n");
-    printf("\033[1;35m\t`s`\033[0m: Print senary digest (base six)\n");
-    printf("\033[1;35m\t`b`\033[0m: Print binary digest (base two)\n");
-    printf("\033[1;35m\t`?`\033[0m: Print Help\n\n");
+    printf("\033[1;35m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n", FLAG_BENCHMARK);
+    printf("\033[1;35m\t`%c`\033[0m: Join arguments with space (byte 32)\n", FLAG_JOIN);
+    printf("\033[1;35m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING);
+    printf("\033[1;35m\t`%c`\033[0m: Print every non-decimal digest\n", FLAG_ALL_NON_DEC);
+    printf("\033[1;35m\t`%c`\033[0m: Print every decimal digest\n", FLAG_ALL_DECIMAL);
+    printf("\033[1;35m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n", FLAG_BYTES);
+    printf("\033[1;35m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n", FLAG_WORDS);
+    printf("\033[1;35m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n", FLAG_DOUBLES);
+    printf("\033[1;35m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n", FLAG_QUAD);
+    printf("\033[1;35m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n", FLAG_SEX);
+    printf("\033[1;35m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n", FLAG_VIG);
+    printf("\033[1;35m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n", FLAG_HEX);
+    printf("\033[1;35m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n", FLAG_TET);
+    printf("\033[1;35m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n", FLAG_DUO);
+    printf("\033[1;35m\t`%c`\033[0m: Print octal digest (base eight)\n", FLAG_OCT);
+    printf("\033[1;35m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
+    printf("\033[1;35m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
+    printf("\033[1;35m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
     free(exec);
     exit(1);
 }
@@ -513,7 +513,7 @@ uint8_t *char_to_uint8(char *carr)
 
 int main(int argc, char **argv)
 {
-    printf("\033[1;47mPoxHash   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
+    printf("\033[1;47mPoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
     int len_flags = validate_flags(argc, argv);
 
     poxhash_t hashes[argc - 2];

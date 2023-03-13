@@ -116,7 +116,7 @@ proc `^^`(str: string): seq[uint8] =
   for c in **str:
     result.add(^^c)
 
-proc printFormatted(input: varargs[string, `$`]) =
+proc printf(input: varargs[string, `$`]) =
   var
     message = input[0]
     lenMessage = message.len()
@@ -140,68 +140,46 @@ proc printFormatted(input: varargs[string, `$`]) =
   stdout.write finalMessage
 
 
-proc printLn() = stdout.write "\n"
+proc println() = stdout.write "\n"
 
 template errorOut(message: untyped): untyped =
-  printLn()
-  printFormatted(message)
-  printLn()
-  printFormatted(
+  println()
+  printf(message)
+  println()
+  printf(
     "\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[134m-?-\x1b[0m to show help\n"
   )
   quit(1)
 
 proc printHelp(execName: string) =
-  printFormatted("\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n")
-  printLn()
-  printFormatted("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
-  printFormatted("%s -N82- myword1\n", execName)
-  printFormatted("%s -*+^- mywod to be joined\n", execName)
-  printFormatted("%s -Dhob- word1 word 2\n", execName)
-  printFormatted("%s -^^+- large seq  to join and  benchmark\n", execName)
-  printFormatted("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", execName)
-  printLn()
-  printFormatted("\x1b[1;32mFlags:\x1b[0m\n")
-  printFormatted(
-    "\x1b[1;35m\t`^`\x1b[0m: Benchmark run (pass two to only show benchmark)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`+`\x1b[0m: Join arguments with space (byte 32)\n"
-  )
-  printFormatted("\x1b[1;35m\t`*`\x1b[0m: Print every digest\n")
-  printFormatted("\x1b[1;35m\t`N`\x1b[0m: Print every non-decimal digest\n")
-  printFormatted("\x1b[1;35m\t`D`\x1b[0m: Print every decimal digest\n")
-  printFormatted(
-    "\x1b[1;35m\t`8`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`4`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`2`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`1`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`g`\x1b[0m: Print sexagesimal digest (base sixty)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`v`\x1b[0m: Print vigesimal digest (base twenty)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`h`\x1b[0m: Print hexadecimal digest (base sixteen)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`t`\x1b[0m: Print tetradecimal digest (base fourteen)\n"
-  )
-  printFormatted(
-    "\x1b[1;35m\t`d`\x1b[0m: Print duodecimal digest (base twelve)\n"
-  )
-  printFormatted("\x1b[1;35m\t`o`\x1b[0m: Print octal digest (base eight)\n")
-  printFormatted("\x1b[1;35m\t`s`\x1b[0m: Print senary digest (base six)\n")
-  printFormatted("\x1b[1;35m\t`b`\x1b[0m: Print binary digest (base two)\n")
-  printFormatted("\x1b[1;35m\t`?`\x1b[0m: Print Help\n\n")
+  printf("\x1b[1;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n")
+  println()
+  printf("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
+  printf("%s -N82- myword1\n", execName)
+  printf("%s -*+^- mywod to be joined\n", execName)
+  printf("%s -Dhob- word1 word 2\n", execName)
+  printf("%s -^^+- large seq  to join and  benchmark\n", execName)
+  printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", execName)
+  println()
+  printf("\x1b[1;32mFlags:\x1b[0m\n")
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Benchmark run (pass two to only show benchmark)\n", FLAG_BENCHMARK)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Join arguments with space (byte 32)\n", FLAG_JOIN)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print every digest\n", FLAG_EVERTHING)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print every non-decimal digest\n", FLAG_ALL_NON_DEC)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print every decimal digest\n", FLAG_ALL_DECIMAL)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n", FLAG_BYTES)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n", FLAG_WORDS)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n", FLAG_DOUBLES)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n", FLAG_QUAD)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print sexagesimal digest (base sixty)\n", FLAG_SEX)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print vigesimal digest (base twenty)\n", FLAG_VIG)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print hexadecimal digest (base sixteen)\n", FLAG_HEX)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print tetradecimal digest (base fourteen)\n", FLAG_TET)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print duodecimal digest (base twelve)\n", FLAG_DUO)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print octal digest (base eight)\n", FLAG_OCT)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print senary digest (base six)\n", FLAG_SEN)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print binary digest (base two)\n", FLAG_BIN)
+  printf("\x1b[1;35m\t`%c`\x1b[0m: Print Help\n\n", FLAG_HELP)
   quit(1)
 
 proc getExecName(path: string): string =
@@ -219,7 +197,7 @@ proc checkForWrongFlags(flags: string) =
     for wrongFlagTuplet in **WRONG_FLAGS:
       var (wrongFlag, rightFlag) = wrongFlagTuplet
       if flag == wrongFlag:
-        printFormatted(
+        printf(
           "No flag for `%c`, perhaps you meant `%c`?",
           flag,
           rightFlag
@@ -283,7 +261,7 @@ proc validateFlags(exec: string, argv: seq[string]) =
 
   reoccurrance = searchForFlagReoccurrances(flagsArg)
   if reoccurrance != '\0' and reoccurrance != FLAG_BENCHMARK:
-    printFormatted("Flag `%c` appears twice", reoccurrance)
+    printf("Flag `%c` appears twice", reoccurrance)
     errorOut("Only `^` can appear twice")
 
   if lenArgv < MIN_ARG_NUM + 1:
@@ -430,14 +408,14 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
     reoccurrance = searchForFlagReoccurrances(flags)
 
   if argHasFlag(flags, FLAG_BENCHMARK):
-    printFormatted(
+    printf(
       "Total time for hashing %d bytestring(s): %dus \n",
       lenHashes,
       totalTime
     )
 
   if reoccurrance == FLAG_BENCHMARK:
-    printLn()
+    println()
     quit(0)
 
   var
@@ -476,18 +454,18 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
   ])
 
   if allFalse:
-    printFormatted("You had not specfied any digests to be printed\n")
+    printf("You had not specfied any digests to be printed\n")
     quit(0)
 
   for (i, hash) in enumerate(hashes):
-    printFormatted("----\n")
-    printFormatted(
+    printf("----\n")
+    printf(
       "Requested digests for bytestring #%d%s\n",
       i + 1,
       joined
     )
     if everything or allFlagsDecimal or by:
-      printFormatted(
+      printf(
         "\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
         hash.bytes[0],
         hash.bytes[1],
@@ -500,7 +478,7 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
       )
 
     if everything or allFlagsDecimal or word:
-      printFormatted(
+      printf(
         "\tWords: U16[%d, %d, %d, %d]\n",
         hash.words[0],
         hash.words[1],
@@ -509,42 +487,42 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
       )
 
     if everything or allFlagsDecimal or dub:
-      printFormatted(
+      printf(
         "\tdoubles: U32[%d, %d]\n",
         hash.doubles[0],
         hash.doubles[1]
       )
 
     if everything or allFlagsDecimal or quad:
-      printFormatted("\tQuad: U64[%d]\n", hash.quad)
+      printf("\tQuad: U64[%d]\n", hash.quad)
 
     if everything or allFlagsNonDecimal or sex:
-      printFormatted("\tSexdigest: %s\n", hash.sexdigest)
+      printf("\tSexdigest: %s\n", hash.sexdigest)
 
     if everything or allFlagsNonDecimal or vig:
-      printFormatted("\tVigdigest: %s\n", hash.vigdigest)
+      printf("\tVigdigest: %s\n", hash.vigdigest)
 
     if everything or allFlagsNonDecimal or hex:
-      printFormatted("\tHexdigest: %s\n", hash.hexdigest)
+      printf("\tHexdigest: %s\n", hash.hexdigest)
 
     if everything or allFlagsNonDecimal or tet:
-      printFormatted("\tTetdigest: %s\n", hash.tetdigest)
+      printf("\tTetdigest: %s\n", hash.tetdigest)
 
     if everything or allFlagsNonDecimal or duo:
-      printFormatted("\tDuodigest: %s\n", hash.duodigest)
+      printf("\tDuodigest: %s\n", hash.duodigest)
 
     if everything or allFlagsNonDecimal or oct:
-      printFormatted("\tOctdigest: %s\n", hash.octdigest)
+      printf("\tOctdigest: %s\n", hash.octdigest)
 
     if everything or allFlagsNonDecimal or sen:
-      printFormatted("\tSendgiest: %s\n", hash.sendigest)
+      printf("\tSendgiest: %s\n", hash.sendigest)
 
     if everything or allFlagsNonDecimal or bin:
-      printFormatted("\tBindigest: %s\n", hash.bindigest)
+      printf("\tBindigest: %s\n", hash.bindigest)
 
 
 proc main(exec: string, argv: seq[string]) =
-  printFormatted("\x1b[1;47mPoxHash   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
+  printf("\x1b[1;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
   validateFlags(exec, argv)
   var
     flagsArg = argv[0]
