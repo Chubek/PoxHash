@@ -446,12 +446,10 @@ def main(exec_name: str, argv: list[str]) -> None:
         t2 = get_time_in_us()
         print_hashes(hashes[:1], flagsArg, t2 - t1, " (joined arguments):")
     else:
-        cursor = 0
-        for arg in argv[1:]:
+        for i, arg in enumerate(argv[1:]):
             t1 = get_time_in_us()
-            hashes[cursor] = pox_hash(arg.encode())
+            hashes[i] = pox_hash(arg.encode())
             t2 = get_time_in_us()
-            cursor += 1
             total_time += t2 - t1
         print_hashes(hashes, flagsArg, total_time, ":")
 

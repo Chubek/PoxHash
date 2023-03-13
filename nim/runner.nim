@@ -559,12 +559,10 @@ proc main(exec: string, argv: seq[string]) =
     t2 = getTimeInUS()
     printHashes(hashes[0..0], flagsArg, t2 - t1, " (joined arguments):")
   else:
-    var cursor = 0
-    for arg in **argv[1..lenHashes]:
+    for (i, arg) in enumerate(argv[1..lenHashes]):
       t1 = getTimeInUS()
-      hashes[cursor] = PoxHash(^^arg)
+      hashes[i] = PoxHash(^^arg)
       t2 = getTimeInUS()
-      inc cursor
       totalTime += t2 - t1
     printHashes(hashes, flagsArg, totalTime, ":")
 
