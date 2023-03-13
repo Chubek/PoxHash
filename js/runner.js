@@ -550,7 +550,7 @@ const joinArgs = (args) => {
 };
 
 const main = (argv0, argv1, argv) => {
-  printFormatted("\033[1;47mPoxHash   |  JavaScript   |  March 2023 - Chubak Bidpa  |  GPLv3  \033[0m\n");
+  printFormatted("\033[1;47mPoxHash   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
   validateFlags(argv0, argv1, argv);
   const flagsArg = argv[0];
   const lenHashes = argv.length - 1;

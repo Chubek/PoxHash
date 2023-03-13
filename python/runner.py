@@ -430,7 +430,7 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int,
 
 def main(exec_name: str, argv: list[str]) -> None:
     print_formatted(
-        "\x1b[1;47mPoxHash   |    Python   |  March 2023 - Chubak Bidpa  |  GPLv3  \x1b[0m\n"
+        "\x1b[1;47mPoxHash   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
     )
     validate_flags(exec_name, argv)
 

@@ -419,7 +419,7 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64, joine
 }
 
 func main() {
-	fmt.Printf("\033[1;47mPoxHash   |    Go    |  March 2023 - Chubak Bidpa  |  GPLv3  \033[0m\n")
+	fmt.Printf("\033[1;47mPoxHash   |    Go    |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n")
 	validateFlags(len(os.Args), os.Args)
 
 	hashes := make([]libpoxh.PoxDigest, len(os.Args)-2)

@@ -543,7 +543,7 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
 
 
 proc main(exec: string, argv: seq[string]) =
-  printFormatted("\x1b[1;47mPoxHash   |   Nim    |  March 2023 - Chubak Bidpa  |  GPLv3  \x1b[0m\n")
+  printFormatted("\x1b[1;47mPoxHash   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
   validateFlags(exec, argv)
   var
     flagsArg = argv[0]
