@@ -12,7 +12,7 @@ const (
 	pox8B_PRIME_NUM        = 54
 	poxROUND_PRIME_NUM     = 32
 	poxCHUNK_NUM           = 16
-	poxROUND_NUM           = 8
+	poxROUND_NUM           = 64
 	poxPORTION_NUM         = 4
 	poxSD_PRIME_NUM        = 3
 	poxMAGIC_PRIME_NUM     = 2

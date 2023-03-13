@@ -11,7 +11,7 @@ mod consts {
     pub const POX_8B_PRIME_NUM: usize = 54;
     pub const POX_PRIME_INIT_NUM: usize = 32;
     pub const POX_CHUNK_NUM: usize = 16;
-    pub const POX_ROUND_NUM: usize = 8;
+    pub const POX_ROUND_NUM: usize = 64;
     pub const POX_PORTION_NUM: usize = 4;
     pub const POX_SD_PRIME_NUM: usize = 3;
     pub const POX_MAGIC_PRIME_NUM: usize = 2;
