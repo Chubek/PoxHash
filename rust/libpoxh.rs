@@ -580,7 +580,7 @@ mod round {
         temp_array = apply_alphabet_operation(&temp_array);
         temp_array = apply_prime(&temp_array);
         temp_array = apply_shuffle(&temp_array);
-        let add__result = apply_add_temp_to_facts(factor_array, &temp_array);
+        let add_result = apply_add_temp_to_facts(factor_array, &temp_array);
         add_result
     }
 }
