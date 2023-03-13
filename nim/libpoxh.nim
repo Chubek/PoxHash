@@ -560,7 +560,7 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
             poxRound(factorArray)
 
 type
-   PoxHashDigest* = object
+   PoxDigest* = object
       sexdigest*: string
       vigdigest*: string
       hexdigest*: string
@@ -574,25 +574,25 @@ type
       doubles*: array[2, uint32]
       quad*: uint64
 
-proc PoxHash*(message: MessageSeq): PoxHashDigest =
-   ## Converts the given message into a PoxHashDigest object
+proc PoxHash*(message: MessageSeq): PoxDigest =
+   ## Converts the given message into a PoxDigest object
    ## Parameters:
    ##       message: seq[uint8]
    ##
    ## Returns:
-   ##      PoxHashDigest
-   ##          PoxHashDigest.sexdigest: string
-   ##          PoxHashDigest.vigdigest: string
-   ##          PoxHashDigest.hexdigest: string
-   ##          PoxHashDigest.tetdigest: string
-   ##          PoxHashDigest.duodigest: string
-   ##          PoxHashDigest.octdigest: string
-   ##          PoxHashDigest.sendigest: string
-   ##          PoxHashDigest.bindigest: string
-   ##          PoxHashDigest.bytes: array[8, uint8]
-   ##          PoxHashDigest.words: array[4, uint16]
-   ##          PoxHashDigest.doubles: array[2, uint32]
-   ##          PoxHashDigest.quad: uint64
+   ##      PoxDigest
+   ##          PoxDigest.sexdigest: string
+   ##          PoxDigest.vigdigest: string
+   ##          PoxDigest.hexdigest: string
+   ##          PoxDigest.tetdigest: string
+   ##          PoxDigest.duodigest: string
+   ##          PoxDigest.octdigest: string
+   ##          PoxDigest.sendigest: string
+   ##          PoxDigest.bindigest: string
+   ##          PoxDigest.bytes: array[8, uint8]
+   ##          PoxDigest.words: array[4, uint16]
+   ##          PoxDigest.doubles: array[2, uint32]
+   ##          PoxDigest.quad: uint64
    var padded = byteArrayToPortionArrayAndPad(message)
    var factorArray: FactorArray = [POX_PRIME_INIT_A, POX_PRIME_INIT_B,
          POX_PRIME_INIT_C, POX_PRIME_INIT_D]
@@ -614,8 +614,8 @@ proc PoxHash*(message: MessageSeq): PoxHashDigest =
    var doubles = wordArrToDoubleArr(factorArray)
    var quad = wordArrToQuad(factorArray)
 
-   var ret: PoxHashDigest
-   ret = PoxHashDigest(
+   var ret: PoxDigest
+   ret = PoxDigest(
            sexdigest: sexdigest,
            vigdigest: vigdigest,
            hexdigest: hexdigest,

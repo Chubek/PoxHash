@@ -629,7 +629,7 @@ const poxProcessBlock = (factorArray, blockArray) => {
   }
 };
 
-function PoxHashDigest(
+function PoxDigest(
   sexdigest,
   vigdigest,
   hexdigest,
@@ -659,24 +659,24 @@ function PoxHashDigest(
 
 poxHash = (message) => {
   /**
-   * Converts the given message into a PoxHashDigest object
+   * Converts the given message into a PoxDigest object
    * Parameters:
    *      message: string or Uint8Array
    *
    * Returns:
-   *      PoxHashDigest
-   *          PoxHashDigest.sexdigest: string
-   *          PoxHashDigest.vigdigest: string
-   *          PoxHashDigest.hexdigest: string
-   *          PoxHashDigest.tetdigest: string
-   *          PoxHashDigest.duodigest: string
-   *          PoxHashDigest.octdigest: string
-   *          PoxHashDigest.sendigest: string
-   *          PoxHashDigest.bindigest: string
-   *          PoxHashDigest.bytes: Uint8Array[8]
-   *          PoxHashDigest.factors: Uint16Array[4]
-   *          PoxHashDigest.doubles: Uint32Array[2]
-   *          PoxHashDigest.quad: BigInt.asUintN(64)
+   *      PoxDigest
+   *          PoxDigest.sexdigest: string
+   *          PoxDigest.vigdigest: string
+   *          PoxDigest.hexdigest: string
+   *          PoxDigest.tetdigest: string
+   *          PoxDigest.duodigest: string
+   *          PoxDigest.octdigest: string
+   *          PoxDigest.sendigest: string
+   *          PoxDigest.bindigest: string
+   *          PoxDigest.bytes: Uint8Array[8]
+   *          PoxDigest.factors: Uint16Array[4]
+   *          PoxDigest.doubles: Uint32Array[2]
+   *          PoxDigest.quad: BigInt.asUintN(64)
    */
   const processedInput = processInput(message);
   if (processInput == null) {
@@ -708,7 +708,7 @@ poxHash = (message) => {
   const doubles = wordArrayToDoubleArray(factorArray);
   const quad = doubleArrayToQuad(doubles);
 
-  return new PoxHashDigest(
+  return new PoxDigest(
     sexdigest,
     vigdigest,
     hexdigest,
@@ -725,4 +725,4 @@ poxHash = (message) => {
 };
 
 exports.poxHash = poxHash;
-exports.PoxHashDigest = PoxHashDigest;
+exports.PoxDigest = PoxDigest;

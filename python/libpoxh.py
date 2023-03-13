@@ -595,7 +595,7 @@ def __pox_process_block(factor_array: __array, block: list[int]) -> None:
                 __pox_round(factor_array)
 
 
-class PoxHashDigest:
+class PoxDigest:
     import array as array
 
     sexdigest: str
@@ -629,27 +629,27 @@ class PoxHashDigest:
         self.quad = quad
 
 
-def pox_hash(message: bytearray) -> PoxHashDigest:
+def pox_hash(message: bytearray) -> PoxDigest:
     """
-    Converts the given message to a PoxHashDigest object
+    Converts the given message to a PoxDigest object
 
     Parametes:
         message: bytearray
     
     Returns:
-        PoxHashDigest
-            PoxHashDigest.sexdigest: string
-            PoxHashDigest.vigdigest: string
-            PoxHashDigest.hexdigest: string
-            PoxHashDigest.tetdigest: string
-            PoxHashDigest.duodigest: string
-            PoxHashDigest.octdigest: string
-            PoxHashDigest.sendigest: string
-            PoxHashDigest.bindigest: string
-            PoxHashDigest.bytes: array.array('B', 8)
-            PoxHashDigest.words: array.array('H', 4)
-            PoxHashDigest.doubles: array.array('I', 2)
-            PoxHashDigest.quad: array.array('Q', 1)    
+        PoxDigest
+            PoxDigest.sexdigest: string
+            PoxDigest.vigdigest: string
+            PoxDigest.hexdigest: string
+            PoxDigest.tetdigest: string
+            PoxDigest.duodigest: string
+            PoxDigest.octdigest: string
+            PoxDigest.sendigest: string
+            PoxDigest.bindigest: string
+            PoxDigest.bytes: array.array('B', 8)
+            PoxDigest.words: array.array('H', 4)
+            PoxDigest.doubles: array.array('I', 2)
+            PoxDigest.quad: array.array('Q', 1)    
     """
 
     integer_list = __byte_to_array(message)
@@ -679,7 +679,7 @@ def pox_hash(message: bytearray) -> PoxHashDigest:
     doubles = __pox_factors_to_doubles(factor_array)
     quad = __pox_factor_doubles_to_quad(doubles)
 
-    return PoxHashDigest(sexdigest=sexdigest,
+    return PoxDigest(sexdigest=sexdigest,
                      vigdigest=vigdigest,
                      hexdigest=hexdigest,
                      tetdigest=tetdigest,
