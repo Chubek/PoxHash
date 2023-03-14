@@ -7,6 +7,7 @@ CYAN="\033[1;36m"
 NC="\033[0m"
 BLD="\033[1m"
 language=""
+folder=""
 
 help() {
     echo
@@ -15,10 +16,16 @@ help() {
     printf "\tPass the name of the language as the first argument,\n"
     printf "and the strings which you wish to hash as the consecutive\n"
     printf "arguments. Supperted language names as argument are:\n\n"
-    printf "\t${RED}python${NC}\t${GREEN}c${NC}\t${YELLOW}rust${NC}\n"
-    printf "\t${BLUE}js${NC}\t${PURPLE}go${NC}\t${CYAN}nim${NC}\n\n"
-    printf "\tExample: ./poxhash.sh python HashThis\n\n"
-    echo "PoxHash was designed and first implemented by Chubak Bidpaa in 2023"
+    printf "${RED}py${NC} or ${RED}python${NC}\n"
+    printf "${YELLOW}rs${NC} or ${YELLOW}rust${NC}\n"
+    printf "${BLUE}js${NC}\n or ${BLUE}javascript${NC}"
+    printf "${GREEN}c${NC}\n"
+    printf "${PURPLE}go${NC}\n"
+    printf "${CYAN}nim${NC}\n"
+    echo "Runner codes accept flags between two dashes. Pass -?- to view help."
+    echo "Example 1: bash ./poxh.sh c -?-"
+    echo "Example 2: bash ./poxh.sh c -h-"
+    echo "PoxHash was designed and first implemented by Chubak Bidpaa in March 2023"
     echo "Licensed under GPLv3"
     echo
     exit 0;
@@ -30,18 +37,24 @@ wrong_arg() {
 }
 
 check_language() {
-    if [[ "${language}" == "python" ]]; then
+    if [ "${language}" = "python" ] || [ "${language}" = "py" ]; then
         printf "Selected language: ${RED}Python${NC}\n"
-    elif [[ "${language}" == "rust" ]]; then
+        folder="python"
+    elif [ "${language}" = "rust" ] || [ "${language}" = "rs" ]; then
         printf "Selected language: ${YELLOW}Rust${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
-    elif [[ "${language}" == "c" ]]; then
+        folder="rust"
+    elif [ "${language}" = "c" ]; then
         printf "Selected language: ${GREEN}C${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
-    elif [[ "${language}" == "js" ]]; then
+        folder="c"
+    elif [ "${language}" = "js" ] || [ "${language}" = "javascript" ]; then
         printf "Selected language: ${BLUE}JavaScript${NC}\n"
-    elif [[ "${language}" == "go" ]]; then
+        folder="js"
+    elif [ "${language}" = "go" ]; then
         printf "Selected language: ${PURPLE}Go${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
-    elif [[ "${language}" == "nim" ]]; then
+        folder="go"
+    elif [ "${language}" = "nim" ]; then
         printf "Selected language: ${CYAN}Nim${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
+        folder="nim"
     else
         printf "${RED}Wrong argument as language passed!${NC}\n"
         echo "Pass -h to the script or run it without any args to view help"
@@ -55,5 +68,5 @@ case "$#" in
     *)  
         language=$1 && shift
         check_language
-        sudo chmod +x $language/poxh.sh && $language/poxh.sh $@
+        sudo chmod +x $folder/poxh.sh && $folder/poxh.sh $@
 esac
