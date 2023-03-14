@@ -361,7 +361,7 @@ fn all_are_false(bools: Vec<bool>) -> bool {
     bools.into_iter().filter(|b| *b).count() == 0
 }
 
-fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128, joined: &str) {
+fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
     if arg_has_flag(flags, FLAG_BENCHMARK) {
         print!(
             "Total time for hashing {} bytestring(s): {}us\n",
@@ -414,12 +414,11 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128, joine
         std::process::exit(0);
     }
 
-    for (i, hash) in hashes.into_iter().enumerate() {
+    for hash in hashes.into_iter() {
         print!("----\n");
-        print!("Requested digests for bytestring #{}{}\n", i + 1, joined);
         if everything || all_flags_decimal || byte {
             print!(
-                "\tBytes: U8[{}, {}, {}, {}, {}, {}, {}, {}]\n",
+                "Bytes: U8[{}, {}, {}, {}, {}, {}, {}, {}]\n",
                 hash.bytes[0],
                 hash.bytes[1],
                 hash.bytes[2],
@@ -432,46 +431,48 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128, joine
         }
         if everything || all_flags_decimal || word {
             print!(
-                "\tWords: U16[{}, {}, {}, {}]\n",
+                "Words: U16[{}, {}, {}, {}]\n",
                 hash.words[0], hash.words[1], hash.words[2], hash.words[3]
             );
         }
         if everything || all_flags_decimal || dub {
-            print!("\tdoubles: U32[{}, {}]\n", hash.doubles[0], hash.doubles[1]);
+            print!("Doubles: U32[{}, {}]\n", hash.doubles[0], hash.doubles[1]);
         }
         if everything || all_flags_decimal || quad {
-            print!("\tQuad: U64[{}]\n", hash.quad);
+            print!("Quad: U64[{}]\n", hash.quad);
         }
         if everything || all_flags_non_decimal || sex {
-            print!("\tSexdigest: {}\n", hash.sexdigest);
+            print!("Sexdigest: {}\n", hash.sexdigest);
         }
         if everything || all_flags_non_decimal || vig {
-            print!("\tVigdigest: {}\n", hash.vigdigest);
+            print!("Vigdigest: {}\n", hash.vigdigest);
         }
         if everything || all_flags_non_decimal || hex {
-            print!("\tHexdigest: {}\n", hash.hexdigest);
+            print!("Hexdigest: {}\n", hash.hexdigest);
         }
         if everything || all_flags_non_decimal || tet {
-            print!("\tTetdigest: {}\n", hash.tetdigest);
+            print!("Tetdigest: {}\n", hash.tetdigest);
         }
         if everything || all_flags_non_decimal || duo {
-            print!("\tDuodigest: {}\n", hash.duodigest);
+            print!("Duodigest: {}\n", hash.duodigest);
         }
         if everything || all_flags_non_decimal || oct {
-            print!("\tOctdigest: {}\n", hash.octdigest);
+            print!("Octdigest: {}\n", hash.octdigest);
         }
         if everything || all_flags_non_decimal || sen {
-            print!("\tSendgiest: {}\n", hash.sendigest);
+            print!("Sendgiest: {}\n", hash.sendigest);
         }
         if everything || all_flags_non_decimal || bin {
-            print!("\tBindigest: {}\n", hash.bindigest);
+            print!("Bindigest: {}\n", hash.bindigest);
         }
     }
 }
 
 #[allow(unused_assignments)]
 fn main() {
-    print!("\x1b[1;30;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n");
+    print!(
+        "\x1b[1;30;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
+    );
     let argv: Vec<String> = std::env::args().collect();
     validate_flags(&argv);
     let flag_arg = argv.get(1).unwrap();
@@ -484,12 +485,7 @@ fn main() {
             let t1 = get_time_in_us();
             hashes[0] = pox_hash(&args_joined.as_bytes().to_vec());
             let t2 = get_time_in_us();
-            print_hashes(
-                &hashes[..1].to_vec(),
-                &flag_arg,
-                t2 - t1,
-                " (joined arguments):",
-            );
+            print_hashes(&hashes[..1].to_vec(), &flag_arg, t2 - t1);
         }
         false => {
             let (mut t1, mut t2, mut total_time) = (0u128, 0u128, 0u128);
@@ -499,7 +495,7 @@ fn main() {
                 t2 = get_time_in_us();
                 total_time += t2 - t1;
             }
-            print_hashes(&hashes, &flag_arg, total_time, ":");
+            print_hashes(&hashes, &flag_arg, total_time);
         }
     }
 }

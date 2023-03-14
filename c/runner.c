@@ -413,7 +413,7 @@ int all_are_false(int *arr, int size)
     return 1;
 }
 
-void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time, char *joined)
+void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time)
 {
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
         printf("Total time for hashing %d bytestring(s): %luus\n", len_hashes, total_time);
@@ -471,31 +471,30 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
     for (int i = 0; i < len_hashes; i++)
     {
         printf("----\n");
-        printf("Requested digests for bytestring #%u%s\n", i + 1, joined);
         if (everything || all_flags_decimal || byte)
-            printf("\tBytes: U8[%hu, %u, %u, %u, %u, %u, %u, %u]\n", hashes[i].bytes[0], hashes[i].bytes[1], hashes[i].bytes[2], hashes[i].bytes[3], hashes[i].bytes[4], hashes[i].bytes[5], hashes[i].bytes[6], hashes[i].bytes[7]);
+            printf("Bytes: U8[%hu, %u, %u, %u, %u, %u, %u, %u]\n", hashes[i].bytes[0], hashes[i].bytes[1], hashes[i].bytes[2], hashes[i].bytes[3], hashes[i].bytes[4], hashes[i].bytes[5], hashes[i].bytes[6], hashes[i].bytes[7]);
         if (everything || all_flags_decimal || word)
-            printf("\tWords: U16[%hu, %hu, %hu, %hu]\n", hashes[i].words[0], hashes[i].words[1], hashes[i].words[2], hashes[i].words[3]);
+            printf("Words: U16[%hu, %hu, %hu, %hu]\n", hashes[i].words[0], hashes[i].words[1], hashes[i].words[2], hashes[i].words[3]);
         if (everything || all_flags_decimal || dub)
-            printf("\tdoubles: U32[%u, %u]\n", hashes[i].doubles[0], hashes[i].doubles[1]);
+            printf("Doubles: U32[%u, %u]\n", hashes[i].doubles[0], hashes[i].doubles[1]);
         if (everything || all_flags_decimal || quad)
-            printf("\tQuad: U64[%lu]\n", hashes[i].quad);
+            printf("Quad: U64[%lu]\n", hashes[i].quad);
         if (everything || all_flags_non_decimal || sex)
-            printf("\tSexdigest: %s\n", hashes[i].sexdigest);
+            printf("Sexdigest: %s\n", hashes[i].sexdigest);
         if (everything || all_flags_non_decimal || vig)
-            printf("\tVigdigest: %s\n", hashes[i].vigdigest);
+            printf("Vigdigest: %s\n", hashes[i].vigdigest);
         if (everything || all_flags_non_decimal || hex)
-            printf("\tHexdigest: %s\n", hashes[i].hexdigest);
+            printf("Hexdigest: %s\n", hashes[i].hexdigest);
         if (everything || all_flags_non_decimal || tet)
-            printf("\tTetdigest: %s\n", hashes[i].tetdigest);
+            printf("Tetdigest: %s\n", hashes[i].tetdigest);
         if (everything || all_flags_non_decimal || duo)
-            printf("\tDuodigest: %s\n", hashes[i].duodigest);
+            printf("Duodigest: %s\n", hashes[i].duodigest);
         if (everything || all_flags_non_decimal || oct)
-            printf("\tOctdigest: %s\n", hashes[i].octdigest);
+            printf("Octdigest: %s\n", hashes[i].octdigest);
         if (everything || all_flags_non_decimal || sen)
-            printf("\tSendgiest: %s\n", hashes[i].sendigest);
+            printf("Sendgiest: %s\n", hashes[i].sendigest);
         if (everything || all_flags_non_decimal || bin)
-            printf("\tBindigest: %s\n", hashes[i].bindigest);
+            printf("Bindigest: %s\n", hashes[i].bindigest);
     }
 }
 
@@ -528,7 +527,7 @@ int main(int argc, char **argv)
         t2 = get_time_in_us();
         free(args_joined);
         free(args_joined_uint8);
-        print_hashes(hashes, 1, argv[1], len_flags, t2 - t1, " (joined arguments):");
+        print_hashes(hashes, 1, argv[1], len_flags, t2 - t1);
     }
     else
     {
@@ -542,7 +541,7 @@ int main(int argc, char **argv)
             free(arg_uint8);
             total_time += t2 - t1;
         }
-        print_hashes(hashes, argc - 2, argv[1], len_flags, total_time, ":");
+        print_hashes(hashes, argc - 2, argv[1], len_flags, total_time);
     }
 
     return 0;

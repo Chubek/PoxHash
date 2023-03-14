@@ -326,7 +326,7 @@ func allAreFalse(bools []bool) bool {
 	return true
 }
 
-func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64, joined string) {
+func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 	if argHasFlag(flag, flagBENCHMARK) {
 		fmt.Printf("Total time for hashing %d bytestring(s): %dus\n", len(hashes), totalTime)
 	}
@@ -376,44 +376,43 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64, joine
 		errorOut("You have not specfied any digests to be printed. Please pass at least one, or `*` for all")
 	}
 
-	for i, hash := range hashes {
+	for _, hash := range hashes {
 		fmt.Printf("----\n")
-		fmt.Printf("Requested digests for bytestring #%d%s\n", i+1, joined)
 		if everything || allFlagsDecimal || byte {
-			fmt.Printf("\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n", hash.Bytes[0], hash.Bytes[1], hash.Bytes[2], hash.Bytes[3], hash.Bytes[4], hash.Bytes[5], hash.Bytes[6], hash.Bytes[7])
+			fmt.Printf("Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n", hash.Bytes[0], hash.Bytes[1], hash.Bytes[2], hash.Bytes[3], hash.Bytes[4], hash.Bytes[5], hash.Bytes[6], hash.Bytes[7])
 		}
 		if everything || allFlagsDecimal || word {
-			fmt.Printf("\tWords: U16[%d, %d, %d, %d]\n", hash.Words[0], hash.Words[1], hash.Words[2], hash.Words[3])
+			fmt.Printf("Words: U16[%d, %d, %d, %d]\n", hash.Words[0], hash.Words[1], hash.Words[2], hash.Words[3])
 		}
 		if everything || allFlagsDecimal || dub {
-			fmt.Printf("\tdoubles: U32[%d, %d]\n", hash.Doubles[0], hash.Doubles[1])
+			fmt.Printf("Doubles: U32[%d, %d]\n", hash.Doubles[0], hash.Doubles[1])
 		}
 		if everything || allFlagsDecimal || quad {
-			fmt.Printf("\tQuad: U64[%lu]\n", hash.Quad)
+			fmt.Printf("Quad: U64[%lu]\n", hash.Quad)
 		}
 		if everything || allFLagsNondecimal || sex {
-			fmt.Printf("\tSexdigest: %s\n", hash.Sexdigest)
+			fmt.Printf("Sexdigest: %s\n", hash.Sexdigest)
 		}
 		if everything || allFLagsNondecimal || vig {
-			fmt.Printf("\tVigdigest: %s\n", hash.Vigdigest)
+			fmt.Printf("Vigdigest: %s\n", hash.Vigdigest)
 		}
 		if everything || allFLagsNondecimal || hex {
-			fmt.Printf("\tHexdigest: %s\n", hash.Hexdigest)
+			fmt.Printf("Hexdigest: %s\n", hash.Hexdigest)
 		}
 		if everything || allFLagsNondecimal || tet {
-			fmt.Printf("\tTetdigest: %s\n", hash.Tetdigest)
+			fmt.Printf("Tetdigest: %s\n", hash.Tetdigest)
 		}
 		if everything || allFLagsNondecimal || duo {
-			fmt.Printf("\tDuodigest: %s\n", hash.Duodigest)
+			fmt.Printf("Duodigest: %s\n", hash.Duodigest)
 		}
 		if everything || allFLagsNondecimal || oct {
-			fmt.Printf("\tOctdigest: %s\n", hash.Octdigest)
+			fmt.Printf("Octdigest: %s\n", hash.Octdigest)
 		}
 		if everything || allFLagsNondecimal || sen {
-			fmt.Printf("\tSendgiest: %s\n", hash.Sendigest)
+			fmt.Printf("Sendgiest: %s\n", hash.Sendigest)
 		}
 		if everything || allFLagsNondecimal || bin {
-			fmt.Printf("\tBindigest: %s\n", hash.Bindigest)
+			fmt.Printf("Bindigest: %s\n", hash.Bindigest)
 		}
 	}
 }
@@ -430,7 +429,7 @@ func main() {
 		t1 = getTimeInUS()
 		hashes[0] = libpoxh.PoxHash([]uint8(argsJoined))
 		t2 = getTimeInUS()
-		printHashes(hashes[:1], flagsByte, t2-t1, " (joined arguments):")
+		printHashes(hashes[:1], flagsByte, t2-t1)
 	} else {
 		cursor := 0
 		for _, arg := range os.Args[2:] {
@@ -440,6 +439,6 @@ func main() {
 			totalTime += t2 - t1
 			cursor += 1
 		}
-		printHashes(hashes, flagsByte, totalTime, ":")
+		printHashes(hashes, flagsByte, totalTime)
 	}
 }

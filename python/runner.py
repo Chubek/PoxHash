@@ -352,8 +352,7 @@ def join_args(args: list[str]) -> str:
     return ' '.join(args)
 
 
-def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int,
-                 joined: str) -> None:
+def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
     len_hashes = len(hashes)
     reoccurrance = search_for_flag_occurrances(flags[1:-1])
 
@@ -403,37 +402,35 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int,
         printf("You had not specfied any digests to be printed\n")
         exit(0)
 
-    for (i, hash) in enumerate(hashes):
+    for hash in hashes:
         printf("----\n")
-        printf("Requested digests for bytestring #%d%s\n", i + 1, joined)
         if everything or all_flags_decimal or by:
-            printf("\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
+            printf("Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
                    hash.bytes[0], hash.bytes[1], hash.bytes[2], hash.bytes[3],
                    hash.bytes[4], hash.bytes[5], hash.bytes[6], hash.bytes[7])
         if everything or all_flags_decimal or word:
-            printf("\tWords: U16[%d, %d, %d, %d]\n", hash.words[0],
+            printf("Words: U16[%d, %d, %d, %d]\n", hash.words[0],
                    hash.words[1], hash.words[2], hash.words[3])
         if everything or all_flags_decimal or dub:
-            printf("\tdoubles: U32[%d, %d]\n", hash.doubles[0],
-                   hash.doubles[1])
+            printf("Doubles: U32[%d, %d]\n", hash.doubles[0], hash.doubles[1])
         if everything or all_flags_decimal or quad:
-            printf("\tQuad: U64[%d]\n", hash.quad)
+            printf("Quad: U64[%d]\n", hash.quad)
         if everything or all_flags_non_decimal or sex:
-            printf("\tSexdigest: %s\n", hash.sexdigest)
+            printf("Sexdigest: %s\n", hash.sexdigest)
         if everything or all_flags_non_decimal or vig:
-            printf("\tVigdigest: %s\n", hash.vigdigest)
+            printf("Vigdigest: %s\n", hash.vigdigest)
         if everything or all_flags_non_decimal or hex:
-            printf("\tHexdigest: %s\n", hash.hexdigest)
+            printf("Hexdigest: %s\n", hash.hexdigest)
         if everything or all_flags_non_decimal or tet:
-            printf("\tTetdigest: %s\n", hash.tetdigest)
+            printf("Tetdigest: %s\n", hash.tetdigest)
         if everything or all_flags_non_decimal or duo:
-            printf("\tDuodigest: %s\n", hash.duodigest)
+            printf("Duodigest: %s\n", hash.duodigest)
         if everything or all_flags_non_decimal or oct:
-            printf("\tOctdigest: %s\n", hash.octdigest)
+            printf("Octdigest: %s\n", hash.octdigest)
         if everything or all_flags_non_decimal or sen:
-            printf("\tSendgiest: %s\n", hash.sendigest)
+            printf("Sendgiest: %s\n", hash.sendigest)
         if everything or all_flags_non_decimal or bin:
-            printf("\tBindigest: %s\n", hash.bindigest)
+            printf("Bindigest: %s\n", hash.bindigest)
 
 
 def main(exec_name: str, argv: list[str]) -> None:
@@ -452,14 +449,14 @@ def main(exec_name: str, argv: list[str]) -> None:
         t1 = get_time_in_us()
         hashes[0] = pox_hash(argsJoined.encode())
         t2 = get_time_in_us()
-        print_hashes(hashes[:1], flagsArg, t2 - t1, " (joined arguments):")
+        print_hashes(hashes[:1], flagsArg, t2 - t1)
     else:
         for i, arg in enumerate(argv[1:]):
             t1 = get_time_in_us()
             hashes[i] = pox_hash(arg.encode())
             t2 = get_time_in_us()
             total_time += t2 - t1
-        print_hashes(hashes, flagsArg, total_time, ":")
+        print_hashes(hashes, flagsArg, total_time)
 
 
 if __name__ == "__main__":

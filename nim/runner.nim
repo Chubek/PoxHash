@@ -401,8 +401,7 @@ proc joinArgs(args: seq[string]): string =
     result += arg
   result = result[1..result.len() - 1]
 
-proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
-    joined: string) =
+proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64) =
   var
     lenHashes = hashes.len()
     reoccurrance = searchForFlagReoccurrances(flags)
@@ -457,16 +456,11 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
     printf("You had not specfied any digests to be printed\n")
     quit(0)
 
-  for (i, hash) in enumerate(hashes):
+  for hash in hashes:
     printf("----\n")
-    printf(
-      "Requested digests for bytestring #%d%s\n",
-      i + 1,
-      joined
-    )
     if everything or allFlagsDecimal or by:
       printf(
-        "\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
+        "Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
         hash.bytes[0],
         hash.bytes[1],
         hash.bytes[2],
@@ -479,7 +473,7 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
 
     if everything or allFlagsDecimal or word:
       printf(
-        "\tWords: U16[%d, %d, %d, %d]\n",
+        "Words: U16[%d, %d, %d, %d]\n",
         hash.words[0],
         hash.words[1],
         hash.words[2],
@@ -488,37 +482,37 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64,
 
     if everything or allFlagsDecimal or dub:
       printf(
-        "\tdoubles: U32[%d, %d]\n",
+        "Doubles: U32[%d, %d]\n",
         hash.doubles[0],
         hash.doubles[1]
       )
 
     if everything or allFlagsDecimal or quad:
-      printf("\tQuad: U64[%d]\n", hash.quad)
+      printf("Quad: U64[%d]\n", hash.quad)
 
     if everything or allFlagsNonDecimal or sex:
-      printf("\tSexdigest: %s\n", hash.sexdigest)
+      printf("Sexdigest: %s\n", hash.sexdigest)
 
     if everything or allFlagsNonDecimal or vig:
-      printf("\tVigdigest: %s\n", hash.vigdigest)
+      printf("Vigdigest: %s\n", hash.vigdigest)
 
     if everything or allFlagsNonDecimal or hex:
-      printf("\tHexdigest: %s\n", hash.hexdigest)
+      printf("Hexdigest: %s\n", hash.hexdigest)
 
     if everything or allFlagsNonDecimal or tet:
-      printf("\tTetdigest: %s\n", hash.tetdigest)
+      printf("Tetdigest: %s\n", hash.tetdigest)
 
     if everything or allFlagsNonDecimal or duo:
-      printf("\tDuodigest: %s\n", hash.duodigest)
+      printf("Duodigest: %s\n", hash.duodigest)
 
     if everything or allFlagsNonDecimal or oct:
-      printf("\tOctdigest: %s\n", hash.octdigest)
+      printf("Octdigest: %s\n", hash.octdigest)
 
     if everything or allFlagsNonDecimal or sen:
-      printf("\tSendgiest: %s\n", hash.sendigest)
+      printf("Sendgiest: %s\n", hash.sendigest)
 
     if everything or allFlagsNonDecimal or bin:
-      printf("\tBindigest: %s\n", hash.bindigest)
+      printf("Bindigest: %s\n", hash.bindigest)
 
 
 proc main(exec: string, argv: seq[string]) =
@@ -536,14 +530,14 @@ proc main(exec: string, argv: seq[string]) =
     t1 = getTimeInUS()
     hashes[0] = PoxHash(^^argsJoined)
     t2 = getTimeInUS()
-    printHashes(hashes[0..0], flagsArg, t2 - t1, " (joined arguments):")
+    printHashes(hashes[0..0], flagsArg, t2 - t1)
   else:
     for (i, arg) in enumerate(argv[1..lenHashes]):
       t1 = getTimeInUS()
       hashes[i] = PoxHash(^^arg)
       t2 = getTimeInUS()
       totalTime += t2 - t1
-    printHashes(hashes, flagsArg, totalTime, ":")
+    printHashes(hashes, flagsArg, totalTime)
 
 
 

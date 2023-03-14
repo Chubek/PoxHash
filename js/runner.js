@@ -440,7 +440,7 @@ const allAreFalse = (arr) => {
   return true;
 };
 
-const printHashes = (hashes, flags, totalTime, joined) => {
+const printHashes = (hashes, flags, totalTime) => {
   const lenFlags = flags.length;
   const lenHashes = hashes.length;
   if (argHasFlag(flags, FLAG_BENCHMARK))
@@ -497,10 +497,9 @@ const printHashes = (hashes, flags, totalTime, joined) => {
 
   for (let i = 0; i < lenHashes; i++) {
     printf("----\n");
-    printf("Requested digests for bytestring #%d%s\n", i + 1, joined);
     if (everything || allFlagsDecimal || byte) {
       printf(
-        "\tBytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
+        "Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
         hashes[i].bytes[0],
         hashes[i].bytes[1],
         hashes[i].bytes[2],
@@ -513,7 +512,7 @@ const printHashes = (hashes, flags, totalTime, joined) => {
     }
     if (everything || allFlagsDecimal || word) {
       printf(
-        "\tWords: U16[%d, %d, %d, %d]\n",
+        "Words: U16[%d, %d, %d, %d]\n",
         hashes[i].words[0],
         hashes[i].words[1],
         hashes[i].words[2],
@@ -522,37 +521,37 @@ const printHashes = (hashes, flags, totalTime, joined) => {
     }
     if (everything || allFlagsDecimal || dub) {
       printf(
-        "\tdoubles: U32[%d, %d]\n",
+        "Doubles: U32[%d, %d]\n",
         hashes[i].doubles[0],
         hashes[i].doubles[1]
       );
     }
     if (everything || allFlagsDecimal || quad) {
-      printf("\tQuad: U64[%d]\n", hashes[i].quad);
+      printf("Quad: U64[%d]\n", hashes[i].quad);
     }
     if (everything || allFlagsNonDecimal || sex) {
-      printf("\tSexdigest: %s\n", hashes[i].sexdigest);
+      printf("Sexdigest: %s\n", hashes[i].sexdigest);
     }
     if (everything || allFlagsNonDecimal || vig) {
-      printf("\tVigdigest: %s\n", hashes[i].vigdigest);
+      printf("Vigdigest: %s\n", hashes[i].vigdigest);
     }
     if (everything || allFlagsNonDecimal || hex) {
-      printf("\tHexdigest: %s\n", hashes[i].hexdigest);
+      printf("Hexdigest: %s\n", hashes[i].hexdigest);
     }
     if (everything || allFlagsNonDecimal || tet) {
-      printf("\tTetdigest: %s\n", hashes[i].tetdigest);
+      printf("Tetdigest: %s\n", hashes[i].tetdigest);
     }
     if (everything || allFlagsNonDecimal || duo) {
-      printf("\tDuodigest: %s\n", hashes[i].duodigest);
+      printf("Duodigest: %s\n", hashes[i].duodigest);
     }
     if (everything || allFlagsNonDecimal || oct) {
-      printf("\tOctdigest: %s\n", hashes[i].octdigest);
+      printf("Octdigest: %s\n", hashes[i].octdigest);
     }
     if (everything || allFlagsNonDecimal || sen) {
-      printf("\tSendgiest: %s\n", hashes[i].sendigest);
+      printf("Sendgiest: %s\n", hashes[i].sendigest);
     }
     if (everything || allFlagsNonDecimal || bin) {
-      printf("\tBindigest: %s\n", hashes[i].bindigest);
+      printf("Bindigest: %s\n", hashes[i].bindigest);
     }
   }
 };
@@ -586,7 +585,7 @@ const main = (argv0, argv1, argv) => {
     t1 = getTimeInUS();
     hashes[0] = libpoxh.poxHash(argsJoined);
     t2 = getTimeInUS();
-    printHashes(hashes.slice(0, 1), flagsArg, t2 - t1, " (joined arguments):");
+    printHashes(hashes.slice(0, 1), flagsArg, t2 - t1);
   } else {
     let cursor = 0;
     for (let i = 1; i <= lenHashes; i++) {
@@ -596,7 +595,7 @@ const main = (argv0, argv1, argv) => {
       cursor += 1;
       totalTime += t2 - t1;
     }
-    printHashes(hashes, flagsArg, totalTime, ":");
+    printHashes(hashes, flagsArg, totalTime);
   }
 };
 
