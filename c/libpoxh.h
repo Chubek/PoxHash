@@ -21,11 +21,11 @@
 #include <stdlib.h>
 #endif
 
+#define POX_ROUND_PRIME_NUM 90
 #define POX_BLOCK_NUM 64
 #define POX_8B_PRIME_NUM 54
-#define POX_ROUND_PRIME_NUM 32
+#define POX_ROUND_NUM 31
 #define POX_CHUNK_NUM 16
-#define POX_ROUND_NUM 64
 #define POX_PORTION_NUM 4
 #define POX_SD_PRIME_NUM 3
 #define POX_MAGIC_PRIME_NUM 2
@@ -76,19 +76,112 @@
 #define SIZE_BYTE sizeof(char)
 
 static const uint16_t cPOX_ROUND_PRIMES[POX_ROUND_PRIME_NUM] = {
-    0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
-    0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
-    0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
-    0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549};
+    0x0377,
+    0x0683,
+    0x05fb,
+    0x05fb,
+    0x0665,
+    0x074b,
+    0x036d,
+    0x033d,
+    0x0115,
+    0x07cf,
+    0x0e59,
+    0x0e75,
+    0x0a75,
+    0x119b,
+    0x1073,
+    0x12b3,
+    0x0fd1,
+    0x0a75,
+    0x0de7,
+    0x10bb,
+    0x18d1,
+    0x1c99,
+    0x1723,
+    0x1cc9,
+    0x20c3,
+    0x2327,
+    0x2063,
+    0x215b,
+    0x17e1,
+    0x22bd,
+    0xf2ff,
+    0xf50b,
+    0xf4af,
+    0xf2b3,
+    0xf5fb,
+    0xf4af,
+    0xf2b9,
+    0xf38b,
+    0xf4c3,
+    0xf5db,
+    0x1039,
+    0x1003,
+    0x0fa1,
+    0x0fa3,
+    0x0fa7,
+    0x8687,
+    0x80db,
+    0x86d1,
+    0x7fcd,
+    0x7f43,
+    0xa10b,
+    0x9e81,
+    0x9d15,
+    0xa289,
+    0xa279,
+    0x3e11,
+    0x3aa5,
+    0x3be3,
+    0x3daf,
+    0x3bff,
+    0xff8f,
+    0xff71,
+    0xfe03,
+    0xfe41,
+    0xfe05,
+    0xff2f,
+    0xfe7b,
+    0xfeb3,
+    0x0409,
+    0x0481,
+    0x1d7b,
+    0x1c4f,
+    0x1e6d,
+    0x1b7f,
+    0x1e71,
+    0xe875,
+    0xe2cd,
+    0xe351,
+    0xe363,
+    0xe329,
+    0x049d,
+    0x0427,
+    0xcbb3,
+    0x184d,
+    0x2ce1,
+    0x8861,
+    0x59b3,
+    0x2077,
+    0xff9d,
+    0xff2f,
+};
 static const uint16_t cPOX_8B_PRIMES[POX_8B_PRIME_NUM] = {
     0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
     0x2b, 0x2f, 0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61,
     0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d,
     0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3,
     0xe5, 0xe9, 0xef, 0xf1, 0xfb};
-static const uint16_t cPOX_MAGIC_PRIMES[POX_MAGIC_PRIME_NUM] = {0x33, 0x65};
 static const uint16_t cPOX_SINGLE_DIGIT_PRIMES[POX_SD_PRIME_NUM] = {0x3, 0x5, 0x7};
-static const char cSEX_CHARS[60] = {
+static const uint16_t cPOX_MAGIC_PRIMES[POX_MAGIC_PRIME_NUM] = {0x33, 0x65};
+
+static const uint16_t cPOX_PRIME_INIT_A = 0x17cb;
+static const uint16_t cPOX_PRIME_INIT_B = 0x0371;
+static const uint16_t cPOX_PRIME_INIT_C = 0x2419;
+static const uint16_t cPOX_PRIME_INIT_D = 0xf223;
+
+static const char cSEX_CHARS[SEX_BASE] = {
     '0',
     '1',
     '2',
@@ -150,7 +243,7 @@ static const char cSEX_CHARS[60] = {
     'w',
     'x',
 };
-static const char cVIG_CHARS[20] = {
+static const char cVIG_CHARS[VIG_BASE] = {
     'A',
     'B',
     'C',
@@ -172,7 +265,7 @@ static const char cVIG_CHARS[20] = {
     ':',
     '~',
 };
-static const char cHEX_CHARS[16] = {
+static const char cHEX_CHARS[HEX_BASE] = {
     '0',
     '1',
     '2',
@@ -190,7 +283,7 @@ static const char cHEX_CHARS[16] = {
     'E',
     'F',
 };
-static const char cTET_CHARS[14] = {
+static const char cTET_CHARS[TET_BASE] = {
     '0',
     '1',
     '2',
@@ -206,7 +299,7 @@ static const char cTET_CHARS[14] = {
     'W',
     'R',
 };
-static const char cDUO_CHARS[12] = {
+static const char cDUO_CHARS[DUO_BASE] = {
     '0',
     '1',
     '2',
@@ -220,7 +313,7 @@ static const char cDUO_CHARS[12] = {
     '*',
     '#',
 };
-static const char cOCT_CHARS[8] = {
+static const char cOCT_CHARS[OCT_BASE] = {
     '0',
     '1',
     '2',
@@ -230,16 +323,12 @@ static const char cOCT_CHARS[8] = {
     '6',
     '7',
 };
-static const char cSEN_CHARS[6] = {
+static const char cSEN_CHARS[SEN_BASE] = {
     '0', '1', '2', '3', '4', '5'};
-static const char cBIN_CHARS[2] = {'0', '1'};
+static const char cBIN_CHARS[BIN_BASE] = {'0', '1'};
 static const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
 static const size_t cCOMB_BIONOM[6][2] = {
     {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}};
-static const uint16_t cPOX_PRIME_INIT_A = 0x9f91;
-static const uint16_t cPOX_PRIME_INIT_B = 0xdb3b;
-static const uint16_t cPOX_PRIME_INIT_C = 0xc091;
-static const uint16_t cPOX_PRIME_INIT_D = 0xac8b;
 
 static inline uint16_t log2n(uint16_t num)
 {
@@ -550,10 +639,10 @@ static inline uint16_t get_8b_prime(uint16_t num)
 #define POX_APPLY_PRIME(temp_array, pnum) \
     do                                    \
     {                                     \
-        temp_array[0] ^= pnum;            \
-        temp_array[1] &= pnum;            \
-        temp_array[2] ^= pnum;            \
-        temp_array[3] &= pnum;            \
+        temp_array[0] %= pnum;            \
+        temp_array[1] %= pnum;            \
+        temp_array[2] %= pnum;            \
+        temp_array[3] %= pnum;            \
     } while (0)
 
 #define POX_ROUND_APPLY_PRIME(temp_array)                     \

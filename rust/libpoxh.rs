@@ -7,19 +7,25 @@
 
 mod consts {
 
+    pub const POX_ROUND_PRIME_NUM: usize = 90;
     pub const POX_BLOCK_NUM: usize = 64;
     pub const POX_8B_PRIME_NUM: usize = 54;
-    pub const POX_PRIME_INIT_NUM: usize = 32;
+    pub const POX_ROUND_NUM: usize = 31;
     pub const POX_CHUNK_NUM: usize = 16;
-    pub const POX_ROUND_NUM: usize = 64;
     pub const POX_PORTION_NUM: usize = 4;
     pub const POX_SD_PRIME_NUM: usize = 3;
     pub const POX_MAGIC_PRIME_NUM: usize = 2;
 
-    pub const POX_ROUND_PRIMES: [u16; POX_PRIME_INIT_NUM] = [
-        0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed, 0xfc4f, 0x9787,
-        0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d, 0xd4e1, 0x9ea1, 0xee49, 0x97cd,
-        0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3, 0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549,
+    pub const POX_ROUND_PRIMES: [u16; POX_ROUND_PRIME_NUM] = [
+        0x0377, 0x0683, 0x05fb, 0x05fb, 0x0665, 0x074b, 0x036d, 0x033d, 0x0115, 0x07cf, 0x0e59,
+        0x0e75, 0x0a75, 0x119b, 0x1073, 0x12b3, 0x0fd1, 0x0a75, 0x0de7, 0x10bb, 0x18d1, 0x1c99,
+        0x1723, 0x1cc9, 0x20c3, 0x2327, 0x2063, 0x215b, 0x17e1, 0x22bd, 0xf2ff, 0xf50b, 0xf4af,
+        0xf2b3, 0xf5fb, 0xf4af, 0xf2b9, 0xf38b, 0xf4c3, 0xf5db, 0x1039, 0x1003, 0x0fa1, 0x0fa3,
+        0x0fa7, 0x8687, 0x80db, 0x86d1, 0x7fcd, 0x7f43, 0xa10b, 0x9e81, 0x9d15, 0xa289, 0xa279,
+        0x3e11, 0x3aa5, 0x3be3, 0x3daf, 0x3bff, 0xff8f, 0xff71, 0xfe03, 0xfe41, 0xfe05, 0xff2f,
+        0xfe7b, 0xfeb3, 0x0409, 0x0481, 0x1d7b, 0x1c4f, 0x1e6d, 0x1b7f, 0x1e71, 0xe875, 0xe2cd,
+        0xe351, 0xe363, 0xe329, 0x049d, 0x0427, 0xcbb3, 0x184d, 0x2ce1, 0x8861, 0x59b3, 0x2077,
+        0xff9d, 0xff2f,
     ];
     pub const POX_8B_PRIMES: [u16; POX_8B_PRIME_NUM] = [
         0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29, 0x2b, 0x2f, 0x35,
@@ -30,10 +36,10 @@ mod consts {
     pub const POX_SINGLE_DIGIT_PRIMES: [u16; POX_SD_PRIME_NUM] = [0x3, 0x5, 0x7];
     pub const POX_MAGIC_PRIMES: [u16; POX_MAGIC_PRIME_NUM] = [0x33, 0x65];
 
-    pub const POX_PRIME_INIT_A: u16 = 0x9f91;
-    pub const POX_PRIME_INIT_B: u16 = 0xdb3b;
-    pub const POX_PRIME_INIT_C: u16 = 0xc091;
-    pub const POX_PRIME_INIT_D: u16 = 0xac8b;
+    pub const POX_PRIME_INIT_A: u16 = 0x17cb;
+    pub const POX_PRIME_INIT_B: u16 = 0x0371;
+    pub const POX_PRIME_INIT_C: u16 = 0x2419;
+    pub const POX_PRIME_INIT_D: u16 = 0xf223;
 
     pub const UINT16_MAX_U32: u32 = 65535;
     pub const UINT16_MAX_U16: u16 = 65535;
@@ -539,11 +545,11 @@ mod round {
 
     fn apply_prime(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
-        for i in 0..consts::POX_PRIME_INIT_NUM {
-            temp_array_cpy[0] ^= consts::POX_ROUND_PRIMES[i];
-            temp_array_cpy[1] &= consts::POX_ROUND_PRIMES[i];
-            temp_array_cpy[2] ^= consts::POX_ROUND_PRIMES[i];
-            temp_array_cpy[3] &= consts::POX_ROUND_PRIMES[i];
+        for i in 0..consts::POX_ROUND_PRIME_NUM {
+            temp_array_cpy[0] %= consts::POX_ROUND_PRIMES[i];
+            temp_array_cpy[1] %= consts::POX_ROUND_PRIMES[i];
+            temp_array_cpy[2] %= consts::POX_ROUND_PRIMES[i];
+            temp_array_cpy[3] %= consts::POX_ROUND_PRIMES[i];
         }
         temp_array_cpy
     }

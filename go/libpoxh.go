@@ -8,19 +8,19 @@
 package libpoxh
 
 const (
-	poxBLOCK_NUM       int = 64
+	poxROUND_PRIME_NUM int = 90
+	poxBLOCK_NUM           = 64
 	pox8B_PRIME_NUM        = 54
-	poxROUND_PRIME_NUM     = 32
+	poxROUND_NUM           = 31
 	poxCHUNK_NUM           = 16
-	poxROUND_NUM           = 64
 	poxPORTION_NUM         = 4
 	poxSD_PRIME_NUM        = 3
 	poxMAGIC_PRIME_NUM     = 2
 
-	poxPRIME_INIT_A uint16 = 0x9f91
-	poxPRIME_INIT_B        = 0xdb3b
-	poxPRIME_INIT_C        = 0xc091
-	poxPRIME_INIT_D        = 0xac8b
+	poxPRIME_INIT_A uint16 = 0x17cb
+	poxPRIME_INIT_B        = 0x0371
+	poxPRIME_INIT_C        = 0x2419
+	poxPRIME_INIT_D        = 0xf223
 
 	bitWORD_WIDTH_U16 uint16 = 16
 	bitBYTE_WIDTH_u16        = 8
@@ -68,24 +68,110 @@ const (
 )
 
 var (
-	poxROUND_PRIMES = [poxROUND_PRIME_NUM]uint16{0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
-		0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
-		0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
-		0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549}
+	poxROUND_PRIMES = [poxROUND_PRIME_NUM]uint16{0x0377,
+		0x0683,
+		0x05fb,
+		0x05fb,
+		0x0665,
+		0x074b,
+		0x036d,
+		0x033d,
+		0x0115,
+		0x07cf,
+		0x0e59,
+		0x0e75,
+		0x0a75,
+		0x119b,
+		0x1073,
+		0x12b3,
+		0x0fd1,
+		0x0a75,
+		0x0de7,
+		0x10bb,
+		0x18d1,
+		0x1c99,
+		0x1723,
+		0x1cc9,
+		0x20c3,
+		0x2327,
+		0x2063,
+		0x215b,
+		0x17e1,
+		0x22bd,
+		0xf2ff,
+		0xf50b,
+		0xf4af,
+		0xf2b3,
+		0xf5fb,
+		0xf4af,
+		0xf2b9,
+		0xf38b,
+		0xf4c3,
+		0xf5db,
+		0x1039,
+		0x1003,
+		0x0fa1,
+		0x0fa3,
+		0x0fa7,
+		0x8687,
+		0x80db,
+		0x86d1,
+		0x7fcd,
+		0x7f43,
+		0xa10b,
+		0x9e81,
+		0x9d15,
+		0xa289,
+		0xa279,
+		0x3e11,
+		0x3aa5,
+		0x3be3,
+		0x3daf,
+		0x3bff,
+		0xff8f,
+		0xff71,
+		0xfe03,
+		0xfe41,
+		0xfe05,
+		0xff2f,
+		0xfe7b,
+		0xfeb3,
+		0x0409,
+		0x0481,
+		0x1d7b,
+		0x1c4f,
+		0x1e6d,
+		0x1b7f,
+		0x1e71,
+		0xe875,
+		0xe2cd,
+		0xe351,
+		0xe363,
+		0xe329,
+		0x049d,
+		0x0427,
+		0xcbb3,
+		0x184d,
+		0x2ce1,
+		0x8861,
+		0x59b3,
+		0x2077,
+		0xff9d,
+		0xff2f}
 	pox8BPRIMES = [pox8B_PRIME_NUM]uint16{0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
 		0x2b, 0x2f, 0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61,
 		0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d,
 		0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3,
 		0xe5, 0xe9, 0xef, 0xf1, 0xfb}
-	poxMAGIC_PRIMES        = [...]uint16{0x33, 0x65}
 	poxSINGLE_DIGIT_PRIMES = [...]uint16{0x3, 0x5, 0x7}
+	poxMAGIC_PRIMES        = [...]uint16{0x33, 0x65}
 
 	iterCOMB_BIONOM = [numCOMB_BIONOM][2]int{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
 	iterRANGE_ZTF   = [numRANGE_ZTF]int{0, 1, 2, 3}
 
 	byteZERO_CHAR byte = 48
 
-	bytesCHAR_SEX = [60]byte{
+	bytesCHAR_SEX = [baseSEX_NUM]byte{
 		48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
 		65, 66, 67, 68, 69, 70, 71, 72, 73, 74,
 		75, 76, 77, 78, 79, 80, 81, 82, 83, 84,
@@ -94,10 +180,10 @@ var (
 		109, 110, 111, 112, 113, 114, 115, 116,
 		117, 118, 119, 120,
 	}
-	bytesCHAR_VIG = [20]byte{
+	bytesCHAR_VIG = [baseVIG_NUM]byte{
 		65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 64, 94, 38, 42, 36, 43, 33, 59, 58, 126,
 	}
-	bytesCHAR_HEX = [16]byte{
+	bytesCHAR_HEX = [baseHEX_NUM]byte{
 		48,
 		49,
 		50,
@@ -114,10 +200,10 @@ var (
 		68,
 		69,
 		70}
-	bytesCHAR_TET = [14]byte{
+	bytesCHAR_TET = [baseTET_NUM]byte{
 		48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 84, 69, 87, 82,
 	}
-	bytesCHAR_DUO = [12]byte{
+	bytesCHAR_DUO = [baseDUO_NUM]byte{
 		48,
 		49,
 		50,
@@ -130,7 +216,7 @@ var (
 		57,
 		42,
 		35}
-	bytesCHAR_OCT = [8]byte{
+	bytesCHAR_OCT = [baseOCT_NUM]byte{
 		48,
 		49,
 		50,
@@ -140,7 +226,7 @@ var (
 		54,
 		55,
 	}
-	bytesCHAR_SEN = [6]byte{
+	bytesCHAR_SEN = [baseSEN_NUM]byte{
 		48,
 		49,
 		50,
@@ -148,7 +234,7 @@ var (
 		52,
 		53,
 	}
-	bytesCHAR_BIN = [2]byte{48, 49}
+	bytesCHAR_BIN = [baseBIN_NUM]byte{48, 49}
 )
 
 type factorType [poxPORTION_NUM]uint16
@@ -560,10 +646,10 @@ func poxRoundApplyAlphabet(tempArray factorType) factorType {
 func poxRoundApplyPrime(tempArray factorType) factorType {
 	tempArrayCpy := copyWordArray(tempArray)
 	for i := 0; i < poxROUND_PRIME_NUM; i++ {
-		tempArrayCpy[0] ^= poxROUND_PRIMES[i]
-		tempArrayCpy[1] &= poxROUND_PRIMES[i]
-		tempArrayCpy[2] ^= poxROUND_PRIMES[i]
-		tempArrayCpy[3] &= poxROUND_PRIMES[i]
+		tempArrayCpy[0] %= poxROUND_PRIMES[i]
+		tempArrayCpy[1] %= poxROUND_PRIMES[i]
+		tempArrayCpy[2] %= poxROUND_PRIMES[i]
+		tempArrayCpy[3] %= poxROUND_PRIMES[i]
 	}
 
 	return tempArrayCpy
