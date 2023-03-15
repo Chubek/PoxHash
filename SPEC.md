@@ -1,7 +1,28 @@
 ```
-/ Pseudo-Code for PoxHash Block Algorithm by Chubak Bidpaa; March 2023
-/ Licensed Under GPLv3
-/ NOTE: This document is best viewable with a monospace font
+# Copyright (c) 2023 Chubak Bidpaa     
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy      
+# of this software and associated documentation files (the "Software"), to deal    
+# in the Software without restriction, including without limitation the rights      
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#  
+# The above copyright notice and this permission notice shall be included in all    
+# copies or substantial portions of the Software.
+# 
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+/ Pseudo-Code for PoxHash, a Block Hash Algorithm by Chubak Bidpaa; March 2023                        
+/ This document is best viewable with a monospace font
+/ NOTE: This document will contain characters from latin1 charset
 
 // PREFACE: CONVENTIONS
 // In thise document we define the following as:
@@ -57,27 +78,19 @@
     as <type> -> conversion to
 
     /// Array Operations
-    index -> The position of a value inside an array, we define as ra$ngi$ng from [0, +inf), indices are accessed by [] notation after an array name   
-    max, argmax -> maximum value inside an array, and its correspondi$ng index
-    min, argmin -> minimum value inside an array, and its correspondi$ng index
+    index -> The position of a value inside an array, we define as ranging from [0, +inf), indices are accessed by [] notation after an array name   
+    max, argmax -> maximum value inside an array, and its corresponding index
+    min, argmin -> minimum value inside an array, and its corresponding index
     range a, b -> Select a range of memebers from the array from indices a to b
     {ty, size} -> size and type
 
     /// Message Types
     char -> ASCII-encoded characters, for example 'char' in C or 'rune' in Go
-            +---------------------------+
-            | Ra$nge/Char | Ra$nge/Byte | 
-            | '0'...'9'  |    48..57    |
-            | 'A'...'Z'  |    65...90   | 
-            | 'a'...'z'  |    97...122  |
-            |    '*'     |      42      |
-            |    '#'     |      35      |
-            +---------------------------+
     bytearray -> A collection of i8 bytes, for example '[]bytes' in Go or 'bytearray' in Python
 
     /// Terminology
     message -> the byte array passed to the hasher
-    digest -> the resulti$ng hash, which can be in various forms
+    digest -> the resulting hash, which can be in various forms
     decimal-digests -> 
         bytes -> Each u16 factor divided in 2 u8s, a total of 8 bytes
         words -> The raw factors, all 4 of them
@@ -92,38 +105,96 @@
         octdigest -> The 4 factors in octal or base 8
         sendgiest -> The 4 factors in senary or base 6
         bindigest -> The 4 factors in binary or base 2
-    base-factors -> The array of size 4 containi$ng our 4 main word-size primes, of type u16
-    temp-factors -> A temporary version of our factors
+    base-factors -> The array of size 4 containing our 4 main word-size primes, of type u16
+        temp-factors -> A temporary version of our factors
     input-raw -> The raw input sequence of variable size.
     input-padded -> The raw input converted to u16 and padded with z$eores until its size is divisible by 64
-    block, block-size, block-array -> Block the hash operations on (which input-padded is divided to) and its size, which is 64
+        block, block-size, block-array -> Block the hash operations on (which input-padded is divided to) and its size, which is 64
     $chunk, $chunk-size -> Chunk the block is divided to and its size, which is 16
-    portion, portion-size, portion-array -> Portion the $chunk is divided to and its size, which is 4
+        portion, portion-size, portion-array -> Portion the $chunk is divided to and its size, which is 4
     round-num -> Number of rounds each portion is applied to the base-factors
-    round -> Applyi$ng scrambli$ng operations on base-factors    
+    round -> Applying scrambling operations on base-factors. A prime number has been chosen for it because
+        it because tests showed that a prime number of rounds is more beneficial towards universality.
     input-type -> The type of input to the hasher    
-    bespoke-operations -> Vanilla numeric operations with custom overflow handli$ng
+    bespoke-operations -> Vanilla numeric operations with custom overflow handling
     bitwise-operations -> Basic bitwise operations
-    alphabet-operations -> Scrambli$ng operations
-    round-methods -> Methods for applyi$ng input to factors, and scrambli$ng the factors
+    alphabet-operations -> Scrambling operations
+    round-methods -> Methods for applying input to factors, and scrambling the factors
     block-methods -> The main method that processes the block and applies the bytes
-    byte-application -> Applyi$ng the portion to base-factors
-    decimal-to-basen-conversion -> Converti$ng decimal base to base N
-    word-to-byte-conversion -> Converti$ng 4 words to 8 bytes
-    word-to-double0-conversion -> Converti$ng 4 words to 2 doubles
-    word-to-quad-conversion -> Converti$ng 4 words to 1 quad
-    endian-ness -> Whether the most significant bit of the integr is the leftmost bit, or the rightmost bit. As a simple example, let's take a look at '01'. In little-endian it's 1, but in big-endian it's 2. In PoxHash we treat everything as little-endian. 
+    byte-application -> Applying the portion to base-factors
+    decimal-to-basen-conversion -> Converting decimal base to base N
+    word-to-byte-conversion -> Converting 4 words to 8 bytes
+    word-to-double0-conversion -> Converting 4 words to 2 doubles
+    word-to-quad-conversion -> Converting 4 words to 1 quad
+    endian-ness -> Whether the most significant bit of the integr is the leftmost bit, or the rightmost 
+        bit. As a simple example, let's take a look at '01'. In little-endian it's 1, but in big-endian
+        it's 2. In PoxHash we treat everything as little-endian. 
+
+// PREFIX NOTATIONS
+    #  -> Numerical constant
+    [] -> Numerical array constant
+    ^^ -> Bit mask constant
+    0b -> Binary literal
+    0x -> Hexadecimal literal
+    @  -> Method
+    $  -> Variable
+    *  -> Array variable
 
 // PART A: CONSTANTS
 // In this document we will refer to several constant values, which are defined as below.
 
+    /// INITIAL PRIME NUMBERS
+    #PRIME_INIT_A is 0x17cb
+    #PRIME_INIT_B is 0x0371
+    #PRIME_INIT_C is 0x2419
+    #PRIME_INIT_D is 0xf223
+
+    /// SIZE CONSTANTS
+    #ROUND_PRIME_NUM is 90
+    #BLOCK_NUM is 64
+    ##8B_PRIME_NUM is 54
+    #ROUND_NUM is 31
+    #CHUNK_NUM is 16
+    #PORTION_NUM is 4
+    ##SD_PRIME_NUM is 3
+    #MAGIC_PRIME_NUM is 2
+
+    /// BIT-RELATED CONSTANTS
+    #WORD_WIDTH is 16
+    #BYTE_WIDTH is 8
+    #MAX_UINT16 is 65535
+
+    /// MASKS
+    ^^DWORD_4F4Z is 0xffff0000
+    ^^DWORD_4Z4F is 0x0000ffff
+    ^^WORD_FZFZ is 0xf0f0
+    ^^WORD_ZFZF is 0x0f0f
+    ^^WORD_FZZZ is 0xf000
+    ^^WORD_ZZFZ is 0x00f0
+    ^^WORD_ZZZF is 0x000f
+    ^^WORD_ZZFF is 0x00ff
+    ^^WORD_FFZZ is 0xff00
+    ^^WORD_FZZF is 0xf00f
+    ^^WORD_FFFZ is 0xfff0
+    ^^WORD_ZFFF is 0x0fff
+    ^^NIBBLET_01 is 0b01
+    ^^NIBBLET_10 is 0b10
+    ^^NIBBLET_11 is 0b11
+    ^^NIBBLET_00 is 0b00
+
     /// PRIME ARRAYS
     /// WARNING: INDEX-SENSITIVE!
     []ROUND_PRIMES {u16, 32}[
-        0xe537, 0xbd71, 0x9ef9, 0xbbcf, 0xf8dd, 0xceb7, 0xbaa1, 0x8f9f, 0xb0ed,
-        0xfc4f, 0x9787, 0xf01f, 0xe1d1, 0xbcb9, 0xd565, 0xc011, 0xc1e1, 0xb58d,
-        0xd4e1, 0x9ea1, 0xee49, 0x97cd, 0xdac9, 0xe257, 0xa32b, 0xafbb, 0xa5e3,
-        0xfc43, 0xbf71, 0xe401, 0x8ebd, 0xd549
+            0x0377, 0x0683, 0x05fb, 0x05fb, 0x0665, 0x074b, 0x036d, 0x033d, 0x0115,
+            0x07cf, 0x0e59, 0x0e75, 0x0a75, 0x119b, 0x1073, 0x12b3, 0x0fd1, 0x0a75,
+            0x0de7, 0x10bb, 0x18d1, 0x1c99, 0x1723, 0x1cc9, 0x20c3, 0x2327, 0x2063,
+            0x215b, 0x17e1, 0x22bd, 0xf2ff, 0xf50b, 0xf4af, 0xf2b3, 0xf5fb, 0xf4af,
+            0xf2b9, 0xf38b, 0xf4c3, 0xf5db, 0x1039, 0x1003, 0x0fa1, 0x0fa3, 0x0fa7,
+            0x8687, 0x80db, 0x86d1, 0x7fcd, 0x7f43, 0xa10b, 0x9e81, 0x9d15, 0xa289,
+            0xa279, 0x3e11, 0x3aa5, 0x3be3, 0x3daf, 0x3bff, 0xff8f, 0xff71, 0xfe03,
+            0xfe41, 0xfe05, 0xff2f, 0xfe7b, 0xfeb3, 0x0409, 0x0481, 0x1d7b, 0x1c4f,
+            0x1e6d, 0x1b7f, 0x1e71, 0xe875, 0xe2cd, 0xe351, 0xe363, 0xe329, 0x049d,
+            0x0427, 0xcbb3, 0x184d, 0x2ce1, 0x8861, 0x59b3, 0x2077, 0xff9d, 0xff2f,
     ]
     []8B_PRIMES {u16, 54}[
         0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29,
@@ -139,45 +210,6 @@
         0x3, 0x5, 0x7,
     ]
 
-    /// INITIAL PRIME NUMBERS
-    #PRIME_INIT_A is 0x9f91
-    #PRIME_INIT_B is 0xdb3b
-    #PRIME_INIT_C is 0xc091
-    #PRIME_INIT_D is 0xac8b
-
-    /// SIZE CONSTANTS
-    #BLOCK_NUM is 64
-    #8B_PRIME_NUM is 54
-    #ROUND_PRIME_NUM is 32
-    #CHUNK_NUM is 16
-    #ROUND_NUM is 8
-    #PORTION_NUM is 4
-    ##SD_PRIME_NUM is 3
-    #MAGIC_PRIME_NUM is 2
-
-    /// BIT-RELATED CONSTANTS
-    #WORD_WIDTH is 16
-    #BYTE_WIDTH is 8
-    #MAX_UINT16 is 65535
-
-    /// MASKS
-    xMASK_DWORD_4F4Z is 0xffff0000
-    xMASK_DWORD_4Z4F is 0x0000ffff
-    xMASK_WORD_FZFZ is 0xf0f0
-    xMASK_WORD_ZFZF is 0x0f0f
-    xMASK_WORD_FZZZ is 0xf000
-    xMASK_WORD_ZZFZ is 0x00f0
-    xMASK_WORD_ZZZF is 0x000f
-    xMASK_WORD_ZZFF is 0x00ff
-    xMASK_WORD_FFZZ is 0xff00
-    xMASK_WORD_FZZF is 0xf00f
-    xMASK_WORD_FFFZ is 0xfff0
-    xMASK_WORD_ZFFF is 0x0fff
-    xMASK_NIBBLET_01 is 0b01
-    xMASK_NIBBLET_10 is 0b10
-    xMASK_NIBBLET_11 is 0b11
-    xMASK_NIBBLET_00 is 0b00
-
     /// MISC
     //// These are the result of bionomial coefficients of 4 to 2
     []COMB_BIONOM {(int, int), 32}[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
@@ -186,8 +218,8 @@
 // PART B: BITWISE OPERATIONS
 // We use several bitwise operations in our bitwise operations, as follows:
 
-    @OMEGA(u32 $num) -> ret ($num and xMASK_DWORD_4F4Z) shr #WORD_WIDTH
-    @EPSILON(u32 $num) -> ret $num and xMASK_DWORD_4Z4F
+    @OMEGA(u32 $num) -> ret ($num and ^^DWORD_4F4Z) shr #WORD_WIDTH
+    @EPSILON(u32 $num) -> ret $num and ^^DWORD_4Z4F
     /// Basically, bitwise rotation of 16-bits
     @LAMED(u32 $num, $by) -> ret ($num shl $by) or ($num shr (#WORD_WIDTH sub $by))
 
@@ -202,7 +234,7 @@
         ret $var as u16
 
     /// add with overflow in mind
-    @TASU( $a, $b) ->
+    @TASU(u16 $a, $b) ->
         $vara, $varb instantiate-with $a and $b as u32
         $varc instantiate-with $vara add $varb
         $var assign-with @EPSILON($varc) if $varc gt #MAX_UINT16
@@ -240,138 +272,148 @@
         $dca = @EPSILON($$dca) if $$dca gt #MAX_UINT16
         ret $$dca as u16
 
-    /// getti$ng the 8-bit prime at index
-    @GET-8B-PRIME(u16 $num) -> ret []8B_PRIEMS[$num mod #8B_PRIME_NUM]
+    /// getting the 8-bit prime at index
+    @GET-8B-PRIME(u16 $num) -> ret []8B_PRIEMS[$num mod ##8B_PRIME_NUM]
 
 // PART D: ALPHABET OPERATIONS
 // These are the bread and butter operations of PoxHash. Implement them carefully!
 
     /// Operation ALPHA is focused on bitwise operations to scramble the message
-    @ALPHA(mutarg temp-factors $tmp) ->
-        $aleph instantiate-with ($tmp[0] xor $tmp[1]) and xMASK_WORD_ZZFF
-        $daal instantiate-with ($tmp[2] xor $tmp[3]) and xMASK_WORD_FFZZ
-        $theh instantiate-with (aleph or daal) mod []8B_PRIMES[0]
-        $gaaf instantiate-with (aleph xor daal) mod []8B_PRIMES[1]
+    @ALPHA(mutarg temp-factors *tmp) ->
+        $aleph instantiate-with (*tmp[0] xor *tmp[1]) and ^^WORD_ZZFF
+        $daal instantiate-with (*tmp[2] xor *tmp[3]) and ^^WORD_FFZZ
+        $theh instantiate-with (aleph or daal) mod [][]8B_PRIMES[0]
+        $gaaf instantiate-with (aleph xor daal) mod [][]8B_PRIMES[1]
 
-        $tmp[0] assign-with $tmp[0] shr $theh
-        $tmp[1] assign-with $tmp[1] shr (($theh mod 2) add 1)
-        $tmp[2] assign-with $tmp[2] shr gaaf
+        *tmp[0] assign-with *tmp[0] shr $theh
+        *tmp[1] assign-with *tmp[1] shr (($theh mod 2) add 1)
+        *tmp[2] assign-with *tmp[2] shr gaaf
 
     /// Operation DELTA is also focused on bitwise ops, but in a more involved way plus a loop
-    @DELTA(mutarg temp-factors $tmp) ->
-        $alaf instantiate-with ($tmp[0] mod xMASK_WORD_FFFZ) mod GET-8B-PRIME($tmp[0])
-        $dalat instantiate-with ($tmp[1] xor xMASK_WORD_FZZF) mod GET-8B-PRIME($tmp[1])
-        $tit instantiate-with ($tmp[2] and xMASK_WORD_ZFFF) mod GET-8B-PRIME($tmp[2])
-        $gaman instantiate-with ($tmp[3] and xMASK_WORD_FFZZ) mod GET-8B-PRIME($tmp[3])
+    @DELTA(mutarg temp-factors *tmp) ->
+        $alaf instantiate-with (*tmp[0] mod ^^WORD_FFFZ) mod GET-8B-PRIME(*tmp[0])
+        $dalat instantiate-with (*tmp[1] xor ^^WORD_FZZF) mod GET-8B-PRIME(*tmp[1])
+        $tit instantiate-with (*tmp[2] and ^^WORD_ZFFF) mod GET-8B-PRIME(*tmp[2])
+        $gaman instantiate-with (*tmp[3] and ^^WORD_FFZZ) mod GET-8B-PRIME(*tmp[3])
 
         for #PORTION_NUM times loop:
             $alaf assign-with $alaf shr []SINGLE_DIGIT_PRIMES[$dalat mod #SD_PRIME_NUM]
             $dalat assign-with GORDA($dalat, 2)
             $tit assign-with $tit shr []SINGLE_DIGIT_PRIMES[$gaman mod #SD_PRIME_NUM]
-            $gaman assign-with $gaman xor (($alaf ^ xMASK_WORD_ZZFF) shr []SINGLE_DIGIT_PRIMES[$tit mod #SD_PRIME_NUM])
+            $gaman assign-with $gaman xor (($alaf ^ ^^WORD_ZZFF) shr []SINGLE_DIGIT_PRIMES[$tit mod #SD_PRIME_NUM])
 
-        $tmp[1] assign-with $tmp[1] xor ($tmp[2] mod []MAGIC_PRIMES[$alaf mod #MAGIC_PRIME_NUM])
-        $tmp[2] assign-with $tmp[2] xor ($alaf add $tit)
-        $tmp[3] assign-with $tmp[3] xor ($tit add $gaman)
+        *tmp[1] assign-with *tmp[1] xor (*tmp[2] mod []MAGIC_PRIMES[$alaf mod #MAGIC_PRIME_NUM])
+        *tmp[2] assign-with *tmp[2] xor ($alaf add $tit)
+        *tmp[3] assign-with *tmp[3] xor ($tit add $gaman)
     
     /// Operation THETA leverages weighted operations to scamble the message
-    @THETA(mutarg temp-factors $tmp) ->
-        $alef instantiate-with $tmp[0] mod 2
-        $dalet instantiate-with $tmp[1] mod 2
-        $tet instantiate-with $tmp[2] mod 2
-        $gimmel instantiate-with $tmp[3] mod 2
+    @THETA(mutarg temp-factors *tmp) ->
+        $alef instantiate-with *tmp[0] mod 2
+        $dalet instantiate-with *tmp[1] mod 2
+        $tet instantiate-with *tmp[2] mod 2
+        $gimmel instantiate-with *tmp[3] mod 2
 
-        $ctm instantiate-with CENTUM($tmp, word-array([$alef, $dalet, $tet, $gimmel]))
-        $stm instantiate-with SATEM($tmp, word-array([$alef, $dalet, $tet, $gimmel]))
+        $ctm instantiate-with CENTUM(*tmp, word-array([$alef, $dalet, $tet, $gimmel]))
+        $stm instantiate-with SATEM(*tmp, word-array([$alef, $dalet, $tet, $gimmel]))
 
-        $tmp[0] assign-with $tmp[0] xor ((($ctm shr $gimmel) xor xMASK_WORD_ZZFF) and xMASK_WORD_ZZZF)
-        $tmp[3] assign-with $tmp[3 xor ((($stm shl $alef) xor xMASK_WORD_FZFZ) and xMASK_WORD_FZZZ)
+        *tmp[0] assign-with *tmp[0] xor ((($ctm shr $gimmel) xor ^^WORD_ZZFF) and ^^WORD_ZZZF)
+        *tmp[3] assign-with *tmp[3 xor ((($stm shl $alef) xor ^^WORD_FZFZ) and ^^WORD_FZZZ)
 
     /// Operation GAMMA uses $argmin and $argmax to scramble the message
-    @GAMMA(mutarg temp-factors $tmp) ->
-        $argmin, $min instantiate-with argmin and min of $tmp
-        $argmax, $max instantiate-with argmax and max of $tmp
+    @GAMMA(mutarg temp-factors *tmp) ->
+        $argmin, $min instantiate-with argmin and min of *tmp
+        $argmax, $max instantiate-with argmax and max of *tmp
 
-        $ay instantiate-with $argmin and xMASK_NIBBLET_01
-        $dee instantiate-with  $argmax xor xMASK_NIBBLET_10
-        $thorn instantiate-with $argmin and xMASK_NIBBLET_11
-        $gee instantiate-with $argmax xor xMASK_NIBBLET_00
+        $ay instantiate-with $argmin and ^^NIBBLET_01
+        $dee instantiate-with  $argmax xor ^^NIBBLET_10
+        $thorn instantiate-with $argmin and ^^NIBBLET_11
+        $gee instantiate-with $argmax xor ^^NIBBLET_00
 
-        $alaph instantiate-with $tmp[$ay] mod GET-8B-PRIME($tmp[$thorn])
-        $dalath instantiate-with (GET-8B-PRIME($max) xor xMASK_WORD_ZFZF) mod GET-8B-PRIME($min)
+        $alaph instantiate-with *tmp[$ay] mod GET-8B-PRIME(*tmp[$thorn])
+        $dalath instantiate-with (GET-8B-PRIME($max) xor ^^WORD_ZFZF) mod GET-8B-PRIME($min)
         $teth instantiate-with $max mod GET-8B-PRIME($max)
-        $gamal instantiate-with $tmp[$dee] mod GET-8B-PRIME(($min add $max) idiv 2)
+        $gamal instantiate-with *tmp[$dee] mod GET-8B-PRIME(($min add $max) idiv 2)
 
-        $tmp[$ay] assign-with $tmp[$ay] xhr (($alaph xor xMASK_WORD_ZZFZ) mod WORD_WIDTH)
-        $tmp[$dee] assign-with $tmp[$dee] shr (($gamal xor xMASK_WORD_FZZZ) mod (($max mod 2) add 1))
-        $tmp[$thorn] assign-with $tmp[$thorn] xor (log2N($dalath) and xMASK_WORD_ZFFF)
-        $tmp[$gee] assign-with  $tmp[$gee] xor (log2N($teth) shr (($gamal mod 2) add 1))
+        *tmp[$ay] assign-with *tmp[$ay] xhr (($alaph xor ^^WORD_ZZFZ) mod WORD_WIDTH)
+        *tmp[$dee] assign-with *tmp[$dee] shr (($gamal xor ^^WORD_FZZZ) mod (($max mod 2) add 1))
+        *tmp[$thorn] assign-with *tmp[$thorn] xor (log2N($dalath) and ^^WORD_ZFFF)
+        *tmp[$gee] assign-with  *tmp[$gee] xor (log2N($teth) shr (($gamal mod 2) add 1))
 
 // PART E: ROUND METHODS
 // In round methods we apply the ALPHABET OPERATIONS, shuffle around the factors, and apply the []ROUND_PRIMES. We do all these on temporary copy of the factors array, and then use the TASU method to add them up.
 
     /// Apply ALPBET OPERATIONS in order
-    @APPLY_ALPHABET(mutarg temp-factors $tmp) ->
-        @ALPHA($tmp)
-        @DELTA($tmp)
-        @THETA($tmp)
-        @GAMMA($tmp)
+    @APPLY_ALPHABET(mutarg temp-factors *tmp) ->
+        @ALPHA(*tmp)
+        @DELTA(*tmp)
+        @THETA(*tmp)
+        @GAMMA(*tmp)
 
     /// Apply the []ROUND_PRIMES array to temporary factors
-    @APPLY_ROUND_PRIME(mutarg temp-factors $tmp) ->
+    @APPLY_ROUND_PRIME(mutarg temp-factors *tmp) ->
         for i in 0...#ROUND_PRIME_NUM:
-            $tmp[0] assign-with $tmp[0] xor []ROUND_PRIMES[i]
-            $tmp[1] assign-with $tmp[1] and []ROUND_PRIMES[i]
-            $tmp[2] assign-with $tmp[2] xor []ROUND_PRIMES[i]
-            $tmp[3] assign-with $tmp[3] and []ROUND_PRIMES[i]
+            *tmp[0] assign-with *tmp[0] mod []ROUND_PRIMES[i]
+            *tmp[1] assign-with *tmp[1] mod []ROUND_PRIMES[i]
+            *tmp[2] assign-with *tmp[2] mod []ROUND_PRIMES[i]
+            *tmp[3] assign-with *tmp[3] mod []ROUND_PRIMES[i]
 
     /// Shuffle the array around a bit with C(4, 2) as indices
-    @APPLY_SHUFFLE(mutarg temp-array $tmp) ->
+    @APPLY_SHUFFLE(mutarg temp-array *tmp) ->
         for i in 0...#COMB_BIONOM_SIZE: 
             $iof, $iwith assign-with expand []COMB_BIONOM[i]
-            swap $tmp[$iof] with $tmp[$iwith]
+            swap *tmp[$iof] with *tmp[$iwith]
 
     /// Add temporary factors to base-factors
-    @APPLY_ADD_TEMPORARY(mutarg base-array $base, temp-array $tmp) ->
+    @APPLY_ADD_TEMPORARY(mutarg base-array *base, temp-array *tmp) ->
         for i in 0...#PORTION_NUM:
-            $base[i] assign-with TASU($base[i], $tmp[i])
+            *base[i] assign-with TASU(*base[i], *tmp[i])
 
     /// The final roud operation
-    @APPLY_ROUND(mutarg base-array $base) ->
-        $tmp assign-with copy of $base
-        @APPLY_ALPHABET($tmp)
-        @APPLY_ROUND_PRIME($tmp)
-        @APPLY_SHUFFLE($tmp)
-        @APPLY_ADD_TEMPORARY($base, $tmp)
+    @APPLY_ROUND(mutarg base-array *base) ->
+        *tmp assign-with copy of *base
+        @APPLY_ALPHABET(*tmp)
+        @APPLY_ROUND_PRIME(*tmp)
+        @APPLY_SHUFFLE(*tmp)
+        @APPLY_ADD_TEMPORARY(*base, *tmp)
 
 // PART F: BLOCK METHODS
 // Below are the methods that happen at every block
     
     /// This operation applies the portion to the base factors at every round
-    @APPLY_BYTES_TO_FACTORS(base-factors $base, portion-array $portion, word index) ->
-        $tmt instantiate-with TAMAAM($portion)
-        $dca instantiate-with DECA($portion)
-        $tmtOddFactor instantiate-with #MAX_UINT16 mul ($tmt mod 2)
-        $dcaOddFactor instantiate-with #MAX_UINT16 mul ($dca mod 2)
+    @APPLY_BYTES_TO_FACTORS(base-factors *base, portion-array *portion, word index) ->
+        $tmt instantiate-with TAMAAM(*portion)
+        $dca instantiate-with DECA(*portion)
+        $tmtOddFactor instantiate-with #MAX_UINT16 xor ($tmt mod 4)
+        $dcaOddFactor instantiate-with #MAX_UINT16 xor ($dca mod 3)
 
-        $ng assign-with ($portion[0] add index) mod #PORTION_NUM)
-        $chu assign-with ($portion[1] add index) mod #PORTION_NUM)
-        $yo assign-with ($portion[2] add index) mod #PORTION_NUM)
-        $eo assign-with ($portion[3] add index) mod #PORTION_NUM)
+        $ng assign-with (*portion[0] add index) mod #PORTION_NUM)
+        $chu assign-with (*portion[1] add index) mod #PORTION_NUM)
+        $yo assign-with (*portion[2] add index) mod #PORTION_NUM)
+        $eo assign-with (*portion[3] add index) mod #PORTION_NUM)
 
-        $base[$ng] assign-with $base[$ng] xor (($portion[$eo] or $tmt) xor $dca_odd_factor)
-        $base[$chu] assign-with $base[$chu] xor (($portion[$yo] and $dca) xor $tmt_odd_factor)
-        $base[$yo] assign-with $base[$yo] xor (($portion[$chu] xor $tmt) xor $dca_odd_factor)
-        $base[$eo] assign-with $base[$eo] xor (($portion[$ng] or $dca) xor $tmt_odd_factor)
+        $zam instantiate-with *portion[0] % []8B_PRIMES[*portion[chu] % #8B_PRIME_NUM]
+        $pez instantiate-with *portion[1] % []8B_PRIMES[*portion[yo] % #8B_PRIME_NUM]
+        $dit instantiate-with *portion[2] % []8B_PRIMES[*portion[eo] % #8B_PRIME_NUM]
+        $kit instantiate-with *portion[3] % []8B_PRIMES[*portion[ng] % #8B_PRIME_NUM]
+
+        *base[$ng] assign-with *base[$ng] xor (((*portion[$eo] shr chur) or $tmt) xor $dca_odd_factor) or $zam
+        *base[$chu] assign-with *base[$chu] xor ((*portion[$yo] and $dca) xor $tmt_odd_factor) xor $pez
+        *base[$yo] assign-with *base[$yo] xor ((*portion[$chu] xor $tmt) xor $dca_odd_factor) or $dit
+        *base[$eo] assign-with *base[$eo] xor (((*portion[ng] shr yo) or $dca) xor $tmt_odd_factor) xor $kit
+
+        *base*[0] assign-with *base*[0] shr (*portion[3] mod (ng add 1))
+        *base*[1] assign-with *base*[1] shr (*portion[2] mod (chu add 1))
+        *base*[2] assign-with *base*[2] xor (*portion[1] shr (dca mod 2))
+        *base*[3] assign-with *base*[0] shr (*portion[0] mod (eo add 1))
 
     /// The main process block loop
-    @PROCESS_BLOCK(base-factors $base, block-array $block) ->
+    @PROCESS_BLOCK(base-factors *base, block-array $block) ->
         for i in 0...#BLOCK_NUM step #CHUNK_SIZE:
             for j in i...i + #CHUNK_SIZE step #PORTION_NUM:
-                $portion instantiate-with $block range j, j + #PORTION_NUM
+                *portion instantiate-with $block range j, j + #PORTION_NUM
                 for m in 0...#ROUND_NUM:
-                    @APPLY_BYTES_TO_FACTORS($base, $portion)
-                    @APPLY_ROUND($base)
+                    @APPLY_BYTES_TO_FACTORS(*base, *portion)
+                    @APPLY_ROUND(*base)
 
 // PART G: CONVERSION & PREPARATION PREP METHODS
 // In this part we'll take a look at methods of converting from decimal to other bases, preparing the input, changing bit unit, and so on
@@ -392,12 +434,12 @@
     /// '0b0000000011100010', in C they are flipped on! As in '0b1111111111100010'. So be careful with that.
     
     /// PADDING
-    /// The resulting u'16 sequence must be padded until its size is divislbe by #BLOCK_SIZE. After you
+    /// The resulting u16 sequence must be padded until its size is divislbe by #BLOCK_SIZE. After you
     /// have gained that size using modulo operation, you have to pad it with 0s. Be careful that your
     /// data container is not smashing a loose pointer, has enough size, etc.
 
     /// PART G.2: WORD DIGEST CONVERSION METHODS
-    /// The final 4 uint16 factors are the digest of PoxHash. They can be converted into as many 
+    /// The final 4 u16 factors are the digest of PoxHash. They can be converted into as many 
     /// representations as the field of numerical studiges allows, or even beyond! But let's focus 
     /// on the representations that we have in the formal implementations. They are sexdigest, hexdigest, 
     /// duodigest, octdigest, bindgiest, bytes, doubles, quad and finally the words which are the factors 
@@ -406,8 +448,8 @@
         //// Run once on all factors
         @WORD_TO_BYTE(u16 $word) ->
             $lowerByte, $upperByte instantiate-with 0'u8
-            $lowerByte assign-with $word and xMASK_WORD_ZZFF
-            $upperByte assign-with ($word and xMASK_WORD_FFZZ) shr #BYTE_WIDTH
+            $lowerByte assign-with $word and ^^WORD_ZZFF
+            $upperByte assign-with ($word and ^^WORD_FFZZ) shr #BYTE_WIDTH
 
             ret $lowerByte, $upperByte
 
@@ -501,22 +543,71 @@
 
         //// Octal, senary and binary are 0-7, 0-5 and 0-1 respectively.
         
-        //// Number of digits of #MAX_UINT16 in these bases:
-            +----------------------+
-            | Sexagesimal  |   3   |
-            | Vigesimal    |   4   |
-            | Hexadecimal  |   4   |
-            | Tetradecimal |   5   |
-            | Duodecimal   |   5   |
-            | Octal        |   6   |
-            | Senary       |   7   |
-            | Binary       |   16  |
-            +----------------------+
-        //// Note: if the factor must be padded by the equivalent of digit 0
-        //// in that base
-        
+        //// Number of digits of #MAX_UINT16 in these bases and total size of hash in them:
+            
+            +-------------------------------+
+            |    Base      |  Size | T.Size |
+            +----------------------+--------+
+            | Sexagesimal  |   3   |   12   |
+            | Vigesimal    |   4   |   16   |
+            | Hexadecimal  |   4   |   16   |
+            | Tetradecimal |   5   |   20   |
+            | Duodecimal   |   5   |   20   |
+            | Octal        |   6   |   24   |
+            | Senary       |   7   |   28   |
+            | Binary       |   16  |   64   |
+            +----------------------+--------+
+        //// Note: if the digest must be padded by the equivalent of digit 0 in that base
+
+// POXHASH SAMPLES
+/// The following table will show sample hashes in various forms for several bytesarrays.
+/// Node: bytearray digits are in hexadecimal.
+
+             Charstring           ASCI Bytes             Pox Hexdigest       
+              PoxHash         50 6f 78 48 61 73 68      C28BDAFFCCD40526
+              QoxHash         51 6f 78 48 61 73 68      FB441271DAED0056
+              oPxHash         6f 50 78 48 61 73 68      C7E81CB4D222EBE5
+              OoxHash         4f 6f 78 48 61 73 68      BA3221948193E9D5
+              29-221          32 39 2d 32 32 31         D89FEC31CD86BB35
+              29-231          32 39 2d 32 33 31         E15BDBF46DAE5109
+              Felix           46 65 6c 69 78            93D9E06FD6CFC2DA
+              Feliz           46 65 6c 69 7a            8A11D66FC211E7BE
+              Tanami          54 61 6e 61 6d 69         3641F6F8D849AA04
+              Tanammi         54 61 6e 61 6d 6d 69      99F13D64CE45153E
+              000000          30 30 30 30 30 30         168803FDDD1DCCE9
+              000001          30 30 30 30 30 31         B999EEE4DA2DACF5 
+
+/// Longer messages
+
+    Message (ex. quotes): "Xmas! #jubliant was trending. Eli called 123-456-HAPPY!? to be happy. A $20 bill was hanging from the ceiling & today was a good day to catch some Zzzs at the pool ^_^"   
+    Hexdigest -> 3873579228EE6868
+    Now a slight change (3 to 4): "Xmas! #jubliant was trending. Eli called 124-456-HAPPY!? to be happy. A $20 bill was hanging from the ceiling & today was a good day to catch some Zzzs at the pool ^_^"
+    Hexdigest -> 3E745203845B706B
+
+    The HTML page for www.example.com: 5D485D326ADE5220
+    Same page, with "<html>" changed to "<htlm>": 65925A228BE3423D
+
+    The RFC for HTTP 1.1 text file: https://www.ietf.org/rfc/rfc2616.txt
+    Intact: E8F8CCD71D80CEA4
+    With 'must-revalidate' which appears only once change to 'must-ervalidate': E3C6E071187CD358
+    With the same string changed to 'must-revalidbte': F3E8D234423EBE97
+
+    Unicode encoded in UTF-8:
+    'ƿʘϰႹᗅⓈĦ' -> 2DF8AB56B29A0BC0
+    'پاکس هش'  -> D922E6147C9CA6E6
+    'پاکش هش'  -> F22BDEBEB066AEC1
+
+    PoxHash in EBCDIC is 0xD7, 0x96, 0xA7, 0xC8, 0x81, 0xA2, 0x88
+    Hexdigest for this byte sequence is: C327DD41CE586407
+
+    Byte Sequences:
+    [0x00, 0x00] -> 1474F230D6D1CDEC
+    [0x01, 0x00] -> E4170016DBDE32E5
+    [0x00, 0x01] -> E5B5FC44DCA9CF55
+
+
 / Finished version 1 of the PoxHash specs. 
-/ Please report all errors to Chubak#7400 on Discord
+/ Please report all errors and suggestions to Chubak#7400 on Discord
 / Or chubakbidpaa@gmail.com
 / Or @bidpaafx on Telegram
 / Thanks and have nice day!
