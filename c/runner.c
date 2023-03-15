@@ -1,5 +1,5 @@
-#ifndef __EXAMPLE_C
-#define __EXAMPLE_C
+#ifndef __RUNNER_C
+#define __RUNNER_C
 
 #ifndef _POXIX_C_SOURCE
 #define _POSIX_C_SOURCE 199309L
@@ -17,6 +17,18 @@
 #define __INCLUDE_LIBPOX
 #include "libpoxh.h"
 #endif
+#ifndef __INCLUDE_UNISTD
+#define __INCLUDE_UNISTD
+#include <unistd.h>
+#endif
+#ifndef __INCLUDE_TYPES
+#define __INCLUDE_TYPES
+#include <sys/types.h>
+#endif
+#ifndef __INCLUDE_STAT
+#define __INCLUDE_STAT
+#include <sys/stat.h>
+#endif
 
 #define SEC_TO_US(sec) ((sec)*1000000)
 #define NS_TO_US(ns) ((ns) / 1000)
@@ -29,6 +41,7 @@
 #define NUM_ASCII 128
 #define LEN_WRONG_FLAGS 30
 #define BENCHMARK_BYTE_INDEX 94
+#define FILE_DENOTE_LEN 5
 
 #define ERR_OUT(message)                                                                        \
     printf("\n");                                                                               \
@@ -60,6 +73,14 @@ typedef enum FLAGS
     FLAG_DASH = '-',
     FLAG_NHEADER = 'z',
 } flag_t;
+
+const char cFILE_DENOTE_PREFIX[FILE_DENOTE_LEN] = {
+    'f',
+    'i',
+    'l',
+    'e',
+    '=',
+};
 
 const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
     {'G', 'g'},
@@ -371,33 +392,6 @@ int validate_flags(int argc, char **argv)
     return len_flags;
 }
 
-char *join_args(int argc, char **argv)
-{
-    int final_len = 0;
-    for (int i = 2; i < argc; i++)
-    {
-        final_len += strlen(argv[i]);
-        final_len += 1;
-    }
-
-    char *ret = (char *)malloc(final_len);
-    memset(ret, SPACE, final_len - 1);
-    ret[final_len - 1] = 0;
-    int curr_len = 0;
-    int ret_cursor = 0;
-    for (int i = 2; i < argc; i++)
-    {
-        curr_len = strlen(argv[i]);
-        for (int j = 0; j < curr_len; j++)
-        {
-            ret[ret_cursor++] = argv[i][j];
-        }
-        ++ret_cursor;
-    }
-
-    return ret;
-}
-
 uint64_t get_time_in_us()
 {
     struct timespec ts;
@@ -514,11 +508,113 @@ uint8_t *char_to_uint8(char *carr)
     return ret;
 }
 
+int assert_file(char *message_arg)
+{
+    if (strlen(message_arg) < FILE_DENOTE_LEN + 1)
+    {
+        return 0;
+    }
+    for (int i = 0; i < FILE_DENOTE_LEN; i++)
+    {
+        if (message_arg[i] != cFILE_DENOTE_PREFIX[i])
+            return 0;
+    }
+    return 1;
+}
+
+char *join_args(int argc, char **argv)
+{
+    int final_len = 0;
+    for (int i = 2; i < argc; i++)
+    {
+        final_len += strlen(argv[i]);
+        final_len += 1;
+    }
+
+    char *ret = (char *)malloc(final_len);
+    memset(ret, SPACE, final_len - 1);
+    ret[final_len - 1] = 0;
+    int curr_len = 0;
+    int ret_cursor = 0;
+    int warned = 0;
+    for (int i = 2; i < argc; i++)
+    {
+        if (assert_file(argv[i]) && !warned)
+        {
+            printf("\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n");
+            warned = 1;
+        }
+        curr_len = strlen(argv[i]);
+        for (int j = 0; j < curr_len; j++)
+        {
+            ret[ret_cursor++] = argv[i][j];
+        }
+        ++ret_cursor;
+    }
+
+    return ret;
+}
+
+int is_regular_file(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);
+}
+
+uint8_t *read_given_file(char *fpath)
+{
+    FILE *fptr;
+    long barray_len;
+    uint8_t *bytearray;
+
+    if (!is_regular_file((const char *)fpath))
+    {
+        ERR_OUT("Specfied file does not exist, or a directory. Pass `+` with only one argument to ignore");
+    }
+
+    fptr = fopen(fpath, "rb");
+
+    fseek(fptr, 0, SEEK_END);
+    barray_len = ftell(fptr);
+    rewind(fptr);
+
+    bytearray = calloc(barray_len + 1, sizeof(uint8_t));
+    fread(bytearray, 1, barray_len, fptr);
+    bytearray[barray_len] = '\0';
+
+    fclose(fptr);
+
+    return bytearray;
+}
+
+char *truncate_denotation(char *arg)
+{
+    size_t size = (strlen(arg) - FILE_DENOTE_LEN) + 1;
+    char *ret = calloc(size, sizeof(char));
+    memcpy(ret, &arg[FILE_DENOTE_LEN], size);
+    return ret;
+}
+
+uint8_t *process_arg(char *arg)
+{
+    if (!assert_file(arg))
+    {
+        return char_to_uint8(arg);
+    }
+
+    char *fpath = truncate_denotation(arg);
+    uint8_t *contents = read_given_file(fpath);
+    free(fpath);
+    return contents;
+}
+
 int main(int argc, char **argv)
 {
     int len_flags = validate_flags(argc, argv);
 
-    if (!arg_has_flag(argv[1], len_flags, FLAG_NHEADER)) {
+    if (!arg_has_flag(argv[1], len_flags, FLAG_NHEADER))
+    {
         printf("\033[1;30;47mPoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
     }
 
@@ -543,7 +639,7 @@ int main(int argc, char **argv)
         for (int i = 2; i < argc; i++)
         {
             t1 = get_time_in_us();
-            uint8_t *arg_uint8 = char_to_uint8(argv[i]);
+            uint8_t *arg_uint8 = process_arg(argv[i]);
             hashes[cursor++] = pox_hash(arg_uint8);
             t2 = get_time_in_us();
             free(arg_uint8);

@@ -35,6 +35,9 @@ const
   FLAG_DASH = '-'
   FLAG_NHEADER = 'z'
 
+  FILE_PREFIX = "file="
+  FILE_PREFIX_LEN = 5
+
   WRONG_FLAGS = @[
     ('G', 'g'),
     ('V', 'v'),
@@ -398,12 +401,6 @@ proc allAreFalse(bools: seq[bool]): bool =
       return false
   return true
 
-proc joinArgs(args: seq[string]): string =
-  for arg in **args:
-    result += " "
-    result += arg
-  result = result[1..result.len() - 1]
-
 proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64) =
   var
     lenHashes = hashes.len()
@@ -518,6 +515,33 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64) =
       printf("Bindigest: %s\n", hash.bindigest)
 
 
+proc assertFile(arg: string): bool =
+  result = arg.len() > FILE_PREFIX_LEN and arg[0..FILE_PREFIX_LEN - 1] == FILE_PREFIX
+
+proc isRegularFile(fpath: string) =
+  if not fileExists(fpath):
+    errorOut("Specfied file does not exist or is a directory. Pass `+` with only one argument to ignore")
+
+proc readGivenFile(fpath: string): string =
+  isRegularFile(fpath)
+  result = readFile(fpath)
+
+
+proc joinArgs(args: seq[string]): string =
+  var warned = false
+  for arg in **args:
+    if assertFile(arg) and not warned:
+      printf("\x1b[1;33mWarning:\x1b[0m: The `filepath=` prefix is ignored in join mode\n")
+      warned = true
+    result += arg
+    result += " "
+  result = result[1..result.len() - 1]
+
+proc processArg(arg: string): string =
+  if not assertFile(arg):
+    return arg
+  result = readGivenFile(arg[FILE_PREFIX_LEN..arg.len() - 1])
+
 proc main(exec: string, argv: seq[string]) =
   validateFlags(exec, argv)
   var
@@ -525,6 +549,7 @@ proc main(exec: string, argv: seq[string]) =
     lenHashes = argv.len() - 1
     hashes = newSeq[PoxDigest](lenHashes)
     totalTime, t1, t2: uint64
+    processedArg: seq[uint8]
 
   if not argHasFlag(flagsArg, FLAG_NHEADER):
     printf("\x1b[1;30;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
@@ -538,8 +563,9 @@ proc main(exec: string, argv: seq[string]) =
     printHashes(hashes[0..0], flagsArg, t2 - t1)
   else:
     for (i, arg) in enumerate(argv[1..lenHashes]):
+      processedArg = ^^processArg(arg)
       t1 = getTimeInUS()
-      hashes[i] = PoxHash(^^arg)
+      hashes[i] = PoxHash(processedArg)
       t2 = getTimeInUS()
       totalTime += t2 - t1
     printHashes(hashes, flagsArg, totalTime)

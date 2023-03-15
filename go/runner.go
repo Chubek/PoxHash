@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"pox/libpoxh"
@@ -34,7 +35,10 @@ const (
 	flagBIN         byte = 98
 	flagHELP        byte = 63
 	flagDASH        byte = 45
-	flagNHEADER 	byte = 122
+	flagNHEADER     byte = 122
+
+	filePREFIX     = "file="
+	filePREFIX_LEN = 5
 )
 
 var wrongFLAGS = [numWRONG_FLAGS][2]byte{
@@ -307,16 +311,6 @@ func validateFlags(lenArgs int, args []string) {
 	}
 }
 
-func joinArgs(argsSlicedAfterTwo []string) string {
-	joined := ""
-	for _, arg := range argsSlicedAfterTwo {
-		joined += arg
-		joined += " "
-	}
-	joined = string([]byte(joined)[:len(joined)-1])
-	return joined
-}
-
 func getTimeInUS() int64 {
 	return time.Now().UnixMicro()
 }
@@ -422,11 +416,59 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 	}
 }
 
+func assertFile(arg string) bool {
+	return arg[:filePREFIX_LEN] == filePREFIX && len(arg) > filePREFIX_LEN
+}
+
+func joinArgs(argsSlicedAfterTwo []string) string {
+	joined := ""
+	warned := false
+	for _, arg := range argsSlicedAfterTwo {
+		if assertFile(arg) && !warned {
+			fmt.Printf("\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n")
+			warned = true
+		}
+
+		joined += arg
+		joined += " "
+	}
+	joined = string([]byte(joined)[:len(joined)-1])
+	return joined
+}
+
+func isRegularFile(fpath string) {
+	stats, err := os.Stat(fpath)
+
+	if errors.Is(err, os.ErrNotExist) || stats.IsDir() {
+		errorOut("Specfied file does not exist or is a directory. Pass `+` with only one argument to ignore")
+	}
+}
+
+func readGivenFile(fpath string) []byte {
+	isRegularFile(fpath)
+	contents, err := os.ReadFile(fpath)
+
+	if err != nil {
+		fmt.Println("\033[1;31mError reading file\033[0m")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return contents
+}
+
+func processArg(arg string) []uint8 {
+	if !assertFile(arg) {
+		return []uint8(arg)
+	}
+
+	return []uint8(readGivenFile(string(arg[filePREFIX_LEN:])))
+}
+
 func main() {
 	validateFlags(len(os.Args), os.Args)
 	flagsByte := []byte(os.Args[1])
 
-	if (!argHasFlag(flagsByte, flagNHEADER)) {
+	if !argHasFlag(flagsByte, flagNHEADER) {
 		fmt.Printf("\033[1;30;47mPoxHashRunner   |    Go    |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n")
 	}
 
@@ -439,10 +481,12 @@ func main() {
 		t2 = getTimeInUS()
 		printHashes(hashes[:1], flagsByte, t2-t1)
 	} else {
+		var processedArg []uint8
 		cursor := 0
 		for _, arg := range os.Args[2:] {
+			processedArg = processArg(arg)
 			t1 = getTimeInUS()
-			hashes[cursor] = libpoxh.PoxHash([]uint8(arg))
+			hashes[cursor] = libpoxh.PoxHash(processedArg)
 			t2 = getTimeInUS()
 			totalTime += t2 - t1
 			cursor += 1

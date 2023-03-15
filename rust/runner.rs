@@ -26,6 +26,9 @@ const FLAG_HELP: char = '?';
 const FLAG_DASH: char = '-';
 const FLAG_NHEADER: char = 'z';
 
+const FILE_PREFX: &'static str = "file=";
+const FLE_PREFIX_LEN: usize = 5;
+
 const WRONG_FLAGS: &'static [(char, char)] = &[
     ('G', 'g'),
     ('V', 'v'),
@@ -350,10 +353,6 @@ fn validate_flags(argv: &Vec<String>) {
     }
 }
 
-fn join_args(argv: &Vec<String>) -> String {
-    argv.join(" ")
-}
-
 fn get_time_in_us() -> u128 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -472,6 +471,43 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
     }
 }
 
+fn assert_file(arg: &String) -> bool {
+    arg.len() > FLE_PREFIX_LEN && arg.starts_with(FILE_PREFX)
+}
+
+fn join_args(argv: &Vec<String>) -> String {
+    let mut joined = String::new();
+    let mut warned = false;
+    for arg in argv {
+        if assert_file(&arg) && !warned {
+            print!("\x1b[1;33mWarning:\x1b[0m: The `filepath=` prefix is ignored in join mode\n");
+            warned = true;
+        }
+        joined.push_str(&arg);
+        joined.push(' ');
+    }
+    joined.trim().to_string()
+}
+
+fn is_regular_file(fpath: &String) {
+    let path = std::path::PathBuf::from(fpath);
+    if !path.exists() || path.is_dir() {
+        error_out!("Specfied file does not exist or is a directory. Pass `+` with only one argument to ignore");
+    }
+}
+
+fn read_given_file(fpath: &String) -> String {
+    is_regular_file(fpath);
+    std::fs::read_to_string(fpath).expect("Unkown error occrurred reading file")
+}
+
+fn process_arg(arg: &String) -> String {
+    if !assert_file(arg) {
+        return arg.clone();
+    }
+    read_given_file(&arg[FLE_PREFIX_LEN..].to_string())
+}
+
 #[allow(unused_assignments)]
 fn main() {
     let argv: Vec<String> = std::env::args().collect();
@@ -496,8 +532,9 @@ fn main() {
         false => {
             let (mut t1, mut t2, mut total_time) = (0u128, 0u128, 0u128);
             for (i, arg) in argv[2..].into_iter().enumerate() {
+                let processed_arg = process_arg(arg).as_bytes().to_vec();
                 t1 = get_time_in_us();
-                hashes[i] = pox_hash(&arg.as_bytes().to_vec());
+                hashes[i] = pox_hash(&processed_arg);
                 t2 = get_time_in_us();
                 total_time += t2 - t1;
             }

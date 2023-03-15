@@ -1,5 +1,6 @@
 import sys
 from time import time_ns
+from pathlib import Path
 
 from libpoxh import PoxDigest, pox_hash
 
@@ -34,6 +35,9 @@ FLAG_BIN = 'b'
 FLAG_HELP = '?'
 FLAG_DASH = '-'
 FLAG_NHEADER = 'z'
+
+FILE_PREFIX = "file="
+FILE_PREFIX_LEN = 5
 
 WRONG_FLAGS = [
     ('G', 'g'),
@@ -353,8 +357,43 @@ def all_are_false(bools: list[bool]) -> bool:
     return True
 
 
+def assert_file(arg: str) -> bool:
+    return len(arg) > FILE_PREFIX_LEN and arg.startswith(FILE_PREFIX)
+
+
 def join_args(args: list[str]) -> str:
-    return ' '.join(args)
+    joined = ""
+    warned = False
+    for arg in args:
+        if assert_file(arg) and not warned:
+            printf(
+                "\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n"
+            )
+            warned = True
+        joined += arg
+        joined += " "
+
+    return joined.rstrip()
+
+
+def is_regular_file(fpath: str) -> Path:
+    path = Path(fpath)
+    if not path.is_file() or not path.exists():
+        error_out(
+            "Specfied file does not exist or is a directory. Pass `+` with only one argument to ignore"
+        )
+
+    return path
+
+
+def read_given_file(fpath: str) -> str:
+    return is_regular_file(fpath).read_text()
+
+
+def process_arg(arg: str) -> str:
+    if not assert_file(arg):
+        return arg
+    return read_given_file(arg[FILE_PREFIX_LEN:])
 
 
 def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
@@ -459,8 +498,9 @@ def main(exec_name: str, argv: list[str]) -> None:
         print_hashes(hashes[:1], flags_arg, t2 - t1)
     else:
         for i, arg in enumerate(argv[1:]):
+            processed_arg = process_arg(arg).encode()
             t1 = get_time_in_us()
-            hashes[i] = pox_hash(arg.encode())
+            hashes[i] = pox_hash(processed_arg)
             t2 = get_time_in_us()
             total_time += t2 - t1
         print_hashes(hashes, flags_arg, total_time)

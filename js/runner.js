@@ -1,4 +1,5 @@
 const libpoxh = require("./libpoxh.js");
+const fs = require("fs");
 
 const MAX_FLAG_SIZE = 24;
 const MIN_FLAG_SIZE = 3;
@@ -32,6 +33,9 @@ const FLAG_HELP = "?";
 const FLAG_DASH = "-";
 const FLAG_NHEADER = "z";
 
+const FILE_PREFIX = "file=";
+const FILE_PREFIX_LEN = 5;
+
 const WRONG_FLAGS = [
   ["G", "g"],
   ["V", "v"],
@@ -60,9 +64,9 @@ const WRONG_FLAGS = [
   ["r", "t"],
   ["y", "t"],
   ["f", "g"],
-  ['x', 'z'],
-  ['Z', 'z'],
-  ['a', 'z'],
+  ["x", "z"],
+  ["Z", "z"],
+  ["a", "z"],
 ];
 
 function printf() {
@@ -569,11 +573,65 @@ const newNullArray = (size) => {
   return ret;
 };
 
-const joinArgs = (args) => {
-  return args.join(" ");
+const assertFile = (arg) => {
+  return (
+    arg.substring(0, FILE_PREFIX_LEN) == FILE_PREFIX &&
+    arg.length > FILE_PREFIX_LEN
+  );
 };
 
-const main = (argv0, argv1, argv) => {
+const isRegularFile = async (fpath) => {
+  try {
+    const stat = fs.lstatSync(fpath);
+    if (stat.isDirectory()) {
+      return false;
+    }
+  } catch (e) {
+    if (e.code == 'ENOENT') {
+      return false;
+    }
+    errorOut("Unknown error with file input");
+  } 
+  return true;
+};
+
+const readGivenFile = async (arg) => {
+  const isRegular = await isRegularFile(arg);
+  if (isRegular) {
+    return fs.readFileSync(arg, "utf8");
+  } else {
+    errorOut(
+      "Specfied file does not exist or is a directory. Pass `+` with only one argument to ignore"
+    );
+  }
+};
+
+const joinArgs = (args) => {
+  let joined = "";
+  let warned = false;
+  args.forEach((arg) => {
+    if (assertFile(arg) && !warned) {
+      printf(
+        "\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n"
+      );
+      warned = true;
+    }
+
+    joined += arg;
+    joined += " ";
+  });
+  joined = joined.substring(0, joined.length - 1);
+  return joined;
+};
+
+const processArg = async (arg) => {
+  if (!assertFile(arg)) {
+    return arg;
+  }
+  return await readGivenFile(arg.substring(FILE_PREFIX_LEN));
+};
+
+const main = async (argv0, argv1, argv) => {
   validateFlags(argv0, argv1, argv);
   const flagsArg = argv[0];
 
@@ -597,9 +655,11 @@ const main = (argv0, argv1, argv) => {
     printHashes(hashes.slice(0, 1), flagsArg, t2 - t1);
   } else {
     let cursor = 0;
+    let processedArg = "";
     for (let i = 1; i <= lenHashes; i++) {
+      processedArg = await processArg(argv[i]);
       t1 = getTimeInUS();
-      hashes[cursor] = libpoxh.poxHash(argv[i]);
+      hashes[cursor] = libpoxh.poxHash(processedArg);
       t2 = getTimeInUS();
       cursor += 1;
       totalTime += t2 - t1;
@@ -611,4 +671,6 @@ const main = (argv0, argv1, argv) => {
 const argv0 = process.argv[0];
 const argv1 = process.argv[1];
 const argv = process.argv.slice(2);
-main(argv0, argv1, argv);
+(async () => {
+  await main(argv0, argv1, argv);
+})();
