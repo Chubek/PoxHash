@@ -425,6 +425,14 @@ def __pad_array_with_zero(arr: __array) -> __array:
     return arr
 
 
+def __process_input(input: any) -> __array:
+    if type(input) == __array and input.typecode == 'B':
+        ubyte_array = __byte_to_array(input)
+        ubyte_array = __pad_array_with_zero(ubyte_array)
+        return ubyte_array
+    return None
+
+
 def __get_8b_prime(num: int) -> __array:
     remainder = num % __POX_8B_PRIME_NUM
     prime = __POX_8B_PRIMES[remainder]
@@ -727,12 +735,12 @@ class PoxDigest:
         self.quad = quad
 
 
-def pox_hash(message: bytearray) -> PoxDigest:
+def pox_hash(message: any) -> PoxDigest:
     """
     Converts the given message to a PoxDigest object
 
     Parametes:
-        message: bytearray
+        message: array.array('B', message_data)
     
     Returns:
         PoxDigest
@@ -750,11 +758,13 @@ def pox_hash(message: bytearray) -> PoxDigest:
             PoxDigest.quad: array.array('Q', 1)    
     """
 
-    integer_list = __byte_to_array(message)
-    integer_list = __pad_array_with_zero(integer_list)
+    ubyte_array = __process_input(message)
+    if ubyte_array is None:
+        return None
+
     blocks = [
-        integer_list[i:i + __POX_BLOCK_NUM]
-        for i in range(0, len(integer_list), __POX_BLOCK_NUM)
+        ubyte_array[i:i + __POX_BLOCK_NUM]
+        for i in range(0, len(ubyte_array), __POX_BLOCK_NUM)
     ]
 
     factor_array = __array('H', [

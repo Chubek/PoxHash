@@ -393,21 +393,9 @@ const byteArrayToWordArrayAndPad = (bytearr) => {
   return u16Array;
 };
 
-const stringToByteArray = (str) => {
-  let utf8Encode = new TextEncoder();
-  byteArray = utf8Encode.encode(str);
-  return byteArray;
-};
-
 const processInput = (input) => {
-  if (typeof input == "string") {
-    const byteArray = stringToByteArray(input);
-    return byteArrayToWordArrayAndPad(byteArray);
-  } else if (typeof input == "object") {
-    if (
-      input.constructor.name == "Uint8Array" ||
-      input.constructor.name == "Int8Array"
-    ) {
+  if (typeof input == "object") {
+    if (input.constructor.name == "Uint8Array") {
       return byteArrayToWordArrayAndPad(input);
     }
   }
@@ -610,8 +598,8 @@ const debug = (arr) => console.log(arr[0], arr[1], arr[2], arr[3]);
 const poxApplySubportion = (factorArray, subportion, index) => {
   const tmt = tamaam(subportion);
   const dca = deca(subportion);
-  const tmtOddFactor = cUINT16_MAX ^ (tmt % 4);
-  const dcaOddFactor = cUINT16_MAX ^ (dca % 3);
+  const tmtOddFactor = cUINT16_MAX ^ tmt % 4;
+  const dcaOddFactor = cUINT16_MAX ^ dca % 3;
 
   const ng = (subportion[0] + index) % cPOX_PORTION_NUM;
   const chu = (subportion[1] + index) % cPOX_PORTION_NUM;
@@ -634,7 +622,7 @@ const poxApplySubportion = (factorArray, subportion, index) => {
 
   factorArray[0] >>= subportion[3] % (ng + 1);
   factorArray[1] >>= subportion[2] % (chu + 1);
-  factorArray[2] ^= subportion[1] >> (dca % 2);
+  factorArray[2] ^= subportion[1] >> dca % 2;
   factorArray[3] >>= subportion[0] % (eo + 1);
 };
 
@@ -700,10 +688,7 @@ poxHash = (message) => {
    *          PoxDigest.quad: BigInt.asUintN(64)
    */
   const processedInput = processInput(message);
-  if (processInput == null) {
-    console.log(
-      "Error occured, wrong input! Must be Uint8Array, Int8Array or string."
-    );
+  if (processedInput == null) {
     return null;
   }
   let factorArray = new Uint16Array([
