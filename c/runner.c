@@ -27,7 +27,7 @@
 #define SPACE 32
 #define MIN_ARG_NUM 3
 #define NUM_ASCII 128
-#define LEN_WRONG_FLAGS 28
+#define LEN_WRONG_FLAGS 30
 #define BENCHMARK_BYTE_INDEX 94
 
 #define ERR_OUT(message)                                                                        \
@@ -58,6 +58,7 @@ typedef enum FLAGS
     FLAG_BIN = 'b',
     FLAG_HELP = '?',
     FLAG_DASH = '-',
+    FLAG_NHEADER = 'z',
 } flag_t;
 
 const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
@@ -89,6 +90,8 @@ const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
     {'y', 't'},
     {'f', 'g'},
     {'x', 'h'},
+    {'Z', 'z'},
+    {'a', 'z'},
 };
 
 void print_help(char *exec)
@@ -358,6 +361,8 @@ int validate_flags(int argc, char **argv)
             }
         case FLAG_DASH:
             ERR_OUT("You may not use `-` in the first argument other than in the first, and the last letter");
+        case FLAG_NHEADER:
+            continue;
         default:
             ERR_OUT("Unknown flag detected!");
         }
@@ -511,8 +516,11 @@ uint8_t *char_to_uint8(char *carr)
 
 int main(int argc, char **argv)
 {
-    printf("\033[1;30;47mPoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
     int len_flags = validate_flags(argc, argv);
+
+    if (!arg_has_flag(argv[1], len_flags, FLAG_NHEADER)) {
+        printf("\033[1;30;47mPoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
+    }
 
     poxhash_t hashes[argc - 2];
     uint64_t total_time, t1, t2;

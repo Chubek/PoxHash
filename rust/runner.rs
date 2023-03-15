@@ -24,6 +24,7 @@ const FLAG_SEN: char = 's';
 const FLAG_BIN: char = 'b';
 const FLAG_HELP: char = '?';
 const FLAG_DASH: char = '-';
+const FLAG_NHEADER: char = 'z';
 
 const WRONG_FLAGS: &'static [(char, char)] = &[
     ('G', 'g'),
@@ -53,7 +54,9 @@ const WRONG_FLAGS: &'static [(char, char)] = &[
     ('r', 't'),
     ('y', 't'),
     ('f', 'g'),
-    ('x', 'h'),
+    ('x', 'z'),
+    ('Z', 'z'),
+    ('a', 'z'),
 ];
 
 macro_rules! error_out {
@@ -341,6 +344,7 @@ fn validate_flags(argv: &Vec<String>) {
                 }
             },
             FLAG_DASH => error_out!("You may not use `-` in the first argument other than in the first, and the last letter"),
+            FLAG_NHEADER => continue,
             _ => error_out!("Unknown flag detected!"),
         }
     }
@@ -470,15 +474,17 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
 
 #[allow(unused_assignments)]
 fn main() {
-    print!(
-        "\x1b[1;30;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
-    );
     let argv: Vec<String> = std::env::args().collect();
     validate_flags(&argv);
     let flag_arg = argv.get(1).unwrap();
 
-    let mut hashes = vec![PoxDigest::default(); argv.len() - 2];
+    if !arg_has_flag(flag_arg, FLAG_NHEADER) {
+        print!(
+            "\x1b[1;30;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
+        );
+    }
 
+    let mut hashes = vec![PoxDigest::default(); argv.len() - 2];
     match arg_has_flag(&flag_arg, FLAG_JOIN) {
         true => {
             let args_joined = join_args(&argv[2..].to_vec());

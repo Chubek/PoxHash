@@ -4,7 +4,7 @@ const MAX_FLAG_SIZE = 24;
 const MIN_FLAG_SIZE = 3;
 const MIN_ARG_NUM = 2;
 const NUM_ASCII = 128;
-const LEN_WRONG_FLAGS = 28;
+const LEN_WRONG_FLAGS = 30;
 const FORMAT_MARKER = "%";
 const FORMAT_STR = "s";
 const FORMAT_DIGIT = "d";
@@ -30,6 +30,7 @@ const FLAG_SEN = "s";
 const FLAG_BIN = "b";
 const FLAG_HELP = "?";
 const FLAG_DASH = "-";
+const FLAG_NHEADER = "z";
 
 const WRONG_FLAGS = [
   ["G", "g"],
@@ -59,7 +60,9 @@ const WRONG_FLAGS = [
   ["r", "t"],
   ["y", "t"],
   ["f", "g"],
-  ["x", "h"],
+  ['x', 'z'],
+  ['Z', 'z'],
+  ['a', 'z'],
 ];
 
 function printf() {
@@ -421,6 +424,8 @@ const validateFlags = (argv0, argv1, argv) => {
         errorOut(
           "You may not use `-` in the first argument other than in the first, and the last letter"
         );
+      case FLAG_NHEADER:
+        continue;
       default:
         errorOut("Unknown flag detected!");
     }
@@ -569,11 +574,15 @@ const joinArgs = (args) => {
 };
 
 const main = (argv0, argv1, argv) => {
-  printf(
-    "\033[1;30;47mPoxHashRunner   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
-  );
   validateFlags(argv0, argv1, argv);
   const flagsArg = argv[0];
+
+  if (!argHasFlag(flagsArg, FLAG_NHEADER)) {
+    printf(
+      "\033[1;30;47mPoxHashRunner   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
+    );
+  }
+
   const lenHashes = argv.length - 1;
 
   let hashes = newNullArray(lenHashes);

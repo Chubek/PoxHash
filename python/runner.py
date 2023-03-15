@@ -33,6 +33,7 @@ FLAG_SEN = 's'
 FLAG_BIN = 'b'
 FLAG_HELP = '?'
 FLAG_DASH = '-'
+FLAG_NHEADER = 'z'
 
 WRONG_FLAGS = [
     ('G', 'g'),
@@ -62,7 +63,9 @@ WRONG_FLAGS = [
     ('r', 't'),
     ('y', 't'),
     ('f', 'g'),
-    ('x', 'h'),
+    ('x', 'z'),
+    ('Z', 'z'),
+    ('a', 'z'),
 ]
 
 
@@ -333,6 +336,8 @@ def validate_flags(exec: str, argv: list[str]) -> None:
             error_out(
                 "You may not use `-` in the first argument other than in the first, and the last letter"
             )
+        if flag == FLAG_NHEADER:
+            continue
         else:
             error_out("Unknown flag detected!")
 
@@ -434,12 +439,14 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
 
 
 def main(exec_name: str, argv: list[str]) -> None:
-    printf(
-        "\x1b[1;30;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
-    )
     validate_flags(exec_name, argv)
-
     flags_arg = argv[0]
+
+    if not arg_has_flag(flags_arg, FLAG_NHEADER):
+        printf(
+            "\x1b[1;30;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
+        )
+
     len_hashes = len(argv) - 1
     hashes = [None] * len_hashes
 

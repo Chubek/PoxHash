@@ -12,7 +12,7 @@ const (
 	sizeMAX_FLAGS       = 24
 	numMIN_ARGS         = 3
 	numASCII            = 128
-	numWRONG_FLAGS      = 28
+	numWRONG_FLAGS      = 30
 	indexBENCHMARK_BYTE = 94
 
 	flagBENCHMARK   byte = 94
@@ -34,6 +34,7 @@ const (
 	flagBIN         byte = 98
 	flagHELP        byte = 63
 	flagDASH        byte = 45
+	flagNHEADER 	byte = 122
 )
 
 var wrongFLAGS = [numWRONG_FLAGS][2]byte{
@@ -65,6 +66,8 @@ var wrongFLAGS = [numWRONG_FLAGS][2]byte{
 	{121, 116},
 	{102, 103},
 	{120, 104},
+	{90, 122},
+	{97, 122},
 }
 
 func errorOut(message string) {
@@ -296,6 +299,8 @@ func validateFlags(lenArgs int, args []string) {
 			}
 		case flagDASH:
 			errorOut("You may not use `-` in the first argument other than in the first, and the last letter")
+		case flagNHEADER:
+			continue
 		default:
 			errorOut("Unknown flag detected!")
 		}
@@ -418,12 +423,15 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 }
 
 func main() {
-	fmt.Printf("\033[1;30;47mPoxHashRunner   |    Go    |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n")
 	validateFlags(len(os.Args), os.Args)
+	flagsByte := []byte(os.Args[1])
+
+	if (!argHasFlag(flagsByte, flagNHEADER)) {
+		fmt.Printf("\033[1;30;47mPoxHashRunner   |    Go    |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n")
+	}
 
 	hashes := make([]libpoxh.PoxDigest, len(os.Args)-2)
 	var totalTime, t1, t2 int64
-	flagsByte := []byte(os.Args[1])
 	if argHasFlag(flagsByte, flagJOIN) {
 		argsJoined := joinArgs(os.Args[2:])
 		t1 = getTimeInUS()

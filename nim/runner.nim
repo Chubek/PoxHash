@@ -33,6 +33,7 @@ const
   FLAG_BIN = 'b'
   FLAG_HELP = '?'
   FLAG_DASH = '-'
+  FLAG_NHEADER = 'z'
 
   WRONG_FLAGS = @[
     ('G', 'g'),
@@ -384,6 +385,8 @@ proc validateFlags(exec: string, argv: seq[string]) =
         errorOut(
           "You may not use `-` in the first argument other than in the first, and the last letter"
         )
+      of FLAG_NHEADER:
+        continue
       else:
         errorOut("Unknown flag detected!")
 
@@ -516,13 +519,15 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64) =
 
 
 proc main(exec: string, argv: seq[string]) =
-  printf("\x1b[1;30;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
   validateFlags(exec, argv)
   var
     flagsArg = argv[0]
     lenHashes = argv.len() - 1
     hashes = newSeq[PoxDigest](lenHashes)
     totalTime, t1, t2: uint64
+
+  if not argHasFlag(flagsArg, FLAG_NHEADER):
+    printf("\x1b[1;30;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
 
   totalTime = 0
   if argHasFlag(flagsArg, FLAG_JOIN):
