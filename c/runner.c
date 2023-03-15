@@ -469,7 +469,6 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
 
     for (int i = 0; i < len_hashes; i++)
     {
-        printf("----\n");
         if (everything || all_flags_decimal || byte)
             printf("Bytes: U8[%hu, %u, %u, %u, %u, %u, %u, %u]\n", hashes[i].bytes[0], hashes[i].bytes[1], hashes[i].bytes[2], hashes[i].bytes[3], hashes[i].bytes[4], hashes[i].bytes[5], hashes[i].bytes[6], hashes[i].bytes[7]);
         if (everything || all_flags_decimal || word)
@@ -494,6 +493,7 @@ void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags,
             printf("Sendgiest: %s\n", hashes[i].sendigest);
         if (everything || all_flags_non_decimal || bin)
             printf("Bindigest: %s\n", hashes[i].bindigest);
+        printf("----\n");
     }
 }
 

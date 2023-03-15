@@ -376,7 +376,6 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 	}
 
 	for _, hash := range hashes {
-		fmt.Printf("----\n")
 		if everything || allFlagsDecimal || byte {
 			fmt.Printf("Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n", hash.Bytes[0], hash.Bytes[1], hash.Bytes[2], hash.Bytes[3], hash.Bytes[4], hash.Bytes[5], hash.Bytes[6], hash.Bytes[7])
 		}
@@ -413,6 +412,7 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 		if everything || allFLagsNondecimal || bin {
 			fmt.Printf("Bindigest: %s\n", hash.Bindigest)
 		}
+		fmt.Printf("----\n")
 	}
 }
 

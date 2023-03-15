@@ -505,7 +505,6 @@ const printHashes = (hashes, flags, totalTime) => {
   }
 
   for (let i = 0; i < lenHashes; i++) {
-    printf("----\n");
     if (everything || allFlagsDecimal || byte) {
       printf(
         "Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
@@ -562,6 +561,7 @@ const printHashes = (hashes, flags, totalTime) => {
     if (everything || allFlagsNonDecimal || bin) {
       printf("Bindigest: %s\n", hashes[i].bindigest);
     }
+    printf("----\n");
   }
 };
 

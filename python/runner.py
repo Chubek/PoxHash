@@ -447,7 +447,6 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
         exit(0)
 
     for hash in hashes:
-        printf("----\n")
         if everything or all_flags_decimal or by:
             printf("Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
                    hash.bytes[0], hash.bytes[1], hash.bytes[2], hash.bytes[3],
@@ -475,6 +474,7 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
             printf("Sendgiest: %s\n", hash.sendigest)
         if everything or all_flags_non_decimal or bin:
             printf("Bindigest: %s\n", hash.bindigest)
+        printf("----\n")
 
 
 def main(exec_name: str, argv: list[str]) -> None:

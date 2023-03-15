@@ -457,7 +457,6 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64) =
     quit(0)
 
   for hash in hashes:
-    printf("----\n")
     if everything or allFlagsDecimal or by:
       printf(
         "Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n",
@@ -513,7 +512,7 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64) =
 
     if everything or allFlagsNonDecimal or bin:
       printf("Bindigest: %s\n", hash.bindigest)
-
+    printf("----\n")
 
 proc assertFile(arg: string): bool =
   result = arg.len() > FILE_PREFIX_LEN and arg[0..FILE_PREFIX_LEN - 1] == FILE_PREFIX

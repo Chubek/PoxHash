@@ -418,7 +418,6 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
     }
 
     for hash in hashes.into_iter() {
-        print!("----\n");
         if everything || all_flags_decimal || byte {
             print!(
                 "Bytes: U8[{}, {}, {}, {}, {}, {}, {}, {}]\n",
@@ -468,6 +467,7 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
         if everything || all_flags_non_decimal || bin {
             print!("Bindigest: {}\n", hash.bindigest);
         }
+        print!("----\n");
     }
 }
 
