@@ -439,24 +439,24 @@ def main(exec_name: str, argv: list[str]) -> None:
     )
     validate_flags(exec_name, argv)
 
-    flagsArg = argv[0]
+    flags_arg = argv[0]
     len_hashes = len(argv) - 1
     hashes = [None] * len_hashes
 
     total_time = 0
-    if arg_has_flag(flagsArg, FLAG_JOIN):
-        argsJoined = join_args(argv[1:])
+    if arg_has_flag(flags_arg, FLAG_JOIN):
+        args_joined = join_args(argv[1:])
         t1 = get_time_in_us()
-        hashes[0] = pox_hash(argsJoined.encode())
+        hashes[0] = pox_hash(args_joined.encode())
         t2 = get_time_in_us()
-        print_hashes(hashes[:1], flagsArg, t2 - t1)
+        print_hashes(hashes[:1], flags_arg, t2 - t1)
     else:
         for i, arg in enumerate(argv[1:]):
             t1 = get_time_in_us()
             hashes[i] = pox_hash(arg.encode())
             t2 = get_time_in_us()
             total_time += t2 - t1
-        print_hashes(hashes, flagsArg, total_time)
+        print_hashes(hashes, flags_arg, total_time)
 
 
 if __name__ == "__main__":
