@@ -533,25 +533,30 @@ proc poxRound(factorArray: var FactorArray) =
 proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray,
       index: uint16) =
    var
-      tmt: uint16
-      dca: uint16
-      tmtOddFactor: uint16
-      dcaOddFactor: uint16
+      tmt, dca: uint16
+      tmtOddFactor, dcaOddFactor: uint16
+      ng, chu, yo, eo: uint16
+      zam, pez, dit, kit: uint16
 
    tmt = tamaam(portion)
    dca = deca(portion)
    tmtOddFactor = BIT_UINT16_MAX_U16 * (tmt % 2)
    dcaOddFactor = BIT_UINT16_MAX_U16 * (dca % 2)
 
-   var ng = (portion[0] + index) % POX_PORTION_NUM
-   var chu = (portion[1] + index) % POX_PORTION_NUM
-   var yo = (portion[2] + index) % POX_PORTION_NUM
-   var eo = (portion[3] + index) % POX_PORTION_NUM
+   ng = (portion[0] + index) % POX_PORTION_NUM
+   chu = (portion[1] + index) % POX_PORTION_NUM
+   yo = (portion[2] + index) % POX_PORTION_NUM
+   eo = (portion[3] + index) % POX_PORTION_NUM
 
-   factorArray[ng] ^= (portion[eo] | tmt) ^ dcaOddFactor
-   factorArray[chu] ^= (portion[yo] & dca) ^ tmtOddFactor
-   factorArray[yo] ^= (portion[chu] ^ tmt) ^ dcaOddFactor
-   factorArray[eo] ^= (portion[ng] | dca) ^ tmtOddFactor
+   zam = portion[0] % POX_8B_PRIMES[portion[chu] % POX_8B_PRIME_NUM]
+   pez = portion[1] % POX_8B_PRIMES[portion[yo] % POX_8B_PRIME_NUM]
+   dit = portion[2] % POX_8B_PRIMES[portion[eo] % POX_8B_PRIME_NUM]
+   kit = portion[3] % POX_8B_PRIMES[portion[ng] % POX_8B_PRIME_NUM]
+
+   factorArray[ng] ^= ((portion[eo] | tmt) ^ dcaOddFactor) | zam
+   factorArray[chu] ^= ((portion[yo] & dca) ^ tmtOddFactor) ^ pez
+   factorArray[yo] ^= ((portion[chu] ^ tmt) ^ dcaOddFactor) | dit
+   factorArray[eo] ^= ((portion[ng] | dca) ^ tmtOddFactor) ^ kit
 
 proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
    var portion: PortionArray

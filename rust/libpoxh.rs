@@ -605,11 +605,20 @@ mod block {
         let yo = ((portion[2] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
         let eo = ((portion[3] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
 
+        let zam =
+            portion[0] % consts::POX_8B_PRIMES[(portion[chu] as usize) % consts::POX_8B_PRIME_NUM];
+        let pez =
+            portion[1] % consts::POX_8B_PRIMES[(portion[yo] as usize) % consts::POX_8B_PRIME_NUM];
+        let dit =
+            portion[2] % consts::POX_8B_PRIMES[(portion[eo] as usize) % consts::POX_8B_PRIME_NUM];
+        let kit =
+            portion[3] % consts::POX_8B_PRIMES[(portion[ng] as usize) % consts::POX_8B_PRIME_NUM];
+
         let mut factor_array_cpy = tools::copy_array(factor_array);
-        factor_array_cpy[ng] ^= (portion[eo] | tmt) ^ dca_odd_factor;
-        factor_array_cpy[chu] ^= (portion[yo] & dca) ^ tmt_odd_factor;
-        factor_array_cpy[yo] ^= (portion[chu] ^ tmt) ^ dca_odd_factor;
-        factor_array_cpy[eo] ^= (portion[ng] | dca) ^ tmt_odd_factor;
+        factor_array_cpy[ng] ^= ((portion[eo] | tmt) ^ dca_odd_factor) | zam;
+        factor_array_cpy[chu] ^= ((portion[yo] & dca) ^ tmt_odd_factor) ^ pez;
+        factor_array_cpy[yo] ^= ((portion[chu] ^ tmt) ^ dca_odd_factor) | dit;
+        factor_array_cpy[eo] ^= ((portion[ng] | dca) ^ tmt_odd_factor) ^ kit;
 
         factor_array_cpy
     }

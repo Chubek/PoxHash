@@ -618,10 +618,15 @@ const poxApplySubportion = (factorArray, subportion, index) => {
   const yo = (subportion[2] + index) % cPOX_PORTION_NUM;
   const eo = (subportion[3] + index) % cPOX_PORTION_NUM;
 
-  factorArray[ng] ^= (subportion[eo] | tmt) ^ dcaOddFactor;
-  factorArray[chu] ^= (subportion[yo] & dca) ^ tmtOddFactor;
-  factorArray[yo] ^= subportion[chu] ^ tmt ^ dcaOddFactor;
-  factorArray[eo] ^= (subportion[ng] | dca) ^ tmtOddFactor;
+  const zam = subportion[0] % cPOX_8B_PRIMES[subportion[chu] % cPOX_8B_PRIME_NUM]
+  const pez = subportion[1] % cPOX_8B_PRIMES[subportion[yo] % cPOX_8B_PRIME_NUM]
+  const dit = subportion[2] % cPOX_8B_PRIMES[subportion[eo] % cPOX_8B_PRIME_NUM]
+  const kit = subportion[3] % cPOX_8B_PRIMES[subportion[ng] % cPOX_8B_PRIME_NUM]
+
+  factorArray[ng] ^= ((subportion[eo] | tmt) ^ dcaOddFactor) | zam;
+  factorArray[chu] ^= ((subportion[yo] & dca) ^ tmtOddFactor) ^ pez;
+  factorArray[yo] ^= (subportion[chu] ^ tmt ^ dcaOddFactor) | dit;
+  factorArray[eo] ^= ((subportion[ng] | dca) ^ tmtOddFactor) ^ kit;
 };
 
 const poxProcessBlock = (factorArray, blockArray) => {
