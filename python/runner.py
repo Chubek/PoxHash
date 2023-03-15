@@ -418,7 +418,7 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
         if everything or all_flags_decimal or dub:
             printf("Doubles: U32[%d, %d]\n", hash.doubles[0], hash.doubles[1])
         if everything or all_flags_decimal or quad:
-            printf("Quad: U64[%d]\n", hash.quad)
+            printf("Quad: U64[%d]\n", hash.quad[0])
         if everything or all_flags_non_decimal or sex:
             printf("Sexdigest: %s\n", hash.sexdigest)
         if everything or all_flags_non_decimal or vig:
