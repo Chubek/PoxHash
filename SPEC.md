@@ -85,8 +85,9 @@
     {ty, size} -> size and type
 
     /// Message Types
-    char -> ASCII-encoded characters, for example 'char' in C or 'rune' in Go
-    bytearray -> A collection of i8 bytes, for example '[]bytes' in Go or 'bytearray' in Python
+    char/character -> A grapheme or glyph that will be encoded to various bytes in different encoding standards
+    bytearray -> An array of signed or unsigned 8-bit integers that are usually characted encodings, but can be binary data as well
+    wordarray -> An array of unsigned 16-bit integers
 
     /// Terminology
     message -> the byte array passed to the hasher
@@ -129,6 +130,14 @@
     endian-ness -> Whether the most significant bit of the integr is the leftmost bit, or the rightmost 
         bit. As a simple example, let's take a look at '01'. In little-endian it's 1, but in big-endian
         it's 2. In PoxHash we treat everything as little-endian. 
+
+// OVERAL FLOW
+    A Pox hasher should accept the message in form of an unsigned bytearray. It then should convert
+    that bytearray into an unsigned word array. It should then pad this wordarray and apply each 
+    now-8-bit byte in chunks, and then portions, 4 predetermined prime factors. it then should put
+    these 4 factors into rounds of operations and at the end our message will be these 4 unsigned words.
+    
+    Below is the entire algorithm in detail.
 
 // PREFIX NOTATIONS
     #  -> Numerical constant
@@ -597,13 +606,20 @@
     'پاکس هش'  -> D922E6147C9CA6E6
     'پاکش هش'  -> F22BDEBEB066AEC1
 
-    PoxHash in EBCDIC is 0xD7, 0x96, 0xA7, 0xC8, 0x81, 0xA2, 0x88
+    Characters encoded in LATIN-1:
+    'ßæšþ' -> E865F6CA90C9D2B2
+
+    Characters encoded in Windows-1252:
+    'ßæRþ' -> E6D4F4359C58D837
+
+    'PoxHash' in EBCDIC is [0xD7, 0x96, 0xA7, 0xC8, 0x81, 0xA2, 0x88]
     Hexdigest for this byte sequence is: C327DD41CE586407
 
     Byte Sequences:
     [0x00, 0x00] -> 1474F230D6D1CDEC
     [0x01, 0x00] -> E4170016DBDE32E5
     [0x00, 0x01] -> E5B5FC44DCA9CF55
+    [0...255]    -> 810432FC3F471642
 
 
 / Finished version 1 of the PoxHash specs. 
