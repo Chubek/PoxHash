@@ -357,45 +357,6 @@ def all_are_false(bools: list[bool]) -> bool:
     return True
 
 
-def assert_file(arg: str) -> bool:
-    return len(arg) > FILE_PREFIX_LEN and arg.startswith(FILE_PREFIX)
-
-
-def join_args(args: list[str]) -> str:
-    joined = ""
-    warned = False
-    for arg in args:
-        if assert_file(arg) and not warned:
-            printf(
-                "\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n"
-            )
-            warned = True
-        joined += arg
-        joined += " "
-
-    return joined.rstrip()
-
-
-def is_regular_file(fpath: str) -> Path:
-    path = Path(fpath)
-    if not path.is_file() or not path.exists():
-        error_out(
-            "Specfied file does not exist or is a directory. Pass `+` with only one argument to ignore"
-        )
-
-    return path
-
-
-def read_given_file(fpath: str) -> str:
-    return is_regular_file(fpath).read_text()
-
-
-def process_arg(arg: str) -> str:
-    if not assert_file(arg):
-        return arg
-    return read_given_file(arg[FILE_PREFIX_LEN:])
-
-
 def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
     len_hashes = len(hashes)
     reoccurrance = search_for_flag_occurrances(flags[1:-1])
@@ -477,6 +438,50 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
         printf("----\n")
 
 
+def assert_file(arg: str) -> bool:
+    return len(arg) > FILE_PREFIX_LEN and arg.startswith(FILE_PREFIX)
+
+
+def join_args(args: list[str]) -> str:
+    joined = ""
+    warned = False
+    for arg in args:
+        if assert_file(arg) and not warned:
+            printf(
+                "\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n"
+            )
+            warned = True
+        joined += arg
+        joined += " "
+
+    return joined.rstrip()
+
+
+def is_regular_file(fpath: str) -> Path:
+    path = Path(fpath)
+    if not path.is_file() or not path.exists():
+        error_out(
+            "Specfied file does not exist or is a directory. Pass `+` with only one argument to ignore"
+        )
+
+    return path
+
+
+def read_given_file(fpath: str) -> str:
+    return is_regular_file(fpath).read_text()
+
+
+def to_ubyte_array(arg: str) -> any:
+    from array import array
+    return array('B', arg)
+
+
+def process_arg(arg: str) -> any:
+    if not assert_file(arg):
+        return to_ubyte_array(arg.encode())
+    return to_ubyte_array(read_given_file(arg[FILE_PREFIX_LEN:]).encode())
+
+
 def main(exec_name: str, argv: list[str]) -> None:
     validate_flags(exec_name, argv)
     flags_arg = argv[0]
@@ -493,14 +498,14 @@ def main(exec_name: str, argv: list[str]) -> None:
     if arg_has_flag(flags_arg, FLAG_JOIN):
         args_joined = join_args(argv[1:])
         t1 = get_time_in_us()
-        hashes[0] = pox_hash(args_joined.encode())
+        hashes[0] = pox_hash(to_ubyte_array(args_joined))
         t2 = get_time_in_us()
         print_hashes(hashes[:1], flags_arg, t2 - t1)
     else:
         for i, arg in enumerate(argv[1:]):
-            processed_arg = process_arg(arg).encode()
+            processed_arg = process_arg(arg)
             t1 = get_time_in_us()
-            hashes[i] = pox_hash(processed_arg)
+            hashes[i] = pox_hash(to_ubyte_array(processed_arg))
             t2 = get_time_in_us()
             total_time += t2 - t1
         print_hashes(hashes, flags_arg, total_time)

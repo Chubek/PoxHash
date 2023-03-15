@@ -587,11 +587,11 @@ const isRegularFile = async (fpath) => {
       return false;
     }
   } catch (e) {
-    if (e.code == 'ENOENT') {
+    if (e.code == "ENOENT") {
       return false;
     }
     errorOut("Unknown error with file input");
-  } 
+  }
   return true;
 };
 
@@ -624,11 +624,17 @@ const joinArgs = (args) => {
   return joined;
 };
 
+const stringToByteArray = (str) => {
+  let utf8Encode = new TextEncoder();
+  byteArray = utf8Encode.encode(str);
+  return byteArray;
+};
+
 const processArg = async (arg) => {
   if (!assertFile(arg)) {
-    return arg;
+    return stringToByteArray(arg);
   }
-  return await readGivenFile(arg.substring(FILE_PREFIX_LEN));
+  return stringToByteArray(await readGivenFile(arg.substring(FILE_PREFIX_LEN)));
 };
 
 const main = async (argv0, argv1, argv) => {
