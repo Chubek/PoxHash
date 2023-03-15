@@ -417,7 +417,7 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 }
 
 func assertFile(arg string) bool {
-	return arg[:filePREFIX_LEN] == filePREFIX && len(arg) > filePREFIX_LEN
+	return len(arg) > filePREFIX_LEN && arg[:filePREFIX_LEN] == filePREFIX
 }
 
 func joinArgs(argsSlicedAfterTwo []string) string {
