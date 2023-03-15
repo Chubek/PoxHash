@@ -16,12 +16,12 @@ help() {
     printf "\tPass the name of the language as the first argument,\n"
     printf "and the strings which you wish to hash as the consecutive\n"
     printf "arguments. Supperted language names as argument are:\n\n"
-    printf "${RED}py${NC} or ${RED}python${NC}\n"
-    printf "${YELLOW}rs${NC} or ${YELLOW}rust${NC}\n"
-    printf "${BLUE}js${NC}\n or ${BLUE}javascript${NC}"
-    printf "${GREEN}c${NC}\n"
-    printf "${PURPLE}go${NC}\n"
-    printf "${CYAN}nim${NC}\n"
+    printf "${RED}py${NC} or ${RED}python${NC} or ${RED}1${NC}\n"
+    printf "${YELLOW}rs${NC} or ${YELLOW}rust${NC} or ${YELLOW}2${NC}\n"
+    printf "${GREEN}c${NC} or ${GREEN}3${NC}\n"
+    printf "${BLUE}js${NC} or ${BLUE}javascript${NC} or ${BLUE}4${NC}\n"
+    printf "${PURPLE}go${NC} or ${PURPLE}5${NC}\n"
+    printf "${CYAN}nim${NC} or ${CYAN}6${NC}\n"
     echo "Runner codes accept flags between two dashes. Pass -?- to view help."
     echo "Example 1: bash ./poxh.sh c -?-"
     echo "Example 2: bash ./poxh.sh c -h-"
@@ -37,23 +37,23 @@ wrong_arg() {
 }
 
 check_language() {
-    if [ "${language}" = "python" ] || [ "${language}" = "py" ]; then
-        printf "Selected language: ${RED}Python${NC}\n"
+    if [ "${language}" = "python" ] || [ "${language}" = "py" ] || [ "${language}" = "1" ]; then
+        printf "===${RED}Python${NC}===\n"
         folder="python"
-    elif [ "${language}" = "rust" ] || [ "${language}" = "rs" ]; then
-        printf "Selected language: ${YELLOW}Rust${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
+    elif [ "${language}" = "rust" ] || [ "${language}" = "rs" ] || [ "${language}" = "2" ]; then
+        printf "===${YELLOW}Rust${NC}===\n"
         folder="rust"
-    elif [ "${language}" = "c" ]; then
-        printf "Selected language: ${GREEN}C${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
+    elif [ "${language}" = "c" ] || [ "${language}" = "3" ]; then
+        printf "===${GREEN}C${NC}===\n"
         folder="c"
-    elif [ "${language}" = "js" ] || [ "${language}" = "javascript" ]; then
-        printf "Selected language: ${BLUE}JavaScript${NC}\n"
+    elif [ "${language}" = "js" ] || [ "${language}" = "javascript" ] || [ "${language}" = "4" ]; then
+        printf "===${BLUE}JavaScript${NC}===\n"
         folder="js"
-    elif [ "${language}" = "go" ]; then
-        printf "Selected language: ${PURPLE}Go${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
+    elif [ "${language}" = "go" ] || [ "${language}" = "5" ]; then
+        printf "===${PURPLE}Go${NC}===\n"
         folder="go"
-    elif [ "${language}" = "nim" ]; then
-        printf "Selected language: ${CYAN}Nim${NC} (${BLD}NOTE${NC}: Compile time overhead)\n"
+    elif [ "${language}" = "nim" ] || [ "${language}" = "6" ]; then
+        printf "===${CYAN}Nim${NC}===\n"
         folder="nim"
     else
         printf "${RED}Wrong argument as language passed!${NC}\n"
