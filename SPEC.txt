@@ -23,8 +23,8 @@
 +---------------------------------------------------------------------------------+
 
 / Pseudo-Code for PoxHash, a Block Hash Algorithm by Chubak Bidpaa; March 2023                        
-/ This document is best viewable with a monospace font
-/ NOTE: This document will contain characters from latin1 charset
+/ This document is best viewable with a monospace font and no word-wrapping
+/ NOTE: This document will contain character graphemes from LATIN-1 and UTF-8 charset
 
 // PREFACE: CONVENTIONS
 // In thise document we define the following as:
