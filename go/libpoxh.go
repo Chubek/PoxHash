@@ -692,8 +692,8 @@ func poxApplyBytes(factorArray, portion factorType, index uint16) factorType {
 
 	tmt = tamaam(portion)
 	dca = deca(portion)
-	tmtOddFactor := bitUINT16_MAX_U16 * (tmt % 2)
-	dcaOddFactor := bitUINT16_MAX_U16 * (dca % 2)
+	tmtOddFactor := bitUINT16_MAX_U16 ^ (tmt % 4)
+	dcaOddFactor := bitUINT16_MAX_U16 ^ (dca % 3)
 
 	ng := (portion[0] + index) % poxPORTION_NUM
 	chu := (portion[1] + index) % poxPORTION_NUM
@@ -707,10 +707,15 @@ func poxApplyBytes(factorArray, portion factorType, index uint16) factorType {
 
 	factorArrayCpy := copyWordArray(factorArray)
 
-	factorArrayCpy[ng] ^= ((portion[eo] | tmt) ^ dcaOddFactor) | zam
+	factorArrayCpy[ng] ^= (((portion[eo] >> chu) | tmt) ^ dcaOddFactor) | zam
 	factorArrayCpy[chu] ^= ((portion[yo] & dca) ^ tmtOddFactor) ^ pez
 	factorArrayCpy[yo] ^= ((portion[chu] ^ tmt) ^ dcaOddFactor) | dit
-	factorArrayCpy[eo] ^= ((portion[ng] | dca) ^ tmtOddFactor) ^ kit
+	factorArrayCpy[eo] ^= (((portion[ng] >> yo) | dca) ^ tmtOddFactor) ^ kit
+
+	factorArrayCpy[0] >>= portion[3] % (ng + 1)
+	factorArrayCpy[1] >>= portion[2] % (chu + 1)
+	factorArrayCpy[2] ^=  portion[1] >> (dca % 2)
+	factorArrayCpy[3] >>= portion[0] % (eo + 1)
 
 	return factorArrayCpy
 }

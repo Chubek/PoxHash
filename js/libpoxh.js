@@ -610,23 +610,32 @@ const debug = (arr) => console.log(arr[0], arr[1], arr[2], arr[3]);
 const poxApplySubportion = (factorArray, subportion, index) => {
   const tmt = tamaam(subportion);
   const dca = deca(subportion);
-  const tmtOddFactor = cUINT16_MAX * (tmt % 2);
-  const dcaOddFactor = cUINT16_MAX * (dca % 2);
+  const tmtOddFactor = cUINT16_MAX ^ (tmt % 4);
+  const dcaOddFactor = cUINT16_MAX ^ (dca % 3);
 
   const ng = (subportion[0] + index) % cPOX_PORTION_NUM;
   const chu = (subportion[1] + index) % cPOX_PORTION_NUM;
   const yo = (subportion[2] + index) % cPOX_PORTION_NUM;
   const eo = (subportion[3] + index) % cPOX_PORTION_NUM;
 
-  const zam = subportion[0] % cPOX_8B_PRIMES[subportion[chu] % cPOX_8B_PRIME_NUM]
-  const pez = subportion[1] % cPOX_8B_PRIMES[subportion[yo] % cPOX_8B_PRIME_NUM]
-  const dit = subportion[2] % cPOX_8B_PRIMES[subportion[eo] % cPOX_8B_PRIME_NUM]
-  const kit = subportion[3] % cPOX_8B_PRIMES[subportion[ng] % cPOX_8B_PRIME_NUM]
+  const zam =
+    subportion[0] % cPOX_8B_PRIMES[subportion[chu] % cPOX_8B_PRIME_NUM];
+  const pez =
+    subportion[1] % cPOX_8B_PRIMES[subportion[yo] % cPOX_8B_PRIME_NUM];
+  const dit =
+    subportion[2] % cPOX_8B_PRIMES[subportion[eo] % cPOX_8B_PRIME_NUM];
+  const kit =
+    subportion[3] % cPOX_8B_PRIMES[subportion[ng] % cPOX_8B_PRIME_NUM];
 
-  factorArray[ng] ^= ((subportion[eo] | tmt) ^ dcaOddFactor) | zam;
-  factorArray[chu] ^= ((subportion[yo] & dca) ^ tmtOddFactor) ^ pez;
+  factorArray[ng] ^= (((subportion[eo] >> chu) | tmt) ^ dcaOddFactor) | zam;
+  factorArray[chu] ^= (subportion[yo] & dca) ^ tmtOddFactor ^ pez;
   factorArray[yo] ^= (subportion[chu] ^ tmt ^ dcaOddFactor) | dit;
-  factorArray[eo] ^= ((subportion[ng] | dca) ^ tmtOddFactor) ^ kit;
+  factorArray[eo] ^= ((subportion[ng] >> yo) | dca) ^ tmtOddFactor ^ kit;
+
+  factorArray[0] >>= subportion[3] % (ng + 1);
+  factorArray[1] >>= subportion[2] % (chu + 1);
+  factorArray[2] ^= subportion[1] >> (dca % 2);
+  factorArray[3] >>= subportion[0] % (eo + 1);
 };
 
 const poxProcessBlock = (factorArray, blockArray) => {

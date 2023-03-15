@@ -676,29 +676,33 @@ static inline uint16_t get_8b_prime(uint16_t num)
     POX_ROUND_APPLY_SHUFFLE(temp_array);                                                                         \
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);
 
-#define POX_APPLY_BYTES(factor_array, portion, index)                       \
-    do                                                                      \
-    {                                                                       \
-        uint16_t tmt, dca, odd_factor_tmt, odd_factor_dca;                  \
-        uint16_t ng, chu, yo, eo, zam, pez, dit, kit;                       \
-        tmt = 0;                                                            \
-        dca = 0;                                                            \
-        TAMAAM(portion, tmt);                                               \
-        DECA(portion, dca);                                                 \
-        odd_factor_tmt = UINT16_MAX * (tmt % 2);                            \
-        odd_factor_dca = UINT16_MAX * (dca % 2);                            \
-        ng = (portion[0] + index) % POX_PORTION_NUM;                        \
-        chu = (portion[1] + index) % POX_PORTION_NUM;                       \
-        yo = (portion[2] + index) % POX_PORTION_NUM;                        \
-        eo = (portion[3] + index) % POX_PORTION_NUM;                        \
-        zam = portion[0] % cPOX_8B_PRIMES[portion[chu] % POX_8B_PRIME_NUM]; \
-        pez = portion[1] % cPOX_8B_PRIMES[portion[yo] % POX_8B_PRIME_NUM];  \
-        dit = portion[2] % cPOX_8B_PRIMES[portion[eo] % POX_8B_PRIME_NUM];  \
-        kit = portion[3] % cPOX_8B_PRIMES[portion[ng] % POX_8B_PRIME_NUM];  \
-        factor_array[ng] ^= ((portion[eo] | tmt) ^ odd_factor_dca) | zam;   \
-        factor_array[chu] ^= ((portion[yo] & dca) ^ odd_factor_tmt) ^ pez;  \
-        factor_array[yo] ^= ((portion[chu] ^ tmt) ^ odd_factor_dca) | dit;  \
-        factor_array[eo] ^= ((portion[ng] | dca) ^ odd_factor_tmt) ^ kit;   \
+#define POX_APPLY_BYTES(factor_array, portion, index)                              \
+    do                                                                             \
+    {                                                                              \
+        uint16_t tmt, dca, odd_factor_tmt, odd_factor_dca;                         \
+        uint16_t ng, chu, yo, eo, zam, pez, dit, kit;                              \
+        tmt = 0;                                                                   \
+        dca = 0;                                                                   \
+        TAMAAM(portion, tmt);                                                      \
+        DECA(portion, dca);                                                        \
+        odd_factor_tmt = UINT16_MAX ^ (tmt % 4);                                   \
+        odd_factor_dca = UINT16_MAX ^ (dca % 3);                                   \
+        ng = (portion[0] + index) % POX_PORTION_NUM;                               \
+        chu = (portion[1] + index) % POX_PORTION_NUM;                              \
+        yo = (portion[2] + index) % POX_PORTION_NUM;                               \
+        eo = (portion[3] + index) % POX_PORTION_NUM;                               \
+        zam = portion[0] % cPOX_8B_PRIMES[portion[chu] % POX_8B_PRIME_NUM];        \
+        pez = portion[1] % cPOX_8B_PRIMES[portion[yo] % POX_8B_PRIME_NUM];         \
+        dit = portion[2] % cPOX_8B_PRIMES[portion[eo] % POX_8B_PRIME_NUM];         \
+        kit = portion[3] % cPOX_8B_PRIMES[portion[ng] % POX_8B_PRIME_NUM];         \
+        factor_array[ng] ^= (((portion[eo] >> chu) | tmt) ^ odd_factor_dca) | zam; \
+        factor_array[chu] ^= ((portion[yo] & dca) ^ odd_factor_tmt) ^ pez;         \
+        factor_array[yo] ^= ((portion[chu] ^ tmt) ^ odd_factor_dca) | dit;         \
+        factor_array[eo] ^= (((portion[ng] >> yo) | dca) ^ odd_factor_tmt) ^ kit;  \
+        factor_array[0] >>= portion[3] % (ng + 1);                                 \
+        factor_array[1] >>= portion[2] % (chu + 1);                                \
+        factor_array[2] ^= portion[1] >> (dca % 2);                                \
+        factor_array[3] >>= portion[0] % (eo + 1);                                 \
     } while (0)
 
 #define POX_ROUND_ACTION(factor_array, portion, index) \

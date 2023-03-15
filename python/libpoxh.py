@@ -651,23 +651,29 @@ def __pox_apply_bytes(factor_array: __array, subportion: __array,
                       index: int) -> None:
     tmt = __tamaam(subportion)
     dca = __deca(subportion)
-    tmt_odd_factor = __UINT16_MAX * (tmt % 2)
-    dca_odd_factor = __UINT16_MAX * (dca % 2)
+    tmt_odd_factor = __UINT16_MAX ^ (tmt % 4)
+    dca_odd_factor = __UINT16_MAX ^ (dca % 3)
     ng = (subportion[0] + index) % __POX_PORTION_NUM
     chu = (subportion[1] + index) % __POX_PORTION_NUM
     yo = (subportion[2] + index) % __POX_PORTION_NUM
     eo = (subportion[3] + index) % __POX_PORTION_NUM
-    
+
     zam = subportion[0] % __POX_8B_PRIMES[subportion[chu] % __POX_8B_PRIME_NUM]
     pez = subportion[1] % __POX_8B_PRIMES[subportion[yo] % __POX_8B_PRIME_NUM]
     dit = subportion[2] % __POX_8B_PRIMES[subportion[eo] % __POX_8B_PRIME_NUM]
     kit = subportion[3] % __POX_8B_PRIMES[subportion[ng] % __POX_8B_PRIME_NUM]
-    
-    factor_array[ng] ^= ((subportion[eo]  | tmt) ^ dca_odd_factor) | zam
+
+    factor_array[ng] ^= ((
+        (subportion[eo] >> chu) | tmt) ^ dca_odd_factor) | zam
     factor_array[chu] ^= ((subportion[yo] & dca) ^ tmt_odd_factor) ^ pez
     factor_array[yo] ^= ((subportion[chu] ^ tmt) ^ dca_odd_factor) | dit
-    factor_array[eo] ^= ((subportion[ng] | dca) ^ tmt_odd_factor)  ^ kit
- 
+    factor_array[eo] ^= (((subportion[ng] >> yo) | dca) ^ tmt_odd_factor) ^ kit
+
+    factor_array[0] >>= subportion[3] % (ng + 1)
+    factor_array[1] >>= subportion[2] % (chu + 1)
+    factor_array[2] ^= subportion[1] >> (dca % 2)
+    factor_array[3] >>= subportion[0] % (eo + 1)
+
 
 def __pox_process_block(factor_array: __array, block: list[int]) -> None:
     portions = [

@@ -540,8 +540,8 @@ proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray,
 
    tmt = tamaam(portion)
    dca = deca(portion)
-   tmtOddFactor = BIT_UINT16_MAX_U16 * (tmt % 2)
-   dcaOddFactor = BIT_UINT16_MAX_U16 * (dca % 2)
+   tmtOddFactor = BIT_UINT16_MAX_U16 ^ (tmt % 4)
+   dcaOddFactor = BIT_UINT16_MAX_U16 ^ (dca % 3)
 
    ng = (portion[0] + index) % POX_PORTION_NUM
    chu = (portion[1] + index) % POX_PORTION_NUM
@@ -553,10 +553,15 @@ proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray,
    dit = portion[2] % POX_8B_PRIMES[portion[eo] % POX_8B_PRIME_NUM]
    kit = portion[3] % POX_8B_PRIMES[portion[ng] % POX_8B_PRIME_NUM]
 
-   factorArray[ng] ^= ((portion[eo] | tmt) ^ dcaOddFactor) | zam
+   factorArray[ng] ^= (((portion[eo] >> chu) | tmt) ^ dcaOddFactor) | zam
    factorArray[chu] ^= ((portion[yo] & dca) ^ tmtOddFactor) ^ pez
    factorArray[yo] ^= ((portion[chu] ^ tmt) ^ dcaOddFactor) | dit
-   factorArray[eo] ^= ((portion[ng] | dca) ^ tmtOddFactor) ^ kit
+   factorArray[eo] ^= (((portion[ng] >> yo) | dca) ^ tmtOddFactor) ^ kit
+
+   factor_array[0] >>= portion[3] % (ng + 1)
+   factor_array[1] >>= portion[2] % (chu + 1)
+   factor_array[2] ^=  portion[1] >> (dca % 2)
+   factor_array[3] >>= portion[0] % (eo + 1)
 
 proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
    var portion: PortionArray

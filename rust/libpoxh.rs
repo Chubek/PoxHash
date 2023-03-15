@@ -597,8 +597,8 @@ mod block {
     fn apply_bytes(factor_array: types::ArrTypeRef, portion: &[u16], index: u16) -> types::ArrType {
         let tmt = bits::tamaam(portion);
         let dca = bits::deca(portion);
-        let tmt_odd_factor = consts::UINT16_MAX_U16 * (tmt % 2);
-        let dca_odd_factor = consts::UINT16_MAX_U16 * (dca % 2);
+        let tmt_odd_factor = consts::UINT16_MAX_U16 ^ (tmt % 4);
+        let dca_odd_factor = consts::UINT16_MAX_U16 ^ (dca % 3);
 
         let ng = ((portion[0] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
         let chu = ((portion[1] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
@@ -615,10 +615,15 @@ mod block {
             portion[3] % consts::POX_8B_PRIMES[(portion[ng] as usize) % consts::POX_8B_PRIME_NUM];
 
         let mut factor_array_cpy = tools::copy_array(factor_array);
-        factor_array_cpy[ng] ^= ((portion[eo] | tmt) ^ dca_odd_factor) | zam;
+        factor_array_cpy[ng] ^= (((portion[eo] >> chu) | tmt) ^ dca_odd_factor) | zam;
         factor_array_cpy[chu] ^= ((portion[yo] & dca) ^ tmt_odd_factor) ^ pez;
         factor_array_cpy[yo] ^= ((portion[chu] ^ tmt) ^ dca_odd_factor) | dit;
-        factor_array_cpy[eo] ^= ((portion[ng] | dca) ^ tmt_odd_factor) ^ kit;
+        factor_array_cpy[eo] ^= (((portion[ng] >> yo) | dca) ^ tmt_odd_factor) ^ kit;
+
+        factor_array_cpy[0] >>= portion[3] % ((ng + 1) as u16);
+        factor_array_cpy[1] >>= portion[2] % ((chu + 1) as u16);
+        factor_array_cpy[2] ^= portion[1] >> ((dca % 2) as u16);
+        factor_array_cpy[3] >>= portion[0] % ((eo + 1) as u16);
 
         factor_array_cpy
     }
