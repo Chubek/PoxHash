@@ -28,104 +28,125 @@
 
 mod consts {
 
-    pub const POX_ROUND_PRIME_NUM: usize = 90;
-    pub const POX_BLOCK_NUM: usize = 64;
-    pub const POX_8B_PRIME_NUM: usize = 54;
-    pub const POX_ROUND_NUM: usize = 31;
-    pub const POX_CHUNK_NUM: usize = 16;
-    pub const POX_PORTION_NUM: usize = 4;
-    pub const POX_SD_PRIME_NUM: usize = 3;
-    pub const POX_MAGIC_PRIME_NUM: usize = 2;
+    // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#initial-prime-numbers
+    pub mod initial_primes {
+        pub const PRIME_INIT_A: u16 = 0x17cb;
+        pub const PRIME_INIT_B: u16 = 0x0371;
+        pub const PRIME_INIT_C: u16 = 0x2419;
+        pub const PRIME_INIT_D: u16 = 0xf223;
+    }
 
-    pub const POX_ROUND_PRIMES: [u16; POX_ROUND_PRIME_NUM] = [
-        0x0377, 0x0683, 0x05fb, 0x05fb, 0x0665, 0x074b, 0x036d, 0x033d, 0x0115, 0x07cf, 0x0e59,
-        0x0e75, 0x0a75, 0x119b, 0x1073, 0x12b3, 0x0fd1, 0x0a75, 0x0de7, 0x10bb, 0x18d1, 0x1c99,
-        0x1723, 0x1cc9, 0x20c3, 0x2327, 0x2063, 0x215b, 0x17e1, 0x22bd, 0xf2ff, 0xf50b, 0xf4af,
-        0xf2b3, 0xf5fb, 0xf4af, 0xf2b9, 0xf38b, 0xf4c3, 0xf5db, 0x1039, 0x1003, 0x0fa1, 0x0fa3,
-        0x0fa7, 0x8687, 0x80db, 0x86d1, 0x7fcd, 0x7f43, 0xa10b, 0x9e81, 0x9d15, 0xa289, 0xa279,
-        0x3e11, 0x3aa5, 0x3be3, 0x3daf, 0x3bff, 0xff8f, 0xff71, 0xfe03, 0xfe41, 0xfe05, 0xff2f,
-        0xfe7b, 0xfeb3, 0x0409, 0x0481, 0x1d7b, 0x1c4f, 0x1e6d, 0x1b7f, 0x1e71, 0xe875, 0xe2cd,
-        0xe351, 0xe363, 0xe329, 0x049d, 0x0427, 0xcbb3, 0x184d, 0x2ce1, 0x8861, 0x59b3, 0x2077,
-        0xff9d, 0xff2f,
-    ];
-    pub const POX_8B_PRIMES: [u16; POX_8B_PRIME_NUM] = [
-        0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29, 0x2b, 0x2f, 0x35,
-        0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61, 0x65, 0x67, 0x6b, 0x6d, 0x71, 0x7f,
-        0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d, 0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf, 0xc1, 0xc5, 0xc7,
-        0xd3, 0xdf, 0xe3, 0xe5, 0xe9, 0xef, 0xf1, 0xfb,
-    ];
-    pub const POX_SINGLE_DIGIT_PRIMES: [u16; POX_SD_PRIME_NUM] = [0x3, 0x5, 0x7];
-    pub const POX_MAGIC_PRIMES: [u16; POX_MAGIC_PRIME_NUM] = [0x33, 0x65];
+    // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#size-constants
+    pub mod size_values {
+        pub const ROUND_PRIME_NUM: usize = 90;
+        pub const BLOCK_NUM: usize = 64;
+        pub const BYTE_PRIME_NUM: usize = 54;
+        pub const ROUND_NUM: usize = 31;
+        pub const CHUNK_NUM: usize = 16;
+        pub const PORTION_NUM: usize = 4;
+        pub const SD_PRIME_NUM: usize = 3;
+        pub const MAGIC_PRIME_NUM: usize = 2;
+    }
 
-    pub const POX_PRIME_INIT_A: u16 = 0x17cb;
-    pub const POX_PRIME_INIT_B: u16 = 0x0371;
-    pub const POX_PRIME_INIT_C: u16 = 0x2419;
-    pub const POX_PRIME_INIT_D: u16 = 0xf223;
+    // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
+    pub mod masks {
+        pub const DWORD_4F4Z: u32 = 0xffff0000;
+        pub const DWORD_4Z4F: u32 = 0x0000ffff;
+        pub const WORD_FZFZ: u16 = 0xf0f0;
+        pub const WORD_ZFZF: u16 = 0x0f0f;
+        pub const WORD_FZZZ: u16 = 0xf000;
+        pub const WORD_ZZFZ: u16 = 0x00f0;
+        pub const WORD_ZZZF: u16 = 0x000f;
+        pub const WORD_ZZFF: u16 = 0x00ff;
+        pub const WORD_FFZZ: u16 = 0xff00;
+        pub const WORD_FZZF: u16 = 0xf00f;
+        pub const WORD_FFFZ: u16 = 0xfff0;
+        pub const WORD_ZFFF: u16 = 0x0fff;
+        pub const NIBBLET_01: usize = 0b01;
+        pub const NIBBLET_10: usize = 0b10;
+        pub const NIBBLET_11: usize = 0b11;
+        pub const NIBBLET_00: usize = 0b00;
+    }
 
-    pub const UINT16_MAX_U32: u32 = 65535;
-    pub const UINT16_MAX_U16: u16 = 65535;
-    pub const WORD_WIDTH_U32: u32 = 16;
-    pub const WORD_WIDTH_U16: u16 = 16;
-    pub const BYTE_WIDTH_U16: u16 = 8;
+    // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
+    pub mod prime_arrays {
+        pub const ROUND_PRIMES: [u16; super::size_values::ROUND_PRIME_NUM] = [
+            0x0377, 0x0683, 0x05fb, 0x05fb, 0x0665, 0x074b, 0x036d, 0x033d, 0x0115, 0x07cf, 0x0e59,
+            0x0e75, 0x0a75, 0x119b, 0x1073, 0x12b3, 0x0fd1, 0x0a75, 0x0de7, 0x10bb, 0x18d1, 0x1c99,
+            0x1723, 0x1cc9, 0x20c3, 0x2327, 0x2063, 0x215b, 0x17e1, 0x22bd, 0xf2ff, 0xf50b, 0xf4af,
+            0xf2b3, 0xf5fb, 0xf4af, 0xf2b9, 0xf38b, 0xf4c3, 0xf5db, 0x1039, 0x1003, 0x0fa1, 0x0fa3,
+            0x0fa7, 0x8687, 0x80db, 0x86d1, 0x7fcd, 0x7f43, 0xa10b, 0x9e81, 0x9d15, 0xa289, 0xa279,
+            0x3e11, 0x3aa5, 0x3be3, 0x3daf, 0x3bff, 0xff8f, 0xff71, 0xfe03, 0xfe41, 0xfe05, 0xff2f,
+            0xfe7b, 0xfeb3, 0x0409, 0x0481, 0x1d7b, 0x1c4f, 0x1e6d, 0x1b7f, 0x1e71, 0xe875, 0xe2cd,
+            0xe351, 0xe363, 0xe329, 0x049d, 0x0427, 0xcbb3, 0x184d, 0x2ce1, 0x8861, 0x59b3, 0x2077,
+            0xff9d, 0xff2f,
+        ];
+        pub const BYTE_PRIMES: [u16; super::size_values::BYTE_PRIME_NUM] = [
+            0x2, 0x3, 0x5, 0x7, 0xb, 0xd, 0x11, 0x13, 0x17, 0x1d, 0x1f, 0x25, 0x29, 0x2b, 0x2f,
+            0x35, 0x3b, 0x3d, 0x43, 0x47, 0x49, 0x4f, 0x53, 0x59, 0x61, 0x65, 0x67, 0x6b, 0x6d,
+            0x71, 0x7f, 0x83, 0x89, 0x8b, 0x95, 0x97, 0x9d, 0xa3, 0xa7, 0xad, 0xb3, 0xb5, 0xbf,
+            0xc1, 0xc5, 0xc7, 0xd3, 0xdf, 0xe3, 0xe5, 0xe9, 0xef, 0xf1, 0xfb,
+        ];
+        pub const SINGLE_DIGIT_PRIMES: [u16; super::size_values::SD_PRIME_NUM] = [0x3, 0x5, 0x7];
+        pub const MAGIC_PRIMES: [u16; super::size_values::MAGIC_PRIME_NUM] = [0x33, 0x65];
+    }
 
-    pub const MASK_DWORD_4F4Z: u32 = 0xffff0000;
-    pub const MASK_DWORD_4Z4F: u32 = 0x0000ffff;
-    pub const MASK_WORD_FZFZ: u16 = 0xf0f0;
-    pub const MASK_WORD_ZFZF: u16 = 0x0f0f;
-    pub const MASK_WORD_FZZZ: u16 = 0xf000;
-    pub const MASK_WORD_ZZFZ: u16 = 0x00f0;
-    pub const MASK_WORD_ZZZF: u16 = 0x000f;
-    pub const MASK_WORD_ZZFF: u16 = 0x00ff;
-    pub const MASK_WORD_FFZZ: u16 = 0xff00;
-    pub const MASK_WORD_FZZF: u16 = 0xf00f;
-    pub const MASK_WORD_FFFZ: u16 = 0xfff0;
-    pub const MASK_WORD_ZFFF: u16 = 0x0fff;
-    pub const MASK_NIBBLET_01: usize = 0b01;
-    pub const MASK_NIBBLET_10: usize = 0b10;
-    pub const MASK_NIBBLET_11: usize = 0b11;
-    pub const MASK_NIBBLET_00: usize = 0b00;
+    // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#bit-related-constants
+    pub mod bit_values {
+        pub const UINT16_MAX_U32: u32 = 65535;
+        pub const UINT16_MAX_U16: u16 = 65535;
+        pub const WORD_WIDTH_U32: u32 = 16;
+        pub const WORD_WIDTH_U16: u16 = 16;
+        pub const BYTE_WIDTH_U16: u16 = 8;
+    }
 
-    pub const COMB_BIONOM: &'static [(usize, usize)] =
-        &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
-    pub const SIZE_BIONOM: usize = 6;
+    // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#misc
+    pub mod misc {
+        pub const COMB_BIONOM: &'static [(usize, usize)] =
+            &[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
+        pub const SIZE_BIONOM: usize = 6;
+    }
 
-    pub const SEX_SIZE: usize = 3;
-    pub const VIG_SIZE: usize = 4;
-    pub const HEX_SIZE: usize = 4;
-    pub const TET_SIZE: usize = 5;
-    pub const DUO_SIZE: usize = 5;
-    pub const OCT_SIZE: usize = 6;
-    pub const SEN_SIZE: usize = 7;
-    pub const BIN_SIZE: usize = 16;
-    pub const SEX_BASE: u16 = 60;
-    pub const VIG_BASE: u16 = 20;
-    pub const HEX_BASE: u16 = 16;
-    pub const TET_BASE: u16 = 14;
-    pub const DUO_BASE: u16 = 12;
-    pub const OCT_BASE: u16 = 8;
-    pub const SEN_BASE: u16 = 6;
-    pub const BIN_BASE: u16 = 2;
+    pub mod conversion {
+        pub const SEX_SIZE: usize = 3;
+        pub const VIG_SIZE: usize = 4;
+        pub const HEX_SIZE: usize = 4;
+        pub const TET_SIZE: usize = 5;
+        pub const DUO_SIZE: usize = 5;
+        pub const OCT_SIZE: usize = 6;
+        pub const SEN_SIZE: usize = 7;
+        pub const BIN_SIZE: usize = 16;
+        pub const SEX_BASE: u16 = 60;
+        pub const VIG_BASE: u16 = 20;
+        pub const HEX_BASE: u16 = 16;
+        pub const TET_BASE: u16 = 14;
+        pub const DUO_BASE: u16 = 12;
+        pub const OCT_BASE: u16 = 8;
+        pub const SEN_BASE: u16 = 6;
+        pub const BIN_BASE: u16 = 2;
 
-    pub const SEX_CHARS: [char; 60] = [
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-        's', 't', 'u', 'v', 'w', 'x',
-    ];
-    pub const VIG_CHARS: [char; 20] = [
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', '@', '^', '&', '*', '$', '+', '!', ';',
-        ':', '~',
-    ];
-    pub const HEX_CHARS: [char; 16] = [
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
-    ];
-    pub const TET_CHARS: [char; 14] = [
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'E', 'W', 'R',
-    ];
-    pub const DUO_CHARS: [char; 12] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#'];
-    pub const OCT_CHARS: [char; 8] = ['0', '1', '2', '3', '4', '5', '6', '7'];
-    pub const SEN_CHARS: [char; 6] = ['0', '1', '2', '3', '4', '5'];
-    pub const BIN_CHARS: [char; 2] = ['0', '1'];
+        pub const SEX_CHARS: [char; 60] = [
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
+            'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+            'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+            'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+        ];
+        pub const VIG_CHARS: [char; 20] = [
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', '@', '^', '&', '*', '$', '+', '!',
+            ';', ':', '~',
+        ];
+        pub const HEX_CHARS: [char; 16] = [
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+        ];
+        pub const TET_CHARS: [char; 14] = [
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'E', 'W', 'R',
+        ];
+        pub const DUO_CHARS: [char; 12] =
+            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '#'];
+        pub const OCT_CHARS: [char; 8] = ['0', '1', '2', '3', '4', '5', '6', '7'];
+        pub const SEN_CHARS: [char; 6] = ['0', '1', '2', '3', '4', '5'];
+        pub const BIN_CHARS: [char; 2] = ['0', '1'];
+    }
 }
 
 mod types {
@@ -134,7 +155,7 @@ mod types {
 }
 
 mod tools {
-    use super::{consts, types};
+    use super::types;
 
     pub fn max_and_argmax(arr: types::ArrTypeRef, size_arr: usize) -> (u16, usize) {
         let mut curr_max = arr[0];
@@ -160,10 +181,6 @@ mod tools {
         (curr_min, curr_index)
     }
 
-    pub fn get_8b_prime(num: u16) -> u16 {
-        consts::POX_8B_PRIMES[(num as usize) % consts::POX_8B_PRIME_NUM]
-    }
-
     pub fn log2n(num: u16) -> u16 {
         if num > 1 {
             return 1 + log2n(num / 2);
@@ -178,91 +195,9 @@ mod tools {
     }
 }
 
-mod bits {
-    use super::{consts, types};
-
-    fn omega(num: u32) -> u32 {
-        (num & consts::MASK_DWORD_4F4Z) >> consts::WORD_WIDTH_U32
-    }
-
-    fn epsilon(num: u32) -> u32 {
-        num & consts::MASK_DWORD_4Z4F
-    }
-
-    fn ladca(num: u32, by: u32) -> u32 {
-        (num << by) | (num >> (consts::WORD_WIDTH_U32 - by))
-    }
-
-    pub fn gorda(num: u16, by: u32) -> u16 {
-        let mut res = num as u32;
-        res = ladca(res, by);
-        if res > consts::UINT16_MAX_U32 {
-            res = omega(res);
-        }
-        res as u16
-    }
-
-    pub fn tasu(a: u16, b: u16) -> u16 {
-        let (aa, bb) = (a as u32, b as u32);
-
-        let mut a_plus_b: u32 = (aa + bb) as u32;
-        if a_plus_b > consts::UINT16_MAX_U32 {
-            a_plus_b = epsilon(a_plus_b);
-        }
-        a_plus_b as u16
-    }
-
-    pub fn centum(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
-        let mut wtmt = 0u32;
-        for i in 0..consts::POX_PORTION_NUM {
-            wtmt += (arr[i] * weights[i]) as u32;
-        }
-        wtmt /= consts::POX_PORTION_NUM as u32;
-        if wtmt > consts::UINT16_MAX_U32 {
-            wtmt = omega(wtmt);
-        }
-        wtmt as u16
-    }
-
-    pub fn satum(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
-        let mut wdca = 0u32;
-        for i in 0..consts::POX_PORTION_NUM {
-            wdca += (arr[i] * weights[i]) as u32;
-        }
-        wdca = (wdca + 1) / 2;
-        if wdca > consts::UINT16_MAX_U32 {
-            wdca = epsilon(wdca);
-        }
-        wdca as u16
-    }
-
-    pub fn tamaam(arr: &[u16]) -> u16 {
-        let mut wtmt = 0u32;
-        for i in 0..consts::POX_PORTION_NUM {
-            wtmt += arr[i] as u32;
-        }
-        wtmt /= consts::POX_PORTION_NUM as u32;
-        if wtmt > consts::UINT16_MAX_U32 {
-            wtmt = omega(wtmt);
-        }
-        wtmt as u16
-    }
-
-    pub fn deca(arr: &[u16]) -> u16 {
-        let mut wdca = 0u32;
-        for i in 0..consts::POX_PORTION_NUM {
-            wdca += arr[i] as u32;
-        }
-        wdca = (wdca + 1) / 2;
-        if wdca > consts::UINT16_MAX_U32 {
-            wdca = epsilon(wdca);
-        }
-        wdca as u16
-    }
-}
-
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-g-conversion--preparation-prep-methods
 mod convert {
-    use super::{consts, types};
+    use super::{consts::*, types};
 
     macro_rules! convert_decimal_to_base {
         ($base: path, $size: path, $chars: path, $res: ident, $dec: ident, $offset: ident) => {{
@@ -275,8 +210,8 @@ mod convert {
     }
 
     fn single_word_to_byte(word: u16) -> (u8, u8) {
-        let lower: u8 = (word & consts::MASK_WORD_ZZFF) as u8;
-        let upper: u8 = ((word & consts::MASK_WORD_FFZZ) >> consts::BYTE_WIDTH_U16) as u8;
+        let lower: u8 = (word & masks::WORD_ZZFF) as u8;
+        let upper: u8 = ((word & masks::WORD_FFZZ) >> bit_values::BYTE_WIDTH_U16) as u8;
         (lower, upper)
     }
 
@@ -303,13 +238,13 @@ mod convert {
     }
 
     pub fn word_array_to_sex_digest(word_array: types::ArrTypeRef) -> String {
-        let mut digest = vec!['0'; consts::SEX_SIZE * consts::POX_PORTION_NUM];
-        for i in 0..consts::POX_PORTION_NUM {
+        let mut digest = vec!['0'; conversion::SEX_SIZE * size_values::PORTION_NUM];
+        for i in 0..size_values::PORTION_NUM {
             let word = word_array[i];
             convert_decimal_to_base! {
-                consts::SEX_BASE,
-                consts::SEX_SIZE,
-                consts::SEX_CHARS,
+                conversion::SEX_BASE,
+                conversion::SEX_SIZE,
+                conversion::SEX_CHARS,
                 digest,
                 word,
                 i
@@ -319,13 +254,13 @@ mod convert {
     }
 
     pub fn word_array_to_vig_digest(word_array: types::ArrTypeRef) -> String {
-        let mut digest = vec!['0'; consts::VIG_SIZE * consts::POX_PORTION_NUM];
-        for i in 0..consts::POX_PORTION_NUM {
+        let mut digest = vec!['0'; conversion::VIG_SIZE * size_values::PORTION_NUM];
+        for i in 0..size_values::PORTION_NUM {
             let word = word_array[i];
             convert_decimal_to_base! {
-                consts::VIG_BASE,
-                consts::VIG_SIZE,
-                consts::VIG_CHARS,
+                conversion::VIG_BASE,
+                conversion::VIG_SIZE,
+                conversion::VIG_CHARS,
                 digest,
                 word,
                 i
@@ -335,13 +270,13 @@ mod convert {
     }
 
     pub fn word_array_to_hex_digest(word_array: types::ArrTypeRef) -> String {
-        let mut digest = vec!['0'; consts::HEX_SIZE * consts::POX_PORTION_NUM];
-        for i in 0..consts::POX_PORTION_NUM {
+        let mut digest = vec!['0'; conversion::HEX_SIZE * size_values::PORTION_NUM];
+        for i in 0..size_values::PORTION_NUM {
             let word = word_array[i];
             convert_decimal_to_base! {
-                consts::HEX_BASE,
-                consts::HEX_SIZE,
-                consts::HEX_CHARS,
+                conversion::HEX_BASE,
+                conversion::HEX_SIZE,
+                conversion::HEX_CHARS,
                 digest,
                 word,
                 i
@@ -351,13 +286,13 @@ mod convert {
     }
 
     pub fn word_array_to_tet_digest(word_array: types::ArrTypeRef) -> String {
-        let mut digest = vec!['0'; consts::TET_SIZE * consts::POX_PORTION_NUM];
-        for i in 0..consts::POX_PORTION_NUM {
+        let mut digest = vec!['0'; conversion::TET_SIZE * size_values::PORTION_NUM];
+        for i in 0..size_values::PORTION_NUM {
             let word = word_array[i];
             convert_decimal_to_base! {
-                consts::TET_BASE,
-                consts::TET_SIZE,
-                consts::TET_CHARS,
+                conversion::TET_BASE,
+                conversion::TET_SIZE,
+                conversion::TET_CHARS,
                 digest,
                 word,
                 i
@@ -367,13 +302,13 @@ mod convert {
     }
 
     pub fn word_array_to_duo_digest(word_array: types::ArrTypeRef) -> String {
-        let mut digest = vec!['0'; consts::DUO_SIZE * consts::POX_PORTION_NUM];
-        for i in 0..consts::POX_PORTION_NUM {
+        let mut digest = vec!['0'; conversion::DUO_SIZE * size_values::PORTION_NUM];
+        for i in 0..size_values::PORTION_NUM {
             let word = word_array[i];
             convert_decimal_to_base! {
-                consts::DUO_BASE,
-                consts::DUO_SIZE,
-                consts::DUO_CHARS,
+                conversion::DUO_BASE,
+                conversion::DUO_SIZE,
+                conversion::DUO_CHARS,
                 digest,
                 word,
                 i
@@ -383,13 +318,13 @@ mod convert {
     }
 
     pub fn word_array_to_oct_digest(word_array: types::ArrTypeRef) -> String {
-        let mut digest = vec!['0'; consts::OCT_SIZE * consts::POX_PORTION_NUM];
-        for i in 0..consts::POX_PORTION_NUM {
+        let mut digest = vec!['0'; conversion::OCT_SIZE * size_values::PORTION_NUM];
+        for i in 0..size_values::PORTION_NUM {
             let word = word_array[i];
             convert_decimal_to_base! {
-                consts::OCT_BASE,
-                consts::OCT_SIZE,
-                consts::OCT_CHARS,
+                conversion::OCT_BASE,
+                conversion::OCT_SIZE,
+                conversion::OCT_CHARS,
                 digest,
                 word,
                 i
@@ -399,13 +334,13 @@ mod convert {
     }
 
     pub fn word_array_to_sen_digest(word_array: types::ArrTypeRef) -> String {
-        let mut digest = vec!['0'; consts::SEN_SIZE * consts::POX_PORTION_NUM];
-        for i in 0..consts::POX_PORTION_NUM {
+        let mut digest = vec!['0'; conversion::SEN_SIZE * size_values::PORTION_NUM];
+        for i in 0..size_values::PORTION_NUM {
             let word = word_array[i];
             convert_decimal_to_base! {
-                consts::SEN_BASE,
-                consts::SEN_SIZE,
-                consts::SEN_CHARS,
+                conversion::SEN_BASE,
+                conversion::SEN_SIZE,
+                conversion::SEN_CHARS,
                 digest,
                 word,
                 i
@@ -415,13 +350,13 @@ mod convert {
     }
 
     pub fn word_array_to_bin_digest(word_array: types::ArrTypeRef) -> String {
-        let mut digest = vec!['0'; consts::BIN_SIZE * consts::POX_PORTION_NUM];
-        for i in 0..consts::POX_PORTION_NUM {
+        let mut digest = vec!['0'; conversion::BIN_SIZE * size_values::PORTION_NUM];
+        for i in 0..size_values::PORTION_NUM {
             let word = word_array[i];
             convert_decimal_to_base! {
-                consts::BIN_BASE,
-                consts::BIN_SIZE,
-                consts::BIN_CHARS,
+                conversion::BIN_BASE,
+                conversion::BIN_SIZE,
+                conversion::BIN_CHARS,
                 digest,
                 word,
                 i
@@ -446,21 +381,119 @@ mod convert {
             .into_iter()
             .map(|b| *b as u16)
             .collect::<Vec<u16>>();
-        while word_vec.len() % consts::POX_BLOCK_NUM != 0 {
+        while word_vec.len() % size_values::BLOCK_NUM != 0 {
             word_vec.push(0);
         }
         word_vec
     }
 }
 
+mod operations {
+    use super::{consts::*, types};
+
+    // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
+    mod bitwise {
+        use super::*;
+
+        pub fn omega(num: u32) -> u32 {
+            (num & masks::DWORD_4F4Z) >> bit_values::WORD_WIDTH_U32
+        }
+
+        pub fn epsilon(num: u32) -> u32 {
+            num & masks::DWORD_4Z4F
+        }
+
+        pub fn lamed(num: u32, by: u32) -> u32 {
+            (num << by) | (num >> (bit_values::WORD_WIDTH_U32 - by))
+        }
+    }
+
+    // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-c-bespoke-operations
+    pub mod bespoke {
+        use super::*;
+
+        pub fn gorda(num: u16, by: u32) -> u16 {
+            let mut res = num as u32;
+            res = bitwise::lamed(res, by);
+            if res > bit_values::UINT16_MAX_U32 {
+                res = bitwise::omega(res);
+            }
+            res as u16
+        }
+
+        pub fn tasu(a: u16, b: u16) -> u16 {
+            let (aa, bb) = (a as u32, b as u32);
+
+            let mut a_plus_b: u32 = (aa + bb) as u32;
+            if a_plus_b > bit_values::UINT16_MAX_U32 {
+                a_plus_b = bitwise::epsilon(a_plus_b);
+            }
+            a_plus_b as u16
+        }
+
+        pub fn centum(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
+            let mut wtmt = 0u32;
+            for i in 0..size_values::PORTION_NUM {
+                wtmt += (arr[i] * weights[i]) as u32;
+            }
+            wtmt /= size_values::PORTION_NUM as u32;
+            if wtmt > bit_values::UINT16_MAX_U32 {
+                wtmt = bitwise::omega(wtmt);
+            }
+            wtmt as u16
+        }
+
+        pub fn satum(arr: types::ArrTypeRef, weights: &[u16]) -> u16 {
+            let mut wdca = 0u32;
+            for i in 0..size_values::PORTION_NUM {
+                wdca += (arr[i] * weights[i]) as u32;
+            }
+            wdca = (wdca + 1) / 2;
+            if wdca > bit_values::UINT16_MAX_U32 {
+                wdca = bitwise::epsilon(wdca);
+            }
+            wdca as u16
+        }
+
+        pub fn tamaam(arr: &[u16]) -> u16 {
+            let mut wtmt = 0u32;
+            for i in 0..size_values::PORTION_NUM {
+                wtmt += arr[i] as u32;
+            }
+            wtmt /= size_values::PORTION_NUM as u32;
+            if wtmt > bit_values::UINT16_MAX_U32 {
+                wtmt = bitwise::omega(wtmt);
+            }
+            wtmt as u16
+        }
+
+        pub fn deca(arr: &[u16]) -> u16 {
+            let mut wdca = 0u32;
+            for i in 0..size_values::PORTION_NUM {
+                wdca += arr[i] as u32;
+            }
+            wdca = (wdca + 1) / 2;
+            if wdca > bit_values::UINT16_MAX_U32 {
+                wdca = bitwise::epsilon(wdca);
+            }
+            wdca as u16
+        }
+
+        pub fn get_8b_prime(num: u16) -> u16 {
+            prime_arrays::BYTE_PRIMES[(num as usize) % size_values::BYTE_PRIME_NUM]
+        }
+    }
+}
+
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-d-alphabet-operations
 mod alphabet {
-    use super::{bits, consts, tools, types};
+    use super::{consts::*, operations::*, tools, types};
 
     pub fn alpha(temp_array: types::ArrTypeRef) -> types::ArrType {
-        let aleph: u16 = (temp_array[0] ^ temp_array[1]) & consts::MASK_WORD_ZZFF;
-        let daal: u16 = (temp_array[2] ^ temp_array[3]) & consts::MASK_WORD_FFZZ;
-        let theh: u16 = (aleph | daal) % consts::POX_8B_PRIMES[0];
-        let gaaf: u16 = (aleph ^ daal) % consts::POX_8B_PRIMES[1];
+        let aleph: u16 = (temp_array[0] ^ temp_array[1]) & masks::WORD_ZZFF;
+        let daal: u16 = (temp_array[2] ^ temp_array[3]) & masks::WORD_FFZZ;
+        let theh: u16 = (aleph | daal) % prime_arrays::BYTE_PRIMES[0];
+        let gaaf: u16 = (aleph ^ daal) % prime_arrays::BYTE_PRIMES[1];
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
@@ -473,29 +506,29 @@ mod alphabet {
 
     pub fn delta(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut alaf: u16 =
-            (temp_array[0] ^ consts::MASK_WORD_FFFZ) % tools::get_8b_prime(temp_array[0]);
+            (temp_array[0] ^ masks::WORD_FFFZ) % bespoke::get_8b_prime(temp_array[0]);
         let mut dalat: u16 =
-            (temp_array[1] ^ consts::MASK_WORD_FZZF) % tools::get_8b_prime(temp_array[1]);
+            (temp_array[1] ^ masks::WORD_FZZF) % bespoke::get_8b_prime(temp_array[1]);
         let mut tit: u16 =
-            (temp_array[2] & consts::MASK_WORD_ZFFF) % tools::get_8b_prime(temp_array[2]);
+            (temp_array[2] & masks::WORD_ZFFF) % bespoke::get_8b_prime(temp_array[2]);
         let mut gaman: u16 =
-            (temp_array[3] & consts::MASK_WORD_FFZZ) % tools::get_8b_prime(temp_array[3]);
+            (temp_array[3] & masks::WORD_FFZZ) % bespoke::get_8b_prime(temp_array[3]);
 
-        for _ in 0..consts::POX_PORTION_NUM {
-            alaf >>= consts::POX_SINGLE_DIGIT_PRIMES
-                [(dalat % (consts::POX_SD_PRIME_NUM as u16)) as usize];
-            dalat = bits::gorda(dalat, 2);
-            tit >>= consts::POX_SINGLE_DIGIT_PRIMES
-                [(gaman % (consts::POX_SD_PRIME_NUM as u16)) as usize];
-            gaman ^= (alaf ^ consts::MASK_WORD_ZZFF)
-                >> consts::POX_SINGLE_DIGIT_PRIMES
-                    [(tit % (consts::POX_SD_PRIME_NUM as u16)) as usize];
+        for _ in 0..size_values::PORTION_NUM {
+            alaf >>= prime_arrays::SINGLE_DIGIT_PRIMES
+                [(dalat % (size_values::SD_PRIME_NUM as u16)) as usize];
+            dalat = bespoke::gorda(dalat, 2);
+            tit >>= prime_arrays::SINGLE_DIGIT_PRIMES
+                [(gaman % (size_values::SD_PRIME_NUM as u16)) as usize];
+            gaman ^= (alaf ^ masks::WORD_ZZFF)
+                >> prime_arrays::SINGLE_DIGIT_PRIMES
+                    [(tit % (size_values::SD_PRIME_NUM as u16)) as usize];
         }
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
         temp_array_cpy[1] ^= temp_array[2]
-            % consts::POX_MAGIC_PRIMES[(alaf % (consts::POX_MAGIC_PRIME_NUM as u16)) as usize];
+            % prime_arrays::MAGIC_PRIMES[(alaf % (size_values::MAGIC_PRIME_NUM as u16)) as usize];
         temp_array_cpy[2] ^= alaf + tit;
         temp_array_cpy[3] ^= tit + gaman;
 
@@ -508,44 +541,45 @@ mod alphabet {
         let tet: u16 = temp_array[2] % 2;
         let gimmel: u16 = temp_array[3] % 2;
 
-        let ctm: u16 = bits::centum(temp_array, &[alef, dalet, tet, gimmel]);
-        let stm: u16 = bits::satum(temp_array, &[alef, dalet, tet, gimmel]);
+        let ctm: u16 = bespoke::centum(temp_array, &[alef, dalet, tet, gimmel]);
+        let stm: u16 = bespoke::satum(temp_array, &[alef, dalet, tet, gimmel]);
 
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[0] ^= ((ctm >> gimmel) ^ consts::MASK_WORD_ZZFF) & consts::MASK_WORD_ZZZF;
-        temp_array_cpy[3] ^= ((stm << alef) ^ consts::MASK_WORD_FZFZ) & consts::MASK_WORD_FZZZ;
+        temp_array_cpy[0] ^= ((ctm >> gimmel) ^ masks::WORD_ZZFF) & masks::WORD_ZZZF;
+        temp_array_cpy[3] ^= ((stm << alef) ^ masks::WORD_FZFZ) & masks::WORD_FZZZ;
 
         temp_array_cpy
     }
 
     pub fn gamma(temp_array: types::ArrTypeRef) -> types::ArrType {
-        let (mmin, argmin) = tools::min_and_argmin(temp_array, consts::POX_PORTION_NUM);
-        let (mmax, argmax) = tools::max_and_argmax(temp_array, consts::POX_PORTION_NUM);
-        let ay = argmin & consts::MASK_NIBBLET_01;
-        let dee = argmax ^ consts::MASK_NIBBLET_10;
-        let thorn = argmin & consts::MASK_NIBBLET_11;
-        let gee = argmax ^ consts::MASK_NIBBLET_00;
+        let (mmin, argmin) = tools::min_and_argmin(temp_array, size_values::PORTION_NUM);
+        let (mmax, argmax) = tools::max_and_argmax(temp_array, size_values::PORTION_NUM);
+        let ay = argmin & masks::NIBBLET_01;
+        let dee = argmax ^ masks::NIBBLET_10;
+        let thorn = argmin & masks::NIBBLET_11;
+        let gee = argmax ^ masks::NIBBLET_00;
 
-        let alaph: u16 = temp_array[ay] % tools::get_8b_prime(temp_array[thorn]);
+        let alaph: u16 = temp_array[ay] % bespoke::get_8b_prime(temp_array[thorn]);
         let dalath: u16 =
-            (tools::get_8b_prime(mmax) ^ consts::MASK_WORD_ZFZF) % tools::get_8b_prime(mmin);
-        let teth: u16 = mmax % tools::get_8b_prime(mmax);
+            (bespoke::get_8b_prime(mmax) ^ masks::WORD_ZFZF) % bespoke::get_8b_prime(mmin);
+        let teth: u16 = mmax % bespoke::get_8b_prime(mmax);
         let gamal: u16 =
-            temp_array[dee] % tools::get_8b_prime((((mmin as u32) + (mmax as u32)) / 2) as u16);
+            temp_array[dee] % bespoke::get_8b_prime((((mmin as u32) + (mmax as u32)) / 2) as u16);
         let mut temp_array_cpy = tools::copy_array(temp_array);
 
-        temp_array_cpy[ay] >>= (alaph ^ consts::MASK_WORD_ZZFZ) % consts::WORD_WIDTH_U16;
-        temp_array_cpy[dee] >>= (gamal ^ consts::MASK_WORD_FZZZ) % ((mmax % 2) + 1);
-        temp_array_cpy[thorn] ^= tools::log2n(dalath) & consts::MASK_WORD_ZFFF;
+        temp_array_cpy[ay] >>= (alaph ^ masks::WORD_ZZFZ) % bit_values::WORD_WIDTH_U16;
+        temp_array_cpy[dee] >>= (gamal ^ masks::WORD_FZZZ) % ((mmax % 2) + 1);
+        temp_array_cpy[thorn] ^= tools::log2n(dalath) & masks::WORD_ZFFF;
         temp_array_cpy[gee] ^= tools::log2n(teth) >> ((gamal % 2) + 1);
 
         temp_array_cpy
     }
 }
 
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-e-round-methods
 mod round {
-    use super::{alphabet, bits, consts, tools, types};
+    use super::{alphabet, consts::*, operations::*, tools, types};
 
     macro_rules! swap {
         ($arr: ident, $indexof: ident, $indexwith: ident) => {{
@@ -566,11 +600,11 @@ mod round {
 
     fn apply_prime(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
-        for i in 0..consts::POX_ROUND_PRIME_NUM {
-            temp_array_cpy[0] %= consts::POX_ROUND_PRIMES[i];
-            temp_array_cpy[1] %= consts::POX_ROUND_PRIMES[i];
-            temp_array_cpy[2] %= consts::POX_ROUND_PRIMES[i];
-            temp_array_cpy[3] %= consts::POX_ROUND_PRIMES[i];
+        for i in 0..size_values::ROUND_PRIME_NUM {
+            temp_array_cpy[0] %= prime_arrays::ROUND_PRIMES[i];
+            temp_array_cpy[1] %= prime_arrays::ROUND_PRIMES[i];
+            temp_array_cpy[2] %= prime_arrays::ROUND_PRIMES[i];
+            temp_array_cpy[3] %= prime_arrays::ROUND_PRIMES[i];
         }
         temp_array_cpy
     }
@@ -580,17 +614,17 @@ mod round {
         temp_array: types::ArrTypeRef,
     ) -> types::ArrType {
         let mut factor_array_cpy = tools::copy_array(factor_array);
-        factor_array_cpy[0] = bits::tasu(factor_array_cpy[0], temp_array[0]);
-        factor_array_cpy[1] = bits::tasu(factor_array_cpy[1], temp_array[1]);
-        factor_array_cpy[2] = bits::tasu(factor_array_cpy[2], temp_array[2]);
-        factor_array_cpy[3] = bits::tasu(factor_array_cpy[3], temp_array[3]);
+        factor_array_cpy[0] = bespoke::tasu(factor_array_cpy[0], temp_array[0]);
+        factor_array_cpy[1] = bespoke::tasu(factor_array_cpy[1], temp_array[1]);
+        factor_array_cpy[2] = bespoke::tasu(factor_array_cpy[2], temp_array[2]);
+        factor_array_cpy[3] = bespoke::tasu(factor_array_cpy[3], temp_array[3]);
         factor_array_cpy
     }
 
     fn apply_shuffle(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
-        for i in 0..consts::SIZE_BIONOM {
-            let (iof, iwith) = consts::COMB_BIONOM[i];
+        for i in 0..misc::SIZE_BIONOM {
+            let (iof, iwith) = misc::COMB_BIONOM[i];
             swap!(temp_array_cpy, iof, iwith);
         }
         temp_array_cpy
@@ -612,28 +646,29 @@ mod round {
     }
 }
 
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-f-block-methods
 mod block {
-    use super::{bits, consts, round, tools, types};
+    use super::{consts::*, operations::*, round, tools, types};
 
     fn apply_bytes(factor_array: types::ArrTypeRef, portion: &[u16], index: u16) -> types::ArrType {
-        let tmt = bits::tamaam(portion);
-        let dca = bits::deca(portion);
-        let tmt_odd_factor = consts::UINT16_MAX_U16 ^ (tmt % 4);
-        let dca_odd_factor = consts::UINT16_MAX_U16 ^ (dca % 3);
+        let tmt = bespoke::tamaam(portion);
+        let dca = bespoke::deca(portion);
+        let tmt_odd_factor = bit_values::UINT16_MAX_U16 ^ (tmt % 4);
+        let dca_odd_factor = bit_values::UINT16_MAX_U16 ^ (dca % 3);
 
-        let ng = ((portion[0] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
-        let chu = ((portion[1] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
-        let yo = ((portion[2] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
-        let eo = ((portion[3] + index) % (consts::POX_PORTION_NUM as u16)) as usize;
+        let ng = ((portion[0] + index) % (size_values::PORTION_NUM as u16)) as usize;
+        let chu = ((portion[1] + index) % (size_values::PORTION_NUM as u16)) as usize;
+        let yo = ((portion[2] + index) % (size_values::PORTION_NUM as u16)) as usize;
+        let eo = ((portion[3] + index) % (size_values::PORTION_NUM as u16)) as usize;
 
-        let zam =
-            portion[0] % consts::POX_8B_PRIMES[(portion[chu] as usize) % consts::POX_8B_PRIME_NUM];
-        let pez =
-            portion[1] % consts::POX_8B_PRIMES[(portion[yo] as usize) % consts::POX_8B_PRIME_NUM];
-        let dit =
-            portion[2] % consts::POX_8B_PRIMES[(portion[eo] as usize) % consts::POX_8B_PRIME_NUM];
-        let kit =
-            portion[3] % consts::POX_8B_PRIMES[(portion[ng] as usize) % consts::POX_8B_PRIME_NUM];
+        let zam = portion[0]
+            % prime_arrays::BYTE_PRIMES[(portion[chu] as usize) % size_values::BYTE_PRIME_NUM];
+        let pez = portion[1]
+            % prime_arrays::BYTE_PRIMES[(portion[yo] as usize) % size_values::BYTE_PRIME_NUM];
+        let dit = portion[2]
+            % prime_arrays::BYTE_PRIMES[(portion[eo] as usize) % size_values::BYTE_PRIME_NUM];
+        let kit = portion[3]
+            % prime_arrays::BYTE_PRIMES[(portion[ng] as usize) % size_values::BYTE_PRIME_NUM];
 
         let mut factor_array_cpy = tools::copy_array(factor_array);
         factor_array_cpy[ng] ^= (((portion[eo] >> chu) | tmt) ^ dca_odd_factor) | zam;
@@ -651,10 +686,10 @@ mod block {
 
     pub fn process_block(factor_array: types::ArrTypeRef, block: &[u16]) -> types::ArrType {
         let mut factor_array_cpy = tools::copy_array(factor_array);
-        for i in (0..consts::POX_BLOCK_NUM).step_by(consts::POX_CHUNK_NUM) {
-            for j in (i..i + consts::POX_CHUNK_NUM).step_by(consts::POX_PORTION_NUM) {
+        for i in (0..size_values::BLOCK_NUM).step_by(size_values::CHUNK_NUM) {
+            for j in (i..i + size_values::CHUNK_NUM).step_by(size_values::PORTION_NUM) {
                 let portion: &[u16] = &[block[j], block[j + 1], block[j + 2], block[j + 3]];
-                for m in 0..consts::POX_ROUND_NUM {
+                for m in 0..size_values::ROUND_NUM {
                     factor_array_cpy = apply_bytes(&factor_array_cpy, portion, m as u16);
                     factor_array_cpy = round::one_round(&factor_array_cpy);
                 }
@@ -849,15 +884,17 @@ pub fn pox_hash(message: &Vec<u8>) -> PoxDigest {
     ///         PoxDigest.quad: u64
     let padded_u16 = convert::byte_vec_to_word_vec_and_pad(message);
     let mut factor_array: types::ArrType = [
-        consts::POX_PRIME_INIT_A,
-        consts::POX_PRIME_INIT_B,
-        consts::POX_PRIME_INIT_C,
-        consts::POX_PRIME_INIT_D,
+        consts::initial_primes::PRIME_INIT_A,
+        consts::initial_primes::PRIME_INIT_B,
+        consts::initial_primes::PRIME_INIT_C,
+        consts::initial_primes::PRIME_INIT_D,
     ];
 
-    for i in (0..padded_u16.len()).step_by(consts::POX_BLOCK_NUM) {
-        factor_array =
-            block::process_block(&factor_array, &padded_u16[i..i + consts::POX_BLOCK_NUM]);
+    for i in (0..padded_u16.len()).step_by(consts::size_values::BLOCK_NUM) {
+        factor_array = block::process_block(
+            &factor_array,
+            &padded_u16[i..i + consts::size_values::BLOCK_NUM],
+        );
     }
 
     let sexdigest = convert::word_array_to_sex_digest(&factor_array);
