@@ -35,6 +35,9 @@ FLAG_BIN = 'b'
 FLAG_HELP = '?'
 FLAG_DASH = '-'
 FLAG_NHEADER = 'z'
+FLAG_ECHO = 'e'
+
+SKIPPER_FLAGS = [FLAG_BENCHMARK, FLAG_JOIN, FLAG_NHEADER, FLAG_ECHO]
 
 FILE_PREFIX = "file="
 FILE_PREFIX_LEN = 5
@@ -70,6 +73,10 @@ WRONG_FLAGS = [
     ('x', 'z'),
     ('Z', 'z'),
     ('a', 'z'),
+    ('E', 'e'),
+    ('w', 'e'),
+    ('r', 'e'),
+    ('i', 'e'),
 ]
 
 
@@ -106,17 +113,17 @@ def error_out(message: str) -> None:
     printf(message)
     println()
     printf(
-        "\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[134m-?-\x1b[0m to show help\n"
+        "\033[1;31mError occurred\033[0m. Please pass \033[134m-?-\033[0m to show help\n"
     )
     exit(1)
 
 
 def printHelp(exec_name: str, script_name: str) -> None:
     printf(
-        "\x1b[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n"
+        "\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail[dot]com\033[0m\n"
     )
     println()
-    printf("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
+    printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n")
     printf("%s %s -N82- myword1\n", exec_name, script_name)
     printf("%s %s -*+^- mywod to be joined\n", exec_name, script_name)
     printf("%s %s -Dhob- word1 word 2\n", exec_name, script_name)
@@ -125,48 +132,51 @@ def printHelp(exec_name: str, script_name: str) -> None:
     printf("wget -qO- www.example.com | xargs bash -c '%s %s -h+- $@'\n",
            exec_name, script_name)
     println()
-    printf("\x1b[1;32mFlags:\x1b[0m\n")
+    printf("\033[1;32mFlags:\033[0m\n")
+    printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO)
+    printf("\033[1;33m\t`%c`\033[0m: Don't print header message\n",
+           FLAG_NHEADER)
     printf(
-        "\033[1;35m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n",
+        "\033[1;33m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n",
         FLAG_BENCHMARK)
-    printf("\033[1;35m\t`%c`\033[0m: Join arguments with space (byte 32)\n",
+    printf("\033[1;33m\t`%c`\033[0m: Join arguments with space (byte 32)\n",
            FLAG_JOIN)
-    printf("\033[1;35m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING)
-    printf("\033[1;35m\t`%c`\033[0m: Print every non-decimal digest\n",
+    printf("\033[1;33m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING)
+    printf("\033[1;33m\t`%c`\033[0m: Print every non-decimal digest\n",
            FLAG_ALL_NON_DEC)
-    printf("\033[1;35m\t`%c`\033[0m: Print every decimal digest\n",
+    printf("\033[1;33m\t`%c`\033[0m: Print every decimal digest\n",
            FLAG_ALL_DECIMAL)
     printf(
-        "\033[1;35m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
+        "\033[1;33m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
         FLAG_BYTES)
     printf(
-        "\033[1;35m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n",
+        "\033[1;33m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n",
         FLAG_WORDS)
     printf(
-        "\033[1;35m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n",
+        "\033[1;33m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n",
         FLAG_DOUBLES)
     printf(
-        "\033[1;35m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n",
+        "\033[1;33m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n",
         FLAG_QUAD)
-    printf("\033[1;35m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n",
+    printf("\033[1;33m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n",
            FLAG_SEX)
-    printf("\033[1;35m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n",
+    printf("\033[1;33m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n",
            FLAG_VIG)
     printf(
-        "\033[1;35m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n",
+        "\033[1;33m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n",
         FLAG_HEX)
     printf(
-        "\033[1;35m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n",
+        "\033[1;33m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n",
         FLAG_TET)
-    printf("\033[1;35m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n",
+    printf("\033[1;33m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n",
            FLAG_DUO)
-    printf("\033[1;35m\t`%c`\033[0m: Print octal digest (base eight)\n",
+    printf("\033[1;33m\t`%c`\033[0m: Print octal digest (base eight)\n",
            FLAG_OCT)
-    printf("\033[1;35m\t`%c`\033[0m: Print senary digest (base six)\n",
+    printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n",
            FLAG_SEN)
-    printf("\033[1;35m\t`%c`\033[0m: Print binary digest (base two)\n",
+    printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n",
            FLAG_BIN)
-    printf("\033[1;35m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP)
+    printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP)
     exit(1)
 
 
@@ -242,9 +252,7 @@ def validate_flags(exec: str, argv: list[str]) -> None:
     all_flags_non_dec_passed = arg_has_flag(flags_arg, FLAG_ALL_NON_DEC)
 
     for flag in flags_arg[1:-1]:
-        if flag == FLAG_BENCHMARK:
-            continue
-        if flag == FLAG_JOIN:
+        if any([flag == f for f in SKIPPER_FLAGS]):
             continue
         if flag == FLAG_EVERTHING:
             if all_flags_dec_passed or all_flags_non_dec_passed:
@@ -335,13 +343,10 @@ def validate_flags(exec: str, argv: list[str]) -> None:
             if len_flags > MIN_FLAG_SIZE:
                 error_out(
                     "You may not pass the `?` flag along with other flags")
-
         if flag == FLAG_DASH:
             error_out(
                 "You may not use `-` in the first argument other than in the first, and the last letter"
             )
-        if flag == FLAG_NHEADER:
-            continue
         else:
             error_out("Unknown flag detected!")
 
@@ -362,8 +367,8 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
     reoccurrance = search_for_flag_occurrances(flags[1:-1])
 
     if arg_has_flag(flags, FLAG_BENCHMARK):
-        printf("Total time for hashing %d bytestring(s): %dus \n", len_hashes,
-               total_time)
+        printf("Total time for hashing %d unsigned bytearrays(s): %dus \n",
+               len_hashes, total_time)
 
     if reoccurrance == FLAG_BENCHMARK:
         println()
@@ -488,21 +493,25 @@ def main(exec_name: str, argv: list[str]) -> None:
 
     if not arg_has_flag(flags_arg, FLAG_NHEADER):
         printf(
-            "\x1b[1;30;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
+            "\033[1;30;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
         )
 
+    echo_arg = arg_has_flag(argv[1], FLAG_ECHO)
     len_hashes = len(argv) - 1
     hashes = [None] * len_hashes
 
     total_time = 0
     if arg_has_flag(flags_arg, FLAG_JOIN):
         args_joined = join_args(argv[1:])
+        if echo_arg: printf("Joined Args: \n`%s`\n", args_joined)
+        u8_arg = to_ubyte_array(args_joined.encode())
         t1 = get_time_in_us()
-        hashes[0] = pox_hash(to_ubyte_array(args_joined))
+        hashes[0] = pox_hash(u8_arg)
         t2 = get_time_in_us()
         print_hashes(hashes[:1], flags_arg, t2 - t1)
     else:
         for i, arg in enumerate(argv[1:]):
+            if echo_arg: printf("Arg %d: %s\n", i + 1, arg)
             processed_arg = process_arg(arg)
             t1 = get_time_in_us()
             hashes[i] = pox_hash(to_ubyte_array(processed_arg))

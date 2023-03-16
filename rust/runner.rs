@@ -25,6 +25,7 @@ const FLAG_BIN: char = 'b';
 const FLAG_HELP: char = '?';
 const FLAG_DASH: char = '-';
 const FLAG_NHEADER: char = 'z';
+const FLAG_ECHO: char = 'e';
 
 const FILE_PREFX: &'static str = "file=";
 const FLE_PREFIX_LEN: usize = 5;
@@ -60,6 +61,10 @@ const WRONG_FLAGS: &'static [(char, char)] = &[
     ('x', 'z'),
     ('Z', 'z'),
     ('a', 'z'),
+    ('E', 'e'),
+    ('w', 'e'),
+    ('r', 'e'),
+    ('i', 'e'),
 ];
 
 macro_rules! error_out {
@@ -73,7 +78,7 @@ macro_rules! error_out {
 }
 
 fn print_help(exec: String) {
-    print!("\x1b[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n");
+    print!("\x1b[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail[dot]com\x1b[0m\n");
     println!();
     print!("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n");
     print!("{} -N82- myword1\n", exec);
@@ -86,75 +91,77 @@ fn print_help(exec: String) {
     );
     println!();
     print!("\x1b[1;32mFlags:\x1b[0m\n");
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Echo argument\n", FLAG_ECHO);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Don't print header message\n", FLAG_NHEADER);
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Benchmark run (pass two to only show benchmark)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Benchmark run (pass two to only show benchmark)\n",
         FLAG_BENCHMARK
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Join arguments with space (byte 32)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Join arguments with space (byte 32)\n",
         FLAG_JOIN
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print every digest\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print every digest\n",
         FLAG_EVERTHING
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print every non-decimal digest\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print every non-decimal digest\n",
         FLAG_ALL_NON_DEC
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print every decimal digest\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print every decimal digest\n",
         FLAG_ALL_DECIMAL
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
         FLAG_BYTES
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n",
         FLAG_WORDS
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n",
         FLAG_DOUBLES
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n",
         FLAG_QUAD
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print sexagesimal digest (base sixty)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print sexagesimal digest (base sixty)\n",
         FLAG_SEX
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print vigesimal digest (base twenty)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print vigesimal digest (base twenty)\n",
         FLAG_VIG
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print hexadecimal digest (base sixteen)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print hexadecimal digest (base sixteen)\n",
         FLAG_HEX
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print tetradecimal digest (base fourteen)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print tetradecimal digest (base fourteen)\n",
         FLAG_TET
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print duodecimal digest (base twelve)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print duodecimal digest (base twelve)\n",
         FLAG_DUO
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print octal digest (base eight)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print octal digest (base eight)\n",
         FLAG_OCT
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print senary digest (base six)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print senary digest (base six)\n",
         FLAG_SEN
     );
     print!(
-        "\x1b[1;35m\t`{}`\x1b[0m: Print binary digest (base two)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Print binary digest (base two)\n",
         FLAG_BIN
     );
-    print!("\x1b[1;35m\t`{}`\x1b[0m: Print Help\n\n", FLAG_HELP);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print Help\n\n", FLAG_HELP);
     std::process::exit(1);
 }
 
@@ -249,8 +256,7 @@ fn validate_flags(argv: &Vec<String>) {
 
     for flag in flag_arg[1..len_flags - 1].chars() {
         match flag {
-            FLAG_BENCHMARK => continue,
-            FLAG_JOIN =>  continue,
+            FLAG_BENCHMARK | FLAG_JOIN | FLAG_NHEADER | FLAG_ECHO => continue,
             FLAG_EVERTHING => {
                 if all_flags_dec_passed || all_flags_nondec_passed{
                     error_out!("You may not pass `*` when you have passed `N` or `D`");
@@ -347,7 +353,6 @@ fn validate_flags(argv: &Vec<String>) {
                 }
             },
             FLAG_DASH => error_out!("You may not use `-` in the first argument other than in the first, and the last letter"),
-            FLAG_NHEADER => continue,
             _ => error_out!("Unknown flag detected!"),
         }
     }
@@ -367,7 +372,7 @@ fn all_are_false(bools: Vec<bool>) -> bool {
 fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
     if arg_has_flag(flags, FLAG_BENCHMARK) {
         print!(
-            "Total time for hashing {} bytestring(s): {}us\n",
+            "Total time for hashing {} unsigned bytearrays(s): {}us\n",
             hashes.len(),
             total_time
         );
@@ -519,11 +524,12 @@ fn main() {
             "\x1b[1;30;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
         );
     }
-
+    let echo_arg = arg_has_flag(flag_arg, FLAG_ECHO);
     let mut hashes = vec![PoxDigest::default(); argv.len() - 2];
     match arg_has_flag(&flag_arg, FLAG_JOIN) {
         true => {
             let args_joined = join_args(&argv[2..].to_vec());
+            if echo_arg { print!("Joined Args: \n`{}`\n", args_joined); }
             let t1 = get_time_in_us();
             hashes[0] = pox_hash(&args_joined.as_bytes().to_vec());
             let t2 = get_time_in_us();
@@ -532,6 +538,7 @@ fn main() {
         false => {
             let (mut t1, mut t2, mut total_time) = (0u128, 0u128, 0u128);
             for (i, arg) in argv[2..].into_iter().enumerate() {
+                if echo_arg { print!("Arg {}: {}\n", i + 1, arg); }
                 let processed_arg = process_arg(arg).as_bytes().to_vec();
                 t1 = get_time_in_us();
                 hashes[i] = pox_hash(&processed_arg);

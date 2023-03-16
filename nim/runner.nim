@@ -34,6 +34,7 @@ const
   FLAG_HELP = '?'
   FLAG_DASH = '-'
   FLAG_NHEADER = 'z'
+  FLAG_ECHO = 'e'
 
   FILE_PREFIX = "file="
   FILE_PREFIX_LEN = 5
@@ -67,6 +68,12 @@ const
     ('y', 't'),
     ('f', 'g'),
     ('x', 'h'),
+    ('Z', 'z'),
+    ('a', 'z'),
+    ('E', 'e'),
+    ('w', 'e'),
+    ('r', 'e'),
+    ('i', 'e'),
   ]
 
 
@@ -156,7 +163,7 @@ template errorOut(message: untyped): untyped =
   quit(1)
 
 proc printHelp(execName: string) =
-  printf("\x1b[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\x1b[0m\n")
+  printf("\x1b[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail[dot]com\x1b[0m\n")
   println()
   printf("Examples \x1b[1m(flags go between two dashes!)\x1b[0m:\n")
   printf("%s -N82- myword1\n", execName)
@@ -166,24 +173,26 @@ proc printHelp(execName: string) =
   printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", execName)
   println()
   printf("\x1b[1;32mFlags:\x1b[0m\n")
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Benchmark run (pass two to only show benchmark)\n", FLAG_BENCHMARK)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Join arguments with space (byte 32)\n", FLAG_JOIN)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print every digest\n", FLAG_EVERTHING)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print every non-decimal digest\n", FLAG_ALL_NON_DEC)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print every decimal digest\n", FLAG_ALL_DECIMAL)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n", FLAG_BYTES)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n", FLAG_WORDS)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n", FLAG_DOUBLES)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n", FLAG_QUAD)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print sexagesimal digest (base sixty)\n", FLAG_SEX)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print vigesimal digest (base twenty)\n", FLAG_VIG)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print hexadecimal digest (base sixteen)\n", FLAG_HEX)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print tetradecimal digest (base fourteen)\n", FLAG_TET)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print duodecimal digest (base twelve)\n", FLAG_DUO)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print octal digest (base eight)\n", FLAG_OCT)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print senary digest (base six)\n", FLAG_SEN)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print binary digest (base two)\n", FLAG_BIN)
-  printf("\x1b[1;35m\t`%c`\x1b[0m: Print Help\n\n", FLAG_HELP)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Echo argument\n", FLAG_ECHO)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Don't print header message\n", FLAG_NHEADER)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Benchmark run (pass two to only show benchmark)\n", FLAG_BENCHMARK)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Join arguments with space (byte 32)\n", FLAG_JOIN)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print every digest\n", FLAG_EVERTHING)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print every non-decimal digest\n", FLAG_ALL_NON_DEC)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print every decimal digest\n", FLAG_ALL_DECIMAL)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print bytes digest (eight unsigned 8-bit integers)\n", FLAG_BYTES)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print words digest (four unsigned 16-bit integers)\n", FLAG_WORDS)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print doubles digest (two unsigned 32-bit integers)\n", FLAG_DOUBLES)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print quad digest (one unsigned 64-bit integer)\n", FLAG_QUAD)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print sexagesimal digest (base sixty)\n", FLAG_SEX)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print vigesimal digest (base twenty)\n", FLAG_VIG)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print hexadecimal digest (base sixteen)\n", FLAG_HEX)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print tetradecimal digest (base fourteen)\n", FLAG_TET)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print duodecimal digest (base twelve)\n", FLAG_DUO)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print octal digest (base eight)\n", FLAG_OCT)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print senary digest (base six)\n", FLAG_SEN)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print binary digest (base two)\n", FLAG_BIN)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print Help\n\n", FLAG_HELP)
   quit(1)
 
 proc getExecName(path: string): string =
@@ -277,119 +286,99 @@ proc validateFlags(exec: string, argv: seq[string]) =
 
   for flag in **flagsArg[1..lenFlags - 2]:
     case flag:
-      of FLAG_BENCHMARK:
-        continue
-      of FLAG_JOIN:
+      of FLAG_BENCHMARK, FLAG_JOIN, FLAG_NHEADER, FLAG_ECHO:
         continue
       of FLAG_EVERTHING:
         if allFlagsDecPassed or allFlagsNonDecPassed:
           errorOut("You may not pass `*` when you have passed `N` or `D`")
-
         continue
       of FLAG_ALL_NON_DEC:
         if allFlagsPassed:
           errorOut("You may not pass `N` when `*` is passed")
-
         continue
       of FLAG_ALL_DECIMAL:
         if allFlagsPassed:
           errorOut("You may not pass `D` when `*` is passed")
-
         continue
       of FLAG_BYTES:
         if allFlagsDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a decimal digest flag when `*` or `D` is passed"
           )
-
         continue
       of FLAG_WORDS:
         if allFlagsDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a decimal digest flag when `*` or `D` is passed"
           )
-
         continue
       of FLAG_DOUBLES:
         if allFlagsDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a decimal digest flag when `*` or `D` is passed"
           )
-
         continue
       of FLAG_QUAD:
         if allFlagsDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a decimal digest flag when `*` or `D` is passed"
           )
-
         continue
       of FLAG_SEX:
         if allFlagsNonDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
           )
-
         continue
       of FLAG_VIG:
         if allFlagsNonDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
           )
-
         continue
       of FLAG_HEX:
         if allFlagsNonDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
           )
-
         continue
       of FLAG_TET:
         if allFlagsNonDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
           )
-
         continue
       of FLAG_DUO:
         if allFlagsNonDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
           )
-
         continue
       of FLAG_OCT:
         if allFlagsNonDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
           )
-
         continue
       of FLAG_SEN:
         if allFlagsNonDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
           )
-
         continue
       of FLAG_BIN:
         if allFlagsNonDecPassed or allFlagsPassed:
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
           )
-
         continue
       of FLAG_HELP:
         if lenFlags > MIN_FLAG_SIZE:
           errorOut("You may not pass the `?` flag along with other flags")
-
       of FLAG_DASH:
         errorOut(
           "You may not use `-` in the first argument other than in the first, and the last letter"
         )
-      of FLAG_NHEADER:
-        continue
       else:
         errorOut("Unknown flag detected!")
 
@@ -408,7 +397,7 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64) =
 
   if argHasFlag(flags, FLAG_BENCHMARK):
     printf(
-      "Total time for hashing %d bytestring(s): %dus \n",
+      "Total time for hashing %d unsigned bytearrays(s): %dus \n",
       lenHashes,
       totalTime
     )
@@ -534,7 +523,7 @@ proc joinArgs(args: seq[string]): string =
       warned = true
     result += arg
     result += " "
-  result = result[1..result.len() - 1]
+  result = result[0..result.len() - 2]
 
 proc processArg(arg: string): string =
   if not assertFile(arg):
@@ -549,19 +538,23 @@ proc main(exec: string, argv: seq[string]) =
     hashes = newSeq[PoxDigest](lenHashes)
     totalTime, t1, t2: uint64
     processedArg: seq[uint8]
+    echoArg = false
 
   if not argHasFlag(flagsArg, FLAG_NHEADER):
     printf("\x1b[1;30;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
 
+  echoArg = argHasFlag(flagsArg, FLAG_ECHO)
   totalTime = 0
   if argHasFlag(flagsArg, FLAG_JOIN):
     var argsJoined = joinArgs(argv[1..lenHashes])
+    if echoArg: printf("Joined Args: \n`%s`\n", args_joined)
     t1 = getTimeInUS()
     hashes[0] = PoxHash(^^argsJoined)
     t2 = getTimeInUS()
     printHashes(hashes[0..0], flagsArg, t2 - t1)
   else:
     for (i, arg) in enumerate(argv[1..lenHashes]):
+      if echoArg: printf("Arg %d: %s\n", i + 1, arg)
       processedArg = ^^processArg(arg)
       t1 = getTimeInUS()
       hashes[i] = PoxHash(processedArg)

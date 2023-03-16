@@ -13,7 +13,7 @@ const (
 	sizeMAX_FLAGS       = 24
 	numMIN_ARGS         = 3
 	numASCII            = 128
-	numWRONG_FLAGS      = 30
+	numWRONG_FLAGS      = 34
 	indexBENCHMARK_BYTE = 94
 
 	flagBENCHMARK   byte = 94
@@ -36,6 +36,7 @@ const (
 	flagHELP        byte = 63
 	flagDASH        byte = 45
 	flagNHEADER     byte = 122
+	flagECHO        byte = 101
 
 	filePREFIX     = "file="
 	filePREFIX_LEN = 5
@@ -72,6 +73,10 @@ var wrongFLAGS = [numWRONG_FLAGS][2]byte{
 	{120, 104},
 	{90, 122},
 	{97, 122},
+	{69, 101},
+	{119, 101},
+	{114, 101},
+	{105, 101},
 }
 
 func errorOut(message string) {
@@ -83,7 +88,7 @@ func errorOut(message string) {
 }
 
 func printHelp(exec string) {
-	fmt.Printf("\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n")
+	fmt.Printf("\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail[dot]com\033[0m\n")
 	fmt.Println()
 	fmt.Printf("Examples \033[1m(flag go between two dashes!)\033[0m:\n")
 	fmt.Printf("%s -N82- myword1\n", exec)
@@ -93,24 +98,26 @@ func printHelp(exec string) {
 	fmt.Printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec)
 	fmt.Println()
 	fmt.Printf("\033[1;32mFlags:\033[0m\n")
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n", flagBENCHMARK)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Join arguments with space (byte 32)\n", flagJOIN)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print every digest\n", flagEVERTHING)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print every non-decimal digest\n", flagALL_NON_DEC)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print every decimal digest\n", flagALL_DECIMAL)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n", flagBYTES)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n", flagWORDS)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n", flagDOUBLES)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n", flagQUAD)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n", flagSEX)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n", flagVIG)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n", flagHEX)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n", flagTET)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n", flagDUO)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print octal digest (base eight)\n", flagOCT)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print senary digest (base six)\n", flagSEN)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print binary digest (base two)\n", flagBIN)
-	fmt.Printf("\033[1;35m\t`%c`\033[0m: Print Help\n\n", flagHELP)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", flagECHO)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Don't print header message\n", flagNHEADER)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n", flagBENCHMARK)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Join arguments with space (byte 32)\n", flagJOIN)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print every digest\n", flagEVERTHING)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print every non-decimal digest\n", flagALL_NON_DEC)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print every decimal digest\n", flagALL_DECIMAL)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n", flagBYTES)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n", flagWORDS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n", flagDOUBLES)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n", flagQUAD)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n", flagSEX)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n", flagVIG)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n", flagHEX)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n", flagTET)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n", flagDUO)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print octal digest (base eight)\n", flagOCT)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n", flagSEN)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", flagBIN)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", flagHELP)
 	os.Exit(1)
 }
 
@@ -218,9 +225,7 @@ func validateFlags(lenArgs int, args []string) {
 
 	for _, flag := range argFlagsBytes[1 : len(argFlagsBytes)-1] {
 		switch flag {
-		case flagBENCHMARK:
-			continue
-		case flagJOIN:
+		case flagBENCHMARK, flagJOIN, flagNHEADER, flagECHO:
 			continue
 		case flagEVERTHING:
 			if allFlagsDecPassed || allFlagsNondecPassed {
@@ -303,8 +308,6 @@ func validateFlags(lenArgs int, args []string) {
 			}
 		case flagDASH:
 			errorOut("You may not use `-` in the first argument other than in the first, and the last letter")
-		case flagNHEADER:
-			continue
 		default:
 			errorOut("Unknown flag detected!")
 		}
@@ -327,7 +330,7 @@ func allAreFalse(bools []bool) bool {
 
 func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 	if argHasFlag(flag, flagBENCHMARK) {
-		fmt.Printf("Total time for hashing %d bytestring(s): %dus\n", len(hashes), totalTime)
+		fmt.Printf("Total time for hashing %d unsigned bytearrays(s): %dus\n", len(hashes), totalTime)
 	}
 
 	reoccurrance := searchFlagsForOccurance([]byte(flag))
@@ -472,10 +475,14 @@ func main() {
 		fmt.Printf("\033[1;30;47mPoxHashRunner   |    Go    |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n")
 	}
 
+	echoArg := argHasFlag(flagsByte, flagECHO)
 	hashes := make([]libpoxh.PoxDigest, len(os.Args)-2)
 	var totalTime, t1, t2 int64
 	if argHasFlag(flagsByte, flagJOIN) {
 		argsJoined := joinArgs(os.Args[2:])
+		if echoArg {
+			fmt.Printf("Joined Args: \n`%s`\n", argsJoined)
+		}
 		t1 = getTimeInUS()
 		hashes[0] = libpoxh.PoxHash([]uint8(argsJoined))
 		t2 = getTimeInUS()
@@ -483,7 +490,10 @@ func main() {
 	} else {
 		var processedArg []uint8
 		cursor := 0
-		for _, arg := range os.Args[2:] {
+		for i, arg := range os.Args[2:] {
+			if echoArg {
+				fmt.Printf("Arg %d: %s\n", i+1, arg)
+			}
 			processedArg = processArg(arg)
 			t1 = getTimeInUS()
 			hashes[cursor] = libpoxh.PoxHash(processedArg)

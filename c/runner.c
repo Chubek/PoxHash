@@ -39,7 +39,7 @@
 #define SPACE 32
 #define MIN_ARG_NUM 3
 #define NUM_ASCII 128
-#define LEN_WRONG_FLAGS 30
+#define LEN_WRONG_FLAGS 34
 #define BENCHMARK_BYTE_INDEX 94
 #define FILE_DENOTE_LEN 5
 
@@ -72,6 +72,7 @@ typedef enum FLAGS
     FLAG_HELP = '?',
     FLAG_DASH = '-',
     FLAG_NHEADER = 'z',
+    FLAG_ECHO = 'e',
 } flag_t;
 
 const char cFILE_DENOTE_PREFIX[FILE_DENOTE_LEN] = {
@@ -113,11 +114,15 @@ const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
     {'x', 'h'},
     {'Z', 'z'},
     {'a', 'z'},
+    {'E', 'e'},
+    {'w', 'e'},
+    {'r', 'e'},
+    {'i', 'e'},
 };
 
 void print_help(char *exec)
 {
-    printf("\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n");
+    printf("\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail[dot]com\033[0m\n");
     printf("\n");
     printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
     printf("%s -N82- myword1\n", exec);
@@ -127,24 +132,26 @@ void print_help(char *exec)
     printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec);
     printf("\n");
     printf("\033[1;32mFlags:\033[0m\n");
-    printf("\033[1;35m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n", FLAG_BENCHMARK);
-    printf("\033[1;35m\t`%c`\033[0m: Join arguments with space (byte 32)\n", FLAG_JOIN);
-    printf("\033[1;35m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING);
-    printf("\033[1;35m\t`%c`\033[0m: Print every non-decimal digest\n", FLAG_ALL_NON_DEC);
-    printf("\033[1;35m\t`%c`\033[0m: Print every decimal digest\n", FLAG_ALL_DECIMAL);
-    printf("\033[1;35m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n", FLAG_BYTES);
-    printf("\033[1;35m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n", FLAG_WORDS);
-    printf("\033[1;35m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n", FLAG_DOUBLES);
-    printf("\033[1;35m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n", FLAG_QUAD);
-    printf("\033[1;35m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n", FLAG_SEX);
-    printf("\033[1;35m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n", FLAG_VIG);
-    printf("\033[1;35m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n", FLAG_HEX);
-    printf("\033[1;35m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n", FLAG_TET);
-    printf("\033[1;35m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n", FLAG_DUO);
-    printf("\033[1;35m\t`%c`\033[0m: Print octal digest (base eight)\n", FLAG_OCT);
-    printf("\033[1;35m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
-    printf("\033[1;35m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
-    printf("\033[1;35m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
+    printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO);
+    printf("\033[1;33m\t`%c`\033[0m: Don't print header message\n", FLAG_NHEADER);
+    printf("\033[1;33m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n", FLAG_BENCHMARK);
+    printf("\033[1;33m\t`%c`\033[0m: Join arguments with space (byte 32)\n", FLAG_JOIN);
+    printf("\033[1;33m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING);
+    printf("\033[1;33m\t`%c`\033[0m: Print every non-decimal digest\n", FLAG_ALL_NON_DEC);
+    printf("\033[1;33m\t`%c`\033[0m: Print every decimal digest\n", FLAG_ALL_DECIMAL);
+    printf("\033[1;33m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n", FLAG_BYTES);
+    printf("\033[1;33m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n", FLAG_WORDS);
+    printf("\033[1;33m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n", FLAG_DOUBLES);
+    printf("\033[1;33m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n", FLAG_QUAD);
+    printf("\033[1;33m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n", FLAG_SEX);
+    printf("\033[1;33m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n", FLAG_VIG);
+    printf("\033[1;33m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n", FLAG_HEX);
+    printf("\033[1;33m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n", FLAG_TET);
+    printf("\033[1;33m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n", FLAG_DUO);
+    printf("\033[1;33m\t`%c`\033[0m: Print octal digest (base eight)\n", FLAG_OCT);
+    printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
+    printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
+    printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
     free(exec);
     exit(1);
 }
@@ -282,8 +289,9 @@ int validate_flags(int argc, char **argv)
         switch (argv[1][i])
         {
         case FLAG_BENCHMARK:
-            continue;
         case FLAG_JOIN:
+        case FLAG_NHEADER:
+        case FLAG_ECHO:
             continue;
         case FLAG_EVERTHING:
             if (all_flags_dec_passed || all_flags_nondec_passed)
@@ -382,8 +390,6 @@ int validate_flags(int argc, char **argv)
             }
         case FLAG_DASH:
             ERR_OUT("You may not use `-` in the first argument other than in the first, and the last letter");
-        case FLAG_NHEADER:
-            continue;
         default:
             ERR_OUT("Unknown flag detected!");
         }
@@ -415,7 +421,7 @@ int all_are_false(int *arr, int size)
 void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time)
 {
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
-        printf("Total time for hashing %d bytestring(s): %luus\n", len_hashes, total_time);
+        printf("Total time for hashing %d unsigned bytearrays(s): %luus\n", len_hashes, total_time);
 
     char reoccurrance = search_for_flag_reocurrance(flags, len_flags);
     if (reoccurrance == FLAG_BENCHMARK)
@@ -618,6 +624,7 @@ int main(int argc, char **argv)
         printf("\033[1;30;47mPoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
     }
 
+    int echo_arg = arg_has_flag(argv[1], len_flags, FLAG_ECHO);
     poxhash_t hashes[argc - 2];
     uint64_t total_time, t1, t2;
     total_time = 0;
@@ -625,6 +632,10 @@ int main(int argc, char **argv)
     if (arg_has_flag(argv[1], len_flags, FLAG_JOIN))
     {
         char *args_joined = join_args(argc, argv);
+        if (echo_arg)
+        {
+            printf("Joined Args: \n`%s`\n", args_joined);
+        }
         uint8_t *args_joined_uint8 = char_to_uint8(args_joined);
         t1 = get_time_in_us();
         hashes[0] = pox_hash(args_joined_uint8);
@@ -638,6 +649,10 @@ int main(int argc, char **argv)
         int cursor = 0;
         for (int i = 2; i < argc; i++)
         {
+            if (echo_arg)
+            {
+                printf("Arg %d: %s\n", i - 1, argv[i]);
+            }
             t1 = get_time_in_us();
             uint8_t *arg_uint8 = process_arg(argv[i]);
             hashes[cursor++] = pox_hash(arg_uint8);

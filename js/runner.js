@@ -5,7 +5,7 @@ const MAX_FLAG_SIZE = 24;
 const MIN_FLAG_SIZE = 3;
 const MIN_ARG_NUM = 2;
 const NUM_ASCII = 128;
-const LEN_WRONG_FLAGS = 30;
+const LEN_WRONG_FLAGS = 34;
 const FORMAT_MARKER = "%";
 const FORMAT_STR = "s";
 const FORMAT_DIGIT = "d";
@@ -32,6 +32,7 @@ const FLAG_BIN = "b";
 const FLAG_HELP = "?";
 const FLAG_DASH = "-";
 const FLAG_NHEADER = "z";
+const FLAG_ECHO = "e";
 
 const FILE_PREFIX = "file=";
 const FILE_PREFIX_LEN = 5;
@@ -67,6 +68,10 @@ const WRONG_FLAGS = [
   ["x", "z"],
   ["Z", "z"],
   ["a", "z"],
+  ["E", "e"],
+  ["w", "e"],
+  ["r", "e"],
+  ["i", "e"],
 ];
 
 function printf() {
@@ -119,7 +124,7 @@ const errorOut = (message) => {
 
 const printHelp = (execApp, execScript) => {
   printf(
-    "\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail\033[0m\n"
+    "\033[1;30;42mHelp | Chubak#7400 (Discord) | @bidpaafx (Telegram) | Chubakbidpaa[at]gmail[dot]com\033[0m\n"
   );
   println();
   printf("Examples \033[1m(flags go between two dashes!)\033[0m:\n");
@@ -138,66 +143,68 @@ const printHelp = (execApp, execScript) => {
   );
   println();
   printf("\033[1;32mFlags:\033[0m\n");
+  printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO);
+  printf("\033[1;33m\t`%c`\033[0m: Don't print header message\n", FLAG_NHEADER);
   printf(
-    "\033[1;35m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n",
+    "\033[1;33m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n",
     FLAG_BENCHMARK
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Join arguments with space (byte 32)\n",
+    "\033[1;33m\t`%c`\033[0m: Join arguments with space (byte 32)\n",
     FLAG_JOIN
   );
-  printf("\033[1;35m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING);
+  printf("\033[1;33m\t`%c`\033[0m: Print every digest\n", FLAG_EVERTHING);
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print every non-decimal digest\n",
+    "\033[1;33m\t`%c`\033[0m: Print every non-decimal digest\n",
     FLAG_ALL_NON_DEC
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print every decimal digest\n",
+    "\033[1;33m\t`%c`\033[0m: Print every decimal digest\n",
     FLAG_ALL_DECIMAL
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
+    "\033[1;33m\t`%c`\033[0m: Print bytes digest (eight unsigned 8-bit integers)\n",
     FLAG_BYTES
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n",
+    "\033[1;33m\t`%c`\033[0m: Print words digest (four unsigned 16-bit integers)\n",
     FLAG_WORDS
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n",
+    "\033[1;33m\t`%c`\033[0m: Print doubles digest (two unsigned 32-bit integers)\n",
     FLAG_DOUBLES
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n",
+    "\033[1;33m\t`%c`\033[0m: Print quad digest (one unsigned 64-bit integer)\n",
     FLAG_QUAD
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n",
+    "\033[1;33m\t`%c`\033[0m: Print sexagesimal digest (base sixty)\n",
     FLAG_SEX
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n",
+    "\033[1;33m\t`%c`\033[0m: Print vigesimal digest (base twenty)\n",
     FLAG_VIG
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n",
+    "\033[1;33m\t`%c`\033[0m: Print hexadecimal digest (base sixteen)\n",
     FLAG_HEX
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n",
+    "\033[1;33m\t`%c`\033[0m: Print tetradecimal digest (base fourteen)\n",
     FLAG_TET
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n",
+    "\033[1;33m\t`%c`\033[0m: Print duodecimal digest (base twelve)\n",
     FLAG_DUO
   );
   printf(
-    "\033[1;35m\t`%c`\033[0m: Print octal digest (base eight)\n",
+    "\033[1;33m\t`%c`\033[0m: Print octal digest (base eight)\n",
     FLAG_OCT
   );
-  printf("\033[1;35m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
-  printf("\033[1;35m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
-  printf("\033[1;35m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
+  printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
+  printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
+  printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
   process.exit(1);
 };
 
@@ -317,8 +324,9 @@ const validateFlags = (argv0, argv1, argv) => {
   for (let i = 1; i < lenFlags - 1; i++) {
     switch (flagsArg[i]) {
       case FLAG_BENCHMARK:
-        continue;
       case FLAG_JOIN:
+      case FLAG_NHEADER:
+      case FLAG_ECHO:
         continue;
       case FLAG_EVERTHING:
         if (allFlagsDecPassed || allFlagsNonDecPassed) {
@@ -428,8 +436,6 @@ const validateFlags = (argv0, argv1, argv) => {
         errorOut(
           "You may not use `-` in the first argument other than in the first, and the last letter"
         );
-      case FLAG_NHEADER:
-        continue;
       default:
         errorOut("Unknown flag detected!");
     }
@@ -454,7 +460,7 @@ const printHashes = (hashes, flags, totalTime) => {
   const lenHashes = hashes.length;
   if (argHasFlag(flags, FLAG_BENCHMARK))
     printf(
-      "Total time for hashing %d bytestring(s): %dus \n",
+      "Total time for hashing %d unsigned bytearrays(s): %dus \n",
       lenHashes,
       totalTime
     );
@@ -624,7 +630,7 @@ const joinArgs = (args) => {
   return joined;
 };
 
-const stringToByteArray = (str) => {
+const stringToU8Array = (str) => {
   let utf8Encode = new TextEncoder();
   byteArray = utf8Encode.encode(str);
   return byteArray;
@@ -632,9 +638,9 @@ const stringToByteArray = (str) => {
 
 const processArg = async (arg) => {
   if (!assertFile(arg)) {
-    return stringToByteArray(arg);
+    return stringToU8Array(arg);
   }
-  return stringToByteArray(await readGivenFile(arg.substring(FILE_PREFIX_LEN)));
+  return stringToU8Array(await readGivenFile(arg.substring(FILE_PREFIX_LEN)));
 };
 
 const main = async (argv0, argv1, argv) => {
@@ -647,6 +653,7 @@ const main = async (argv0, argv1, argv) => {
     );
   }
 
+  const echoArg = argHasFlag(flagsArg, FLAG_ECHO);
   const lenHashes = argv.length - 1;
 
   let hashes = newNullArray(lenHashes);
@@ -655,14 +662,21 @@ const main = async (argv0, argv1, argv) => {
 
   if (argHasFlag(flagsArg, FLAG_JOIN)) {
     const argsJoined = joinArgs(argv.slice(1));
+    if (echoArg) {
+      printf("Joined Args: \n`%s`\n", argsJoined);
+    }
+    const u8Array = stringToU8Array(argsJoined);
     t1 = getTimeInUS();
-    hashes[0] = libpoxh.poxHash(argsJoined);
+    hashes[0] = libpoxh.poxHash(u8Array);
     t2 = getTimeInUS();
     printHashes(hashes.slice(0, 1), flagsArg, t2 - t1);
   } else {
     let cursor = 0;
     let processedArg = "";
     for (let i = 1; i <= lenHashes; i++) {
+      if (echoArg) {
+        printf("Arg %d: %s\n", i - 1, argv[i]);
+      }
       processedArg = await processArg(argv[i]);
       t1 = getTimeInUS();
       hashes[cursor] = libpoxh.poxHash(processedArg);
