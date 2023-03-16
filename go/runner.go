@@ -389,7 +389,7 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 			fmt.Printf("Doubles: U32[%d, %d]\n", hash.Doubles[0], hash.Doubles[1])
 		}
 		if everything || allFlagsDecimal || quad {
-			fmt.Printf("Quad: U64[%lu]\n", hash.Quad)
+			fmt.Printf("Quad: U64[%d]\n", hash.Quad)
 		}
 		if everything || allFLagsNondecimal || sex {
 			fmt.Printf("Sexdigest: %s\n", hash.Sexdigest)
