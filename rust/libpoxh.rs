@@ -796,6 +796,37 @@ impl std::fmt::Debug for PoxDigest {
     }
 }
 
+impl std::fmt::Binary for PoxDigest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.bindigest)
+    }
+}
+
+impl std::fmt::Octal for PoxDigest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.octdigest)
+    }
+}
+
+impl std::fmt::UpperHex for PoxDigest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.hexdigest)
+    }
+}
+
+impl std::fmt::LowerHex for PoxDigest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.hexdigest.to_lowercase())
+    }
+}
+
+impl std::fmt::Pointer for PoxDigest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ptr = self as *const Self;
+        std::fmt::Pointer::fmt(&ptr, f)
+    }
+}
+
 #[allow(unused_doc_comments)]
 pub fn pox_hash(message: &Vec<u8>) -> PoxDigest {
     /// Converts the given message into a PoxDigest object
