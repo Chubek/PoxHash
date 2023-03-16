@@ -130,6 +130,7 @@ void print_help(char *exec)
     printf("%s -Dhob- word1 word 2\n", exec);
     printf("%s -^^+- large seq  to join and  benchmark\n", exec);
     printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec);
+    printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n", cFILE_DENOTE_PREFIX, FLAG_JOIN);
     printf("\n");
     printf("\033[1;32mFlags:\033[0m\n");
     printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO);

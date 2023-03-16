@@ -27,7 +27,7 @@ const FLAG_DASH: char = '-';
 const FLAG_NHEADER: char = 'z';
 const FLAG_ECHO: char = 'e';
 
-const FILE_PREFX: &'static str = "file=";
+const FILE_PREFIX: &'static str = "file=";
 const FLE_PREFIX_LEN: usize = 5;
 
 const WRONG_FLAGS: &'static [(char, char)] = &[
@@ -89,6 +89,7 @@ fn print_help(exec: String) {
         "wget -qO- www.example.com | xargs bash -c '{} -h+- $@'\n",
         exec
     );
+    print!("If an argument stats with `{}`, it will lead to file read attempt, unles `{}` is passed\n", FILE_PREFIX, FLAG_JOIN);
     println!();
     print!("\x1b[1;32mFlags:\x1b[0m\n");
     print!("\x1b[1;33m\t`{}`\x1b[0m: Echo argument\n", FLAG_ECHO);
@@ -480,7 +481,7 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
 }
 
 fn assert_file(arg: &String) -> bool {
-    arg.len() > FLE_PREFIX_LEN && arg.starts_with(FILE_PREFX)
+    arg.len() > FLE_PREFIX_LEN && arg.starts_with(FILE_PREFIX)
 }
 
 fn join_args(argv: &Vec<String>) -> String {

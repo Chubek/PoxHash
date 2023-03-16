@@ -96,6 +96,7 @@ func printHelp(exec string) {
 	fmt.Printf("%s -Dhob- word1 word 2\n", exec)
 	fmt.Printf("%s -^^+- large seq  to join and  benchmark\n", exec)
 	fmt.Printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec)
+	fmt.Printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n", filePREFIX, flagJOIN);
 	fmt.Println()
 	fmt.Printf("\033[1;32mFlags:\033[0m\n")
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", flagECHO)

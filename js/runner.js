@@ -141,6 +141,7 @@ const printHelp = (execApp, execScript) => {
     execApp,
     execScript
   );
+  printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n", FILE_PREFIX, FLAG_JOIN);
   println();
   printf("\033[1;32mFlags:\033[0m\n");
   printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO);
