@@ -28,6 +28,53 @@
 
 from array import array as __array
 
+# CONSTANTS
+
+## INITIAL PRIME NUMBERS
+## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#initial-prime-numbers
+__POX_PRIME_INIT_A = 0x17cb
+__POX_PRIME_INIT_B = 0x0371
+__POX_PRIME_INIT_C = 0x2419
+__POX_PRIME_INIT_D = 0xf223
+
+## SIZE CONSTANTS
+## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#size-constants
+__POX_ROUND_PRIME_NUM = 90
+__POX_BLOCK_NUM = 64
+__POX_8B_PRIME_NUM = 54
+__POX_ROUND_NUM = 31
+__POX_CHUNK_NUM = 16
+__POX_PORTION_NUM = 4
+__POX_SD_PRIME_NUM = 3
+__POX_MAGIC_PRIME_NUM = 2
+
+## BIT-RELATED CONSTANTS
+## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#bit-related-constants
+__WORD_WIDTH = 16
+__BYTE_WIDTH = 8
+__UINT16_MAX = 65535
+
+## MASKS
+## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
+__MASK_DWORD_4F4Z = 0xffff0000
+__MASK_DWORD_4Z4F = 0x0000ffff
+__MASK_WORD_FZFZ = 0xf0f0
+__MASK_WORD_ZFZF = 0x0f0f
+__MASK_WORD_FZZZ = 0xf000
+__MASK_WORD_ZZFZ = 0x00f0
+__MASK_WORD_ZZZF = 0x000f
+__MASK_WORD_ZZFF = 0x00ff
+__MASK_WORD_FFZZ = 0xff00
+__MASK_WORD_FZZF = 0xf00f
+__MASK_WORD_FFFZ = 0xfff0
+__MASK_WORD_ZFFF = 0x0fff
+__MASK_NIBBLET_01 = 0b01
+__MASK_NIBBLET_10 = 0b10
+__MASK_NIBBLET_11 = 0b11
+__MASK_NIBBLET_00 = 0b00
+
+## PRIME_ARRAYS
+## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
 __POX_ROUND_PRIMES = __array('H', [
     0x0377,
     0x0683,
@@ -131,42 +178,11 @@ __POX_8B_PRIMES = __array('H', [
 __POX_SINGLE_DIGIT_PRIMES = __array('H', [0x3, 0x5, 0x7])
 __POX_MAGIC_PRIMES = __array('H', [0x33, 0x65])
 
-__POX_PRIME_INIT_A = 0x17cb
-__POX_PRIME_INIT_B = 0x0371
-__POX_PRIME_INIT_C = 0x2419
-__POX_PRIME_INIT_D = 0xf223
-
-__POX_BLOCK_NUM = 64
-__POX_8B_PRIME_NUM = 54
-__POX_ROUND_NUM = 31
-__POX_CHUNK_NUM = 16
-__POX_PORTION_NUM = 4
-__POX_SD_PRIME_NUM = 3
-__POX_MAGIC_PRIME_NUM = 2
-
-__WORD_WIDTH = 16
-__BYTE_WIDTH = 8
-__UINT16_MAX = 65535
-
-__MASK_DWORD_4F4Z = 0xffff0000
-__MASK_DWORD_4Z4F = 0x0000ffff
-__MASK_WORD_FZFZ = 0xf0f0
-__MASK_WORD_ZFZF = 0x0f0f
-__MASK_WORD_FZZZ = 0xf000
-__MASK_WORD_ZZFZ = 0x00f0
-__MASK_WORD_ZZZF = 0x000f
-__MASK_WORD_ZZFF = 0x00ff
-__MASK_WORD_FFZZ = 0xff00
-__MASK_WORD_FZZF = 0xf00f
-__MASK_WORD_FFFZ = 0xfff0
-__MASK_WORD_ZFFF = 0x0fff
-__MASK_NIBBLET_01 = 0b01
-__MASK_NIBBLET_10 = 0b10
-__MASK_NIBBLET_11 = 0b11
-__MASK_NIBBLET_00 = 0b00
-
+## MISC
+## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#misc
 __COMB_BIONOM = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 
+## CONVERSION CONSTANTS
 __SEX_CHARS = [
     '0',
     '1',
@@ -328,87 +344,7 @@ __OCT_BASE = 8
 __SEN_BASE = 6
 __BIN_BASE = 2
 
-
-def __omega(res_array: __array) -> None:
-    res_array[0] = (res_array[0] & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
-
-
-def __epsilon(res_array: __array) -> None:
-    res_array[0] &= __MASK_DWORD_4Z4F
-
-
-def __lamed(res_array: __array, by: int) -> None:
-    res_array[0] = (res_array[0] << by) | (res_array[0] >> (__WORD_WIDTH - by))
-
-
-def __gorda(num: int, by: int) -> __array:
-    res_array = __array('I', [num])
-    __lamed(res_array, by)
-
-    if res_array[0] > __UINT16_MAX:
-        __omega(res_array)
-
-    res_uint16 = __array('H', res_array.tolist())
-
-    return res_uint16
-
-
-def __tasu(arr_a: __array, arr_b: __array, ind: int):
-    a_plus_b = __array('I', [0])
-
-    a_plus_b[0] = arr_a[ind] + arr_b[ind]
-    if a_plus_b[0] > __UINT16_MAX:
-        __epsilon(a_plus_b)
-
-    arr_a[ind] = a_plus_b[0]
-
-
-def __centum(ls: list[int], weights: list[int]) -> int:
-    centum = __array('I', [0])
-    for i, w in zip(ls, weights):
-        centum[0] += i * w
-
-    centum[0] //= __POX_PORTION_NUM
-    if centum[0] > __UINT16_MAX:
-        __omega(centum)
-
-    return centum[0]
-
-
-def __satem(ls: list[int], weights: list[int]) -> int:
-    satem = __array('I', [0])
-    for i, w in zip(ls, weights):
-        satem[0] += i * w
-
-    satem[0] = (satem[0] + 1) // 2
-    if satem[0] > __UINT16_MAX:
-        __epsilon(satem)
-
-    return satem[0]
-
-
-def __tamaam(ls: list[int]) -> int:
-    tamaam = __array('I', [0])
-    for w in ls:
-        tamaam[0] += w
-
-    tamaam[0] //= __POX_PORTION_NUM
-    if tamaam[0] > __UINT16_MAX:
-        __omega(tamaam)
-
-    return tamaam[0]
-
-
-def __deca(ls: list[int]) -> int:
-    deca = __array('I', [0])
-    for w in ls:
-        deca[0] += w
-
-    deca[0] = (deca[0] + 1) // 2
-    if deca[0] > __UINT16_MAX:
-        __epsilon(deca)
-
-    return deca[0]
+######## TOOLS ########
 
 
 def __max_and_argmax(ls: __array) -> __array:
@@ -454,14 +390,14 @@ def __process_input(input: any) -> __array:
     return None
 
 
-def __get_8b_prime(num: int) -> __array:
-    remainder = num % __POX_8B_PRIME_NUM
-    prime = __POX_8B_PRIMES[remainder]
-    return __array('H', [prime])
-
-
 def __log_2_n(num: int) -> int:
     return 1 + __log_2_n(num // 2) if (num > 1) else 0
+
+
+######## /TOOLS ########
+#-------------------------#
+######## CONVERSION ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-g-conversion--preparation-prep-methods
 
 
 def __word_to_byte(word: int) -> tuple[int, int]:
@@ -565,6 +501,111 @@ def __pox_factors_to_byte_array(factor_array: __array) -> __array:
     return __array('B', ret)
 
 
+######## /CONVERSION ########
+#---------------------------#
+######## BITWISE OPS ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
+
+
+def __omega(res_array: __array) -> None:
+    res_array[0] = (res_array[0] & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
+
+
+def __epsilon(res_array: __array) -> None:
+    res_array[0] &= __MASK_DWORD_4Z4F
+
+
+def __lamed(res_array: __array, by: int) -> None:
+    res_array[0] = (res_array[0] << by) | (res_array[0] >> (__WORD_WIDTH - by))
+
+
+######## /BITWISE OPS ########
+#----------------------------#
+######## BESPOKE OPS ########
+
+
+def __gorda(num: int, by: int) -> __array:
+    res_array = __array('I', [num])
+    __lamed(res_array, by)
+
+    if res_array[0] > __UINT16_MAX:
+        __omega(res_array)
+
+    res_uint16 = __array('H', res_array.tolist())
+
+    return res_uint16
+
+
+def __tasu(arr_a: __array, arr_b: __array, ind: int):
+    a_plus_b = __array('I', [0])
+
+    a_plus_b[0] = arr_a[ind] + arr_b[ind]
+    if a_plus_b[0] > __UINT16_MAX:
+        __epsilon(a_plus_b)
+
+    arr_a[ind] = a_plus_b[0]
+
+
+def __centum(ls: list[int], weights: list[int]) -> int:
+    centum = __array('I', [0])
+    for i, w in zip(ls, weights):
+        centum[0] += i * w
+
+    centum[0] //= __POX_PORTION_NUM
+    if centum[0] > __UINT16_MAX:
+        __omega(centum)
+
+    return centum[0]
+
+
+def __satem(ls: list[int], weights: list[int]) -> int:
+    satem = __array('I', [0])
+    for i, w in zip(ls, weights):
+        satem[0] += i * w
+
+    satem[0] = (satem[0] + 1) // 2
+    if satem[0] > __UINT16_MAX:
+        __epsilon(satem)
+
+    return satem[0]
+
+
+def __tamaam(ls: list[int]) -> int:
+    tamaam = __array('I', [0])
+    for w in ls:
+        tamaam[0] += w
+
+    tamaam[0] //= __POX_PORTION_NUM
+    if tamaam[0] > __UINT16_MAX:
+        __omega(tamaam)
+
+    return tamaam[0]
+
+
+def __deca(ls: list[int]) -> int:
+    deca = __array('I', [0])
+    for w in ls:
+        deca[0] += w
+
+    deca[0] = (deca[0] + 1) // 2
+    if deca[0] > __UINT16_MAX:
+        __epsilon(deca)
+
+    return deca[0]
+
+
+def __get_8b_prime(num: int) -> __array:
+    remainder = num % __POX_8B_PRIME_NUM
+    prime = __POX_8B_PRIMES[remainder]
+    return __array('H', [prime])
+
+
+######## /BESPOKE OPS ########
+#----------------------------#
+######## ALPHABET OPS ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-d-alphabet-operations
+
+
 def __pox_alpha(temp_array: __array) -> None:
     aleph = (temp_array[0] ^ temp_array[1]) & __MASK_WORD_ZZFF
     daal = (temp_array[2] ^ temp_array[3]) & __MASK_WORD_FFZZ
@@ -634,6 +675,12 @@ def __pox_gamma(temp_array: __array) -> None:
     temp_array[gee] ^= __log_2_n(teth) >> ((gamal % 2) + 1)
 
 
+######## /ALPHABET OPS ########
+#-----------------------------#
+########   ROUND OPS   ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-e-round-methods
+
+
 def __pox_round_apply_alphabet(temp_array: __array) -> None:
     __pox_alpha(temp_array)
     __pox_delta(temp_array)
@@ -642,11 +689,11 @@ def __pox_round_apply_alphabet(temp_array: __array) -> None:
 
 
 def __pox_round_apply_prime(temp_array: __array) -> None:
-    for pnum in __POX_ROUND_PRIMES:
-        temp_array[0] %= pnum
-        temp_array[1] %= pnum
-        temp_array[2] %= pnum
-        temp_array[3] %= pnum
+    for i in range(__POX_ROUND_PRIME_NUM):
+        temp_array[0] %= __POX_ROUND_PRIMES[i]
+        temp_array[1] %= __POX_ROUND_PRIMES[i]
+        temp_array[2] %= __POX_ROUND_PRIMES[i]
+        temp_array[3] %= __POX_ROUND_PRIMES[i]
 
 
 def __pox_round_add_tmp_to_facts(factor_array: __array,
@@ -674,6 +721,12 @@ def __pox_round(factor_array: __array) -> None:
     __pox_round_apply_prime(temporary_array)
     __pox_round_apply_shuffle(temporary_array)
     __pox_round_add_tmp_to_facts(factor_array, temporary_array)
+
+
+########   /ROUND OPS   ########
+#------------------------------#
+########   BLOCK OPS   #########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-f-block-methods
 
 
 def __pox_apply_bytes(factor_array: __array, subportion: __array,
@@ -720,6 +773,9 @@ def __pox_process_block(factor_array: __array, block: list[int]) -> None:
             for i in range(__POX_ROUND_NUM):
                 __pox_apply_bytes(factor_array, subportion, i)
                 __pox_round(factor_array)
+
+
+########   /BLOCK OPS   #########
 
 
 class PoxDigest:
