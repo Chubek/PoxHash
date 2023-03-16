@@ -28,6 +28,11 @@
 
 package libpoxh
 
+import (
+	"fmt"
+	"strings"
+)
+
 const (
 	poxROUND_PRIME_NUM int = 90
 	poxBLOCK_NUM           = 64
@@ -735,7 +740,7 @@ func poxApplyBytes(factorArray, portion factorType, index uint16) factorType {
 
 	factorArrayCpy[0] >>= portion[3] % (ng + 1)
 	factorArrayCpy[1] >>= portion[2] % (chu + 1)
-	factorArrayCpy[2] ^=  portion[1] >> (dca % 2)
+	factorArrayCpy[2] ^= portion[1] >> (dca % 2)
 	factorArrayCpy[3] >>= portion[0] % (eo + 1)
 
 	return factorArrayCpy
@@ -770,6 +775,59 @@ type PoxDigest struct {
 	Words     [4]uint16 `json:"words"`
 	Doubles   [2]uint32 `json:"doubles"`
 	Quad      uint64    `json:"quad"`
+}
+
+func (pd PoxDigest) Format(f fmt.State, c rune) {
+	if c == 'b' {
+		f.Write([]byte(fmt.Sprintf("%s", pd.Bindigest)))
+	} else if c == 'X' {
+		f.Write([]byte(fmt.Sprintf("%s", pd.Hexdigest)))
+	} else if c == 'x' {
+		f.Write([]byte(fmt.Sprintf("%s", strings.ToLower(pd.Hexdigest))))
+	} else if c == 'o' {
+		f.Write([]byte(fmt.Sprintf("%s", pd.Octdigest)))
+	} else if c == 's' {
+		f.Write([]byte(fmt.Sprintf("%s", pd.Sendigest)))
+	} else if c == 'v' {
+		f.Write([]byte(fmt.Sprintf("%s", pd.Vigdigest)))
+	} else if c == 'S' {
+		f.Write([]byte(fmt.Sprintf("%s", pd.Sexdigest)))
+	} else if c == 't' {
+		f.Write([]byte(fmt.Sprintf("%s", pd.Tetdigest)))
+	} else if c == 'z' {
+		f.Write([]byte(fmt.Sprintf("%s", pd.Duodigest)))
+	} else if c == 'd' {
+		f.Write([]byte(fmt.Sprintf("U8[%d, %d, %d, %d, %d, %d, %d, %d]\n", pd.Bytes[0], pd.Bytes[1], pd.Bytes[2], pd.Bytes[3], pd.Bytes[4], pd.Bytes[5], pd.Bytes[6], pd.Bytes[7])))
+		f.Write([]byte(fmt.Sprintf("U16[%d, %d, %d, %d]\n", pd.Words[0], pd.Words[1], pd.Words[2], pd.Words[3])))
+		f.Write([]byte(fmt.Sprintf("U32[%d, %d]\n", pd.Doubles[0], pd.Doubles[1])))
+		f.Write([]byte(fmt.Sprintf("Quad: U64[%d]", pd.Quad)))
+	} else if c == 'g' {
+		f.Write([]byte(fmt.Sprintf("Base60[%s]\n", pd.Sexdigest)))
+		f.Write([]byte(fmt.Sprintf("Base20[%s]\n", pd.Vigdigest)))
+		f.Write([]byte(fmt.Sprintf("Base16[%s]\n", pd.Hexdigest)))
+		f.Write([]byte(fmt.Sprintf("Base14[%s]\n", pd.Tetdigest)))
+		f.Write([]byte(fmt.Sprintf("Base12[%s]\n", pd.Duodigest)))
+		f.Write([]byte(fmt.Sprintf("Base8[%s]\n", pd.Octdigest)))
+		f.Write([]byte(fmt.Sprintf("Base6[%s]\n", pd.Sendigest)))
+		f.Write([]byte(fmt.Sprintf("Base2[%s]", pd.Bindigest)))
+	} else if c == 'Q' {
+		f.Write([]byte(fmt.Sprintf("Sexdigest: %s\n", pd.Sexdigest)))
+		f.Write([]byte(fmt.Sprintf("Vigdigest: %s\n", pd.Vigdigest)))
+		f.Write([]byte(fmt.Sprintf("Hexdigest: %s\n", pd.Hexdigest)))
+		f.Write([]byte(fmt.Sprintf("Tetdigest: %s\n", pd.Tetdigest)))
+		f.Write([]byte(fmt.Sprintf("Duodigest: %s\n", pd.Duodigest)))
+		f.Write([]byte(fmt.Sprintf("OCtdigest: %s\n", pd.Octdigest)))
+		f.Write([]byte(fmt.Sprintf("Sendigest: %s\n", pd.Sendigest)))
+		f.Write([]byte(fmt.Sprintf("Bindigest: %s\n", pd.Bindigest)))
+		f.Write([]byte(fmt.Sprintf("Bytes: U8[%d, %d, %d, %d, %d, %d, %d, %d]\n", pd.Bytes[0], pd.Bytes[1], pd.Bytes[2], pd.Bytes[3], pd.Bytes[4], pd.Bytes[5], pd.Bytes[6], pd.Bytes[7])))
+		f.Write([]byte(fmt.Sprintf("Words: U16[%d, %d, %d, %d]\n", pd.Words[0], pd.Words[1], pd.Words[2], pd.Words[3])))
+		f.Write([]byte(fmt.Sprintf("Doubles: U32[%d, %d]\n", pd.Doubles[0], pd.Doubles[1])))
+		f.Write([]byte(fmt.Sprintf("Quad: U64[%d]", pd.Quad)))
+	} else if c == 'T' {
+		f.Write([]byte("PoxDigest"))
+	} else {
+		f.Write([]byte("EUF"))
+	}
 }
 
 func PoxHash(message []uint8) PoxDigest {
