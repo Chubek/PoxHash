@@ -28,6 +28,17 @@
 
 
 const
+   # CONSTANTS
+
+   ## INITIAL PRIME NUMBERS
+   ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#initial-prime-numbers
+   POX_PRIME_INIT_A = 0x17cbu16
+   POX_PRIME_INIT_B = 0x0371u16
+   POX_PRIME_INIT_C = 0x2419u16
+   POX_PRIME_INIT_D = 0xf223u16
+
+   ## SIZE CONSTANTS
+   ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#size-constants
    POX_ROUND_PRIME_NUM = 90
    POX_BLOCK_NUM = 64
    POX_8BPRIME_NUM = 54
@@ -37,6 +48,35 @@ const
    POX_SD_PRIME_NUM = 3
    POX_MAGIC_PRIME_NUM = 2
 
+   ## BIT-RELATED CONSTANTS
+   ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#bit-related-constants
+   BIT_WORD_WIDTH_U16 = 16u16
+   BIT_WORD_WIDTH_U32 = 16u32
+   BIT_BYTE_WIDTH_U16 = 8u16
+   BIT_UINT16_MAX_U16 = 65535u16
+   BIT_UINT16_MAX_U32 = 65535u32
+
+   ## MASKS
+   ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
+   MASK_DWORD_4F4Z = 0xffff0000u32
+   MASK_DWORD_4Z4F = 0x0000ffffu32
+   MASK_WORD_FZFZ = 0xf0f0u16
+   MASK_WORD_ZFZF = 0x0f0fu16
+   MASK_WORD_FZZZ = 0xf000u16
+   MASK_WORD_ZZFZ = 0x00f0u16
+   MASK_WORD_ZZZF = 0x000fu16
+   MASK_WORD_ZZFF = 0x00ffu16
+   MASK_WORD_FFZZ = 0xff00u16
+   MASK_WORD_FZZF = 0xf00fu16
+   MASK_WORD_FFFZ = 0xfff0u16
+   MASK_WORD_ZFFF = 0x0fffu16
+   MASK_WORD_01 = 0b01u16
+   MASK_WORD_10 = 0b10u16
+   MASK_WORD_11 = 0b11u16
+   MASK_WORD_00 = 0b00u16
+
+   ## PRIME_ARRAYS
+   ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
    POX_ROUND_PRIMES: array[POX_ROUND_PRIME_NUM, uint16] = [
       0x0377u16, 0x0683, 0x05fb, 0x05fb, 0x0665, 0x074b, 0x036d, 0x033d, 0x0115,
       0x07cf, 0x0e59, 0x0e75, 0x0a75, 0x119b, 0x1073, 0x12b3, 0x0fd1, 0x0a75,
@@ -60,36 +100,11 @@ const
    POX_SINGLE_DIGIT_PRIMES: array[POX_SD_PRIME_NUM, uint16] = [0x3u16, 0x5, 0x7]
    POX_MAGIC_PRIMES: array[POX_MAGIC_PRIME_NUM, uint16] = [0x33u16, 0x65]
 
-   POX_PRIME_INIT_A = 0x17cbu16
-   POX_PRIME_INIT_B = 0x0371u16
-   POX_PRIME_INIT_C = 0x2419u16
-   POX_PRIME_INIT_D = 0xf223u16
-
-   BIT_WORD_WIDTH_U16 = 16u16
-   BIT_WORD_WIDTH_U32 = 16u32
-   BIT_BYTE_WIDTH_U16 = 8u16
-   BIT_UINT16_MAX_U16 = 65535u16
-   BIT_UINT16_MAX_U32 = 65535u32
-
-   MASK_DWORD_4F4Z = 0xffff0000u32
-   MASK_DWORD_4Z4F = 0x0000ffffu32
-   MASK_WORD_FZFZ = 0xf0f0u16
-   MASK_WORD_ZFZF = 0x0f0fu16
-   MASK_WORD_FZZZ = 0xf000u16
-   MASK_WORD_ZZFZ = 0x00f0u16
-   MASK_WORD_ZZZF = 0x000fu16
-   MASK_WORD_ZZFF = 0x00ffu16
-   MASK_WORD_FFZZ = 0xff00u16
-   MASK_WORD_FZZF = 0xf00fu16
-   MASK_WORD_FFFZ = 0xfff0u16
-   MASK_WORD_ZFFF = 0x0fffu16
-   MASK_WORD_01 = 0b01u16
-   MASK_WORD_10 = 0b10u16
-   MASK_WORD_11 = 0b11u16
-   MASK_WORD_00 = 0b00u16
-
+   ## MISC
+   ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#misc
    COMB_BIONOM = @[(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
 
+   ## CONVERSION CONSTANTS
    SEX_CHARS: array[60, char] = [
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
     'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
@@ -120,7 +135,6 @@ const
    BIN_CHARS: array[2, char] = [
     '0', '1',
    ]
-
    SEX_SIZE = 3
    VIG_SIZE = 4
    HEX_SIZE = 4
@@ -145,11 +159,12 @@ type
    MessageSeq* = seq[uint8]
    WordSeq = seq[uint16]
 
+
+
 template `<->`(a, b: untyped): untyped =
    var tmp = a
    a = b
    b = tmp
-
 
 proc `//`[T](a, b: T): T = a div b
 proc `>>`[T](a, b: T): T = a shr b
@@ -171,6 +186,7 @@ proc `^^`[T](a: T): uint16 = cast[uint16](a)
 proc `^`[T](a: T): uint8 = cast[uint8](a)
 proc `^-`[T](a: T): int8 = cast[int8](a)
 
+######## TOOLS ########
 
 proc `++`(a: var int) = inc a
 proc `--`(a: var int) = dec a
@@ -249,82 +265,6 @@ proc `--->`(barrAndStart: (BlockArray, int), portionArray: var PortionArray) =
 proc `:::`(num: uint16): uint16 =
    return POX_8B_PRIMES[num % POX_8BPRIME_NUM]
 
-template convertBasesFromDecimal(base, size, chars, decimal, res,
-      offset: untyped): untyped =
-   var dec = decimal
-   for i in (offset * size)<..+size:
-      res[i] = chars[dec % base]
-      dec //= base
-
-proc omega(num: uint32): uint32 = (num & MASK_DWORD_4F4Z) >> (BIT_WORD_WIDTH_U32)
-proc epsilon(num: uint32): uint32 = num & MASK_DWORD_4Z4F
-proc ladca(num: uint32, by: uint32): uint32 = (num << by) | (num >> (
-      BIT_WORD_WIDTH_U32 - by))
-
-proc gorda(num, by: uint16): uint16 =
-   var res = ^^^^num
-   var byd = ^^^^by
-   res = ladca(res, byd)
-
-   if res > BIT_UINT16_MAX_U32:
-      res = omega(res)
-
-   result = ^^res
-
-proc tasu(factorArray: var FactorArray, tempArray: FactorArray, i: int) =
-   var aa = ^^^^factorArray[i]
-   var bb = ^^^^tempArray[i]
-   var a_plus_b = aa + bb
-
-   if a_plus_b > BIT_UINT16_MAX_U32:
-      a_plus_b = epsilon(a_plus_b)
-
-   factorArray[i] = ^^a_plus_b
-
-proc centum(factors: FactorArray, weights: PortionArray): uint16 =
-   var ctm = 0u32
-   for i in ...POX_PORTION_NUM:
-      ctm += ^^^^factors[i] * ^^^^weights[i]
-
-   ctm //= POX_PORTION_NUM
-   if ctm > BIT_UINT16_MAX_U32:
-      ctm = omega(ctm)
-
-   result = ^^ctm
-
-proc satum(factors: FactorArray, weights: PortionArray): uint16 =
-   var stm = 0u32
-   for i in ...POX_PORTION_NUM:
-      stm += ^^^^factors[i] * ^^^^weights[i]
-
-   stm = (stm + 1) // 2
-   if stm > BIT_UINT16_MAX_U32:
-      stm = epsilon(stm)
-
-   result = ^^stm
-
-proc tamaam(factors: FactorArray): uint16 =
-   var tmt = 0u32
-   for i in ...POX_PORTION_NUM:
-      tmt += ^^^^factors[i]
-
-   tmt //= POX_PORTION_NUM
-   if tmt > BIT_UINT16_MAX_U32:
-      tmt = omega(tmt)
-
-   result = ^^tmt
-
-proc deca(factors: FactorArray): uint16 =
-   var dca = 0u32
-   for i in ...POX_PORTION_NUM:
-      dca += ^^^^factors[i]
-
-   dca = (dca + 1) // 2
-   if dca > BIT_UINT16_MAX_U32:
-      dca = epsilon(dca)
-
-   result = ^^dca
-
 proc minAndArgMin(factors: FactorArray): (uint16, uint16) =
    var currMin = factors[0]
    var currIndex = 0u16
@@ -346,6 +286,22 @@ proc maxAndArgMax(factors: FactorArray): (uint16, uint16) =
          currIndex = ^^i
 
    result = (currMax, currIndex)
+
+proc log2N(num: uint16): uint16 =
+   if num > 1: return 1 + log2N(num // 2) else: return 0
+
+######## /TOOLS ########
+#-------------------------#
+######## CONVERSION ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-g-conversion--preparation-prep-methods
+
+
+template convertBasesFromDecimal(base, size, chars, decimal, res,
+      offset: untyped): untyped =
+   var dec = decimal
+   for i in (offset * size)<..+size:
+      res[i] = chars[dec % base]
+      dec //= base
 
 proc wordUpperBits(word: uint16): uint8 = ^((word & MASK_WORD_FFZZ) >> BIT_BYTE_WIDTH_U16)
 proc wordLowerBits(word: uint16): uint8 = ^(word & MASK_WORD_ZZFF)
@@ -432,8 +388,88 @@ proc byteArrayToPortionArrayAndPad(barray: MessageSeq): WordSeq =
    result ---> length
    result ---> barray
 
-proc log2N(num: uint16): uint16 =
-   if num > 1: return 1 + log2N(num // 2) else: return 0
+######## /CONVERSION ########
+#---------------------------#
+######## BITWISE OPS ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
+
+proc omega(num: uint32): uint32 = (num & MASK_DWORD_4F4Z) >> (BIT_WORD_WIDTH_U32)
+proc epsilon(num: uint32): uint32 = num & MASK_DWORD_4Z4F
+proc ladca(num: uint32, by: uint32): uint32 = (num << by) | (num >> (
+      BIT_WORD_WIDTH_U32 - by))
+
+######## /BITWISE OPS ########
+#----------------------------#
+######## BESPOKE OPS ########
+
+proc gorda(num, by: uint16): uint16 =
+   var res = ^^^^num
+   var byd = ^^^^by
+   res = ladca(res, byd)
+
+   if res > BIT_UINT16_MAX_U32:
+      res = omega(res)
+
+   result = ^^res
+
+proc tasu(factorArray: var FactorArray, tempArray: FactorArray, i: int) =
+   var aa = ^^^^factorArray[i]
+   var bb = ^^^^tempArray[i]
+   var a_plus_b = aa + bb
+
+   if a_plus_b > BIT_UINT16_MAX_U32:
+      a_plus_b = epsilon(a_plus_b)
+
+   factorArray[i] = ^^a_plus_b
+
+proc centum(factors: FactorArray, weights: PortionArray): uint16 =
+   var ctm = 0u32
+   for i in ...POX_PORTION_NUM:
+      ctm += ^^^^factors[i] * ^^^^weights[i]
+
+   ctm //= POX_PORTION_NUM
+   if ctm > BIT_UINT16_MAX_U32:
+      ctm = omega(ctm)
+
+   result = ^^ctm
+
+proc satum(factors: FactorArray, weights: PortionArray): uint16 =
+   var stm = 0u32
+   for i in ...POX_PORTION_NUM:
+      stm += ^^^^factors[i] * ^^^^weights[i]
+
+   stm = (stm + 1) // 2
+   if stm > BIT_UINT16_MAX_U32:
+      stm = epsilon(stm)
+
+   result = ^^stm
+
+proc tamaam(factors: FactorArray): uint16 =
+   var tmt = 0u32
+   for i in ...POX_PORTION_NUM:
+      tmt += ^^^^factors[i]
+
+   tmt //= POX_PORTION_NUM
+   if tmt > BIT_UINT16_MAX_U32:
+      tmt = omega(tmt)
+
+   result = ^^tmt
+
+proc deca(factors: FactorArray): uint16 =
+   var dca = 0u32
+   for i in ...POX_PORTION_NUM:
+      dca += ^^^^factors[i]
+
+   dca = (dca + 1) // 2
+   if dca > BIT_UINT16_MAX_U32:
+      dca = epsilon(dca)
+
+   result = ^^dca
+
+######## /BESPOKE OPS ########
+#----------------------------#
+######## ALPHABET OPS ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-d-alphabet-operations
 
 proc poxAlpha(tempArray: var FactorArray) =
    var
@@ -522,6 +558,11 @@ proc poxGamma(tempArray: var FactorArray) =
    tempArray[thorn] ^= log2N(dalath) & MASK_WORD_ZFFF
    tempArray[gee] ^= log2N(teth) >> ((gamal % 2) + 1)
 
+######## /ALPHABET OPS ########
+#-----------------------------#
+########   ROUND OPS   ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-e-round-methods
+
 proc poxRoundApplyAlphabet(tempArray: var FactorArray) =
    poxAlpha(tempArray)
    poxDelta(tempArray)
@@ -551,6 +592,11 @@ proc poxRound(factorArray: var FactorArray) =
    poxRoundApplyPrime(tempArray)
    poxRoundApplyShuffle(tempArray)
    poxRoundApplyAddition(factorArray, tempArray)
+
+########   /ROUND OPS   ########
+#------------------------------#
+########   BLOCK OPS   #########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-f-block-methods
 
 proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray,
       index: uint16) =
@@ -594,6 +640,8 @@ proc poxProcessBlock(factorArray: var FactorArray, blockArray: BlockArray) =
          for m in ...POX_ROUND_NUM:
             poxApplyByte(factorArray, portion, ^^m)
             poxRound(factorArray)
+
+########   /BLOCK OPS   #########
 
 type
    PoxDigest* = object
