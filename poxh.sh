@@ -8,6 +8,8 @@ NC="\033[0m"
 BLD="\033[1m"
 language=""
 folder=""
+to_print=""
+shifted_next=""
 
 help() {
     echo
@@ -38,22 +40,22 @@ wrong_arg() {
 
 check_language() {
     if [ "${language}" = "python" ] || [ "${language}" = "py" ] || [ "${language}" = "1" ]; then
-        printf "===${RED}Python${NC}===\n"
+        to_print="Selected: ${RED}Python${NC}\n"
         folder="python"
     elif [ "${language}" = "rust" ] || [ "${language}" = "rs" ] || [ "${language}" = "2" ]; then
-        printf "===${YELLOW}Rust${NC}===\n"
+        to_print="Selected: ${YELLOW}Rust${NC}\n"
         folder="rust"
     elif [ "${language}" = "c" ] || [ "${language}" = "3" ]; then
-        printf "===${GREEN}C${NC}===\n"
+        to_print="Selected: ${GREEN}C${NC}\n"
         folder="c"
     elif [ "${language}" = "js" ] || [ "${language}" = "javascript" ] || [ "${language}" = "4" ]; then
-        printf "===${BLUE}JavaScript${NC}===\n"
+        to_print="Selected: ${BLUE}JavaScript${NC}\n"
         folder="js"
     elif [ "${language}" = "go" ] || [ "${language}" = "5" ]; then
-        printf "===${PURPLE}Go${NC}===\n"
+        to_print="Selected: ${PURPLE}Go${NC}\n"
         folder="go"
     elif [ "${language}" = "nim" ] || [ "${language}" = "6" ]; then
-        printf "===${CYAN}Nim${NC}===\n"
+        to_print="Selected: ${CYAN}Nim${NC}\n"
         folder="nim"
     else
         printf "${RED}Wrong argument as language passed!${NC}\n"
@@ -67,7 +69,9 @@ case "$#" in
     1) if [[ "${1}" == "-h" ]]; then help; else wrong_arg; fi;;
     *)  
         language=$1 && shift
-        language=$(printf "${language}" | tr '[:upper:]' '[:lower:]')
+        language=$(printf "${language}" | tr '[:upper:]' '[:lower:]')        
         check_language
+        if [[ "${1}" == "-s" ]]; then shift; else printf "${to_print}"; fi
         sudo chmod +x $folder/poxh.sh && $folder/poxh.sh $@
+        ;;
 esac
