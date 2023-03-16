@@ -724,8 +724,8 @@ function PoxDigest(
   this.vigdigest = vigdigest;
   this.hexdigest = hexdigest;
   this.tetdigest = tetdigest;
-  this.duodigest = octdigest;
-  this.octdigest = duodigest;
+  this.duodigest = duodigest;
+  this.octdigest = octdigest;
   this.sendigest = sendigest;
   this.bindigest = bindigest;
   this.bytes = bytes;

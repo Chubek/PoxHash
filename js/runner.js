@@ -400,7 +400,6 @@ const validateFlags = (argv0, argv1, argv) => {
         }
         continue;
       case FLAG_DUO:
-        s;
         if (allFlagsNonDecPassed || allFlagsPassed) {
           errorOut(
             "You may not pass a non-decimal digest flag when `*` or `N` is passed"
