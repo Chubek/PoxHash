@@ -646,7 +646,7 @@ const poxRound = (factorArray) => {
   poxRoundAddTempsToFacts(factorArray, tempArray);
 };
 
-////////   /ROUND OPS   ////////
+////////   .ROUND OPS   ////////
 //----------------------------//
 ////////   BLOCK OPS   /////////
 // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-f-block-methods
@@ -694,7 +694,7 @@ const poxProcessBlock = (factorArray, blockArray) => {
   }
 };
 
-////////   /BLOCK OPS   /////////
+////////   .BLOCK OPS   /////////
 
 const processInput = (input) => {
   if (typeof input == "object") {
