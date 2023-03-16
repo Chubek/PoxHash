@@ -34,6 +34,17 @@ import (
 )
 
 const (
+	// CONSTANTS
+
+	/// INITIAL PRIME NUMBERS
+	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#initial-prime-numbers
+	poxPRIME_INIT_A uint16 = 0x17cb
+	poxPRIME_INIT_B        = 0x0371
+	poxPRIME_INIT_C        = 0x2419
+	poxPRIME_INIT_D        = 0xf223
+
+	/// SIZE CONSTANTS
+	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#size-constants
 	poxROUND_PRIME_NUM int = 90
 	poxBLOCK_NUM           = 64
 	pox8B_PRIME_NUM        = 54
@@ -43,11 +54,8 @@ const (
 	poxSD_PRIME_NUM        = 3
 	poxMAGIC_PRIME_NUM     = 2
 
-	poxPRIME_INIT_A uint16 = 0x17cb
-	poxPRIME_INIT_B        = 0x0371
-	poxPRIME_INIT_C        = 0x2419
-	poxPRIME_INIT_D        = 0xf223
-
+	/// BIT-RELATED CONSTANTS
+	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#bit-related-constants
 	bitWORD_WIDTH_U16 uint16 = 16
 	bitBYTE_WIDTH_u16        = 8
 	bitUINT16_MAX_U16        = 65535
@@ -55,26 +63,8 @@ const (
 	bitUINT16_MAX_U32        = 65535
 	bitBYTE_ARR_SIZE         = 8
 
-	numCOMB_BIONOM = 6
-	numRANGE_ZTF   = 4
-
-	baseSEX_SIZE int    = 3
-	baseVIG_SIZE        = 4
-	baseHEX_SIZE        = 4
-	baseTET_SIZE        = 5
-	baseDUO_SIZE        = 5
-	baseOCT_SIZE        = 6
-	baseSEN_SIZE        = 7
-	baseBIN_SIZE        = 16
-	baseSEX_NUM  uint16 = 60
-	baseVIG_NUM         = 20
-	baseHEX_NUM         = 16
-	baseTET_NUM         = 14
-	baseDUO_NUM         = 12
-	baseOCT_NUM         = 8
-	baseSEN_NUM         = 6
-	baseBIN_NUM         = 2
-
+	/// MASKS
+	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
 	maskDWORD_4F4Z uint32 = 0xffff0000
 	maskDWORD_4Z4F        = 0x0000ffff
 	maskWORD_FZFZ  uint16 = 0xf0f0
@@ -91,9 +81,33 @@ const (
 	maskNIBBLET_10        = 0b10
 	maskNIBBLET_11        = 0b11
 	maskNIBBLET_00        = 0b00
+
+	numCOMB_BIONOM = 6
+	numRANGE_ZTF   = 4
+
+	/// CONVERSION CONSTANTS
+	baseSEX_SIZE int    = 3
+	baseVIG_SIZE        = 4
+	baseHEX_SIZE        = 4
+	baseTET_SIZE        = 5
+	baseDUO_SIZE        = 5
+	baseOCT_SIZE        = 6
+	baseSEN_SIZE        = 7
+	baseBIN_SIZE        = 16
+	baseSEX_NUM  uint16 = 60
+	baseVIG_NUM         = 20
+	baseHEX_NUM         = 16
+	baseTET_NUM         = 14
+	baseDUO_NUM         = 12
+	baseOCT_NUM         = 8
+	baseSEN_NUM         = 6
+	baseBIN_NUM         = 2
 )
 
+// cont. from const block
 var (
+	/// PRIME_ARRAYS
+	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
 	poxROUND_PRIMES = [poxROUND_PRIME_NUM]uint16{0x0377,
 		0x0683,
 		0x05fb,
@@ -192,11 +206,13 @@ var (
 	poxSINGLE_DIGIT_PRIMES = [...]uint16{0x3, 0x5, 0x7}
 	poxMAGIC_PRIMES        = [...]uint16{0x33, 0x65}
 
-	iterCOMB_BIONOM = [numCOMB_BIONOM][2]int{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
-	iterRANGE_ZTF   = [numRANGE_ZTF]int{0, 1, 2, 3}
+	/// MISC
+	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#miscv
+	iterCOMB_BIONOM      = [numCOMB_BIONOM][2]int{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
+	iterRANGE_ZTF        = [numRANGE_ZTF]int{0, 1, 2, 3}
+	byteZERO_CHAR   byte = 48
 
-	byteZERO_CHAR byte = 48
-
+	// CONVERSION CONSTS, CONTINUED
 	bytesCHAR_SEX = [baseSEX_NUM]byte{
 		48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
 		65, 66, 67, 68, 69, 70, 71, 72, 73, 74,
@@ -267,95 +283,7 @@ type factorType [poxPORTION_NUM]uint16
 type blockType [poxBLOCK_NUM]uint16
 type byteType [bitBYTE_ARR_SIZE]uint8
 
-func omega(num uint32) uint32 {
-	return (num & maskDWORD_4F4Z) >> bitWORD_WIDTH_U32
-}
-
-func epsilon(num uint32) uint32 {
-	return num & maskDWORD_4Z4F
-}
-
-func ladca(num, by uint32) uint32 {
-	return (num << by) | (num >> (bitWORD_WIDTH_U32 - by))
-}
-
-func gorda(num uint16, by uint32) uint16 {
-	var res uint32 = uint32(num)
-	res = ladca(res, by)
-
-	if res > bitUINT16_MAX_U32 {
-		res = omega(res)
-	}
-
-	return uint16(res)
-}
-
-func tasu(a, b uint16) uint16 {
-	var aa, bb uint32 = uint32(a), uint32(b)
-	a_plus_b := aa + bb
-
-	if a_plus_b > bitUINT16_MAX_U32 {
-		a_plus_b = epsilon(a_plus_b)
-	}
-
-	return uint16(a_plus_b)
-}
-
-func centum(arr, weights factorType) uint16 {
-	var stm uint32 = 0
-	for i, intgr := range arr {
-		stm += uint32(intgr) * uint32(weights[i])
-	}
-	stm /= uint32(poxPORTION_NUM)
-
-	if stm > bitUINT16_MAX_U32 {
-		stm = omega(stm)
-	}
-
-	return uint16(stm)
-}
-
-func satem(arr, weights factorType) uint16 {
-	var stm uint32 = 0
-	for i, intgr := range arr {
-		stm += uint32(intgr) * uint32(weights[i])
-	}
-	stm = (stm + 1) / 2
-
-	if stm > bitUINT16_MAX_U32 {
-		stm = epsilon(stm)
-	}
-
-	return uint16(stm)
-}
-
-func tamaam(arr factorType) uint16 {
-	var stm uint32 = 0
-	for _, intgr := range arr {
-		stm += uint32(intgr)
-	}
-	stm /= uint32(poxPORTION_NUM)
-
-	if stm > bitUINT16_MAX_U32 {
-		stm = omega(stm)
-	}
-
-	return uint16(stm)
-}
-
-func deca(arr factorType) uint16 {
-	var stm uint32 = 0
-	for _, intgr := range arr {
-		stm += uint32(intgr)
-	}
-	stm = (stm + 1) / 2
-
-	if stm > bitUINT16_MAX_U32 {
-		stm = epsilon(stm)
-	}
-
-	return uint16(stm)
-}
+////////    TOOLS     //////////
 
 func minAndArgmin(arr factorType) (uint16, int) {
 	currMin := arr[0]
@@ -384,6 +312,62 @@ func maxAndArgmax(arr factorType) (uint16, int) {
 
 	return currMax, currIndex
 }
+
+func sumWordArray(wordarr factorType) uint16 {
+	var sum uint16 = 0
+	for _, word := range wordarr {
+		sum += word
+	}
+	return sum
+}
+
+func copyWordArray(wordarr factorType) factorType {
+	var ret factorType
+	for i, word := range wordarr {
+		ret[i] = word
+	}
+	return ret
+}
+
+func newPortion(block blockType, start int) factorType {
+	var ret factorType
+	ret[0] = block[start]
+	ret[1] = block[start+1]
+	ret[2] = block[start+2]
+	ret[3] = block[start+3]
+	return ret
+}
+
+func newBlock(message []uint16, start int) blockType {
+	var ret blockType
+	z := 0
+	for i := start; i < start+poxBLOCK_NUM; i++ {
+		ret[z] = message[i]
+		z++
+	}
+	return ret
+}
+
+func newFactorArray() factorType {
+	var ret factorType
+	ret[0] = poxPRIME_INIT_A
+	ret[1] = poxPRIME_INIT_B
+	ret[2] = poxPRIME_INIT_C
+	ret[3] = poxPRIME_INIT_D
+	return ret
+}
+
+func log2N(num uint16) uint16 {
+	if num > 1 {
+		return 1 + log2N(num/2)
+	}
+	return 0
+}
+
+////////  .TOOLS      ////////
+//-------------------------//
+//////// CONVERSION ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-g-conversion--preparation-prep-methods
 
 func wordToByte(word uint16) (uint8, uint8) {
 	var lower, upper uint16 = word & maskWORD_ZZFF, (word & maskWORD_FFZZ) >> bitBYTE_WIDTH_u16
@@ -519,60 +503,113 @@ func wordArrToBinDigest(wordarr factorType) string {
 	return string(bin[:])
 }
 
+//////// .CONVERSION ////////
+//-------------------------//
+//////// BITWISE OPS ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
+
+func omega(num uint32) uint32 {
+	return (num & maskDWORD_4F4Z) >> bitWORD_WIDTH_U32
+}
+
+func epsilon(num uint32) uint32 {
+	return num & maskDWORD_4Z4F
+}
+
+func ladca(num, by uint32) uint32 {
+	return (num << by) | (num >> (bitWORD_WIDTH_U32 - by))
+}
+
+//////// .BITWISE OPS ////////
+//--------------------------//
+//////// BESPOKE OPS ////////
+
+func gorda(num uint16, by uint32) uint16 {
+	var res uint32 = uint32(num)
+	res = ladca(res, by)
+
+	if res > bitUINT16_MAX_U32 {
+		res = omega(res)
+	}
+
+	return uint16(res)
+}
+
+func tasu(a, b uint16) uint16 {
+	var aa, bb uint32 = uint32(a), uint32(b)
+	a_plus_b := aa + bb
+
+	if a_plus_b > bitUINT16_MAX_U32 {
+		a_plus_b = epsilon(a_plus_b)
+	}
+
+	return uint16(a_plus_b)
+}
+
+func centum(arr, weights factorType) uint16 {
+	var stm uint32 = 0
+	for i, intgr := range arr {
+		stm += uint32(intgr) * uint32(weights[i])
+	}
+	stm /= uint32(poxPORTION_NUM)
+
+	if stm > bitUINT16_MAX_U32 {
+		stm = omega(stm)
+	}
+
+	return uint16(stm)
+}
+
+func satem(arr, weights factorType) uint16 {
+	var stm uint32 = 0
+	for i, intgr := range arr {
+		stm += uint32(intgr) * uint32(weights[i])
+	}
+	stm = (stm + 1) / 2
+
+	if stm > bitUINT16_MAX_U32 {
+		stm = epsilon(stm)
+	}
+
+	return uint16(stm)
+}
+
+func tamaam(arr factorType) uint16 {
+	var stm uint32 = 0
+	for _, intgr := range arr {
+		stm += uint32(intgr)
+	}
+	stm /= uint32(poxPORTION_NUM)
+
+	if stm > bitUINT16_MAX_U32 {
+		stm = omega(stm)
+	}
+
+	return uint16(stm)
+}
+
+func deca(arr factorType) uint16 {
+	var stm uint32 = 0
+	for _, intgr := range arr {
+		stm += uint32(intgr)
+	}
+	stm = (stm + 1) / 2
+
+	if stm > bitUINT16_MAX_U32 {
+		stm = epsilon(stm)
+	}
+
+	return uint16(stm)
+}
+
 func get8BPrime(num uint16) uint16 {
 	return pox8BPRIMES[num%uint16(pox8B_PRIME_NUM)]
 }
 
-func log2N(num uint16) uint16 {
-	if num > 1 {
-		return 1 + log2N(num/2)
-	}
-	return 0
-}
-
-func sumWordArray(wordarr factorType) uint16 {
-	var sum uint16 = 0
-	for _, word := range wordarr {
-		sum += word
-	}
-	return sum
-}
-
-func copyWordArray(wordarr factorType) factorType {
-	var ret factorType
-	for i, word := range wordarr {
-		ret[i] = word
-	}
-	return ret
-}
-
-func newPortion(block blockType, start int) factorType {
-	var ret factorType
-	ret[0] = block[start]
-	ret[1] = block[start+1]
-	ret[2] = block[start+2]
-	ret[3] = block[start+3]
-	return ret
-}
-
-func newBlock(message []uint16, start int) blockType {
-	var ret blockType
-	z := 0
-	for i := start; i < start+poxBLOCK_NUM; i++ {
-		ret[z] = message[i]
-		z++
-	}
-	return ret
-}
-
-func newFactorArray() factorType {
-	var ret factorType
-	ret[0] = poxPRIME_INIT_A
-	ret[1] = poxPRIME_INIT_B
-	ret[2] = poxPRIME_INIT_C
-	ret[3] = poxPRIME_INIT_D
-	return ret
-}
+//////// .BESPOKE OPS ////////
+//--------------------------//
+//////// ALPHABET OPS ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-d-alphabet-operations
 
 func poxAlpha(tempArray factorType) factorType {
 	var aleph, daal, theh, gaaf uint16 = 0, 0, 0, 0
@@ -659,6 +696,11 @@ func poxGamma(tempArray factorType) factorType {
 	return tempArrayCpy
 }
 
+//////// .ALPHABET OPS ////////
+//---------------------------//
+////////   ROUND OPS   ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-e-round-methods
+
 func poxRoundApplyAlphabet(tempArray factorType) factorType {
 	tempArrayCpy := copyWordArray(tempArray)
 	tempArrayCpy = poxAlpha(tempArrayCpy)
@@ -713,6 +755,11 @@ func poxRound(factorArray factorType) factorType {
 	return additionResult
 }
 
+////////   .ROUND OPS   ////////
+//----------------------------//
+////////   BLOCK OPS   /////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-f-block-methods
+
 func poxApplyBytes(factorArray, portion factorType, index uint16) factorType {
 	var tmt, dca uint16 = 0, 0
 
@@ -761,6 +808,8 @@ func poxProcessBlock(factorArray factorType, block blockType) factorType {
 	}
 	return factorArrayCpy
 }
+
+////////   .BLOCK OPS   /////////
 
 type PoxDigest struct {
 	Sexdigest string    `json:"sexdigest"`
