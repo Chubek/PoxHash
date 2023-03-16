@@ -255,6 +255,8 @@ var unsignedArray = map(myStr, proc(x: char): uint8 = cast[uint8](x))
 
 All these functions return an structured object, be it a struct, a class, or anything else that is a structured object, called `PoxDigest`. Across the implementations, this structured object has 11 properties (also called 'fields') that are identical in content and name (except in Go, where they only slightly differ). These properties are digests in various forms, decimal or non-decimal, decimal in several bit widths and non-decimal in several bases. Let's go through them.
 
+**Note**: In Python and JS, if the input is of the wrong type, the function will return `None` and `null` respectively. It won't throw any exceptions.
+
 ### PoxDigest Object Fields/Properties
 
 #### Field Names
@@ -402,6 +404,39 @@ The following table indicates all the possible string formatting flags and their
 | N    | All non-decimal digests |
 | A    | Everything              |
 | \*   | `EUF` unless predefiend |
+
+### Note on `class PoxDigest` in Python:
+
+This class implements the following Dunder methods:
+
+```python
+__dict__
+__repr__
+__str__
+__format__
+```
+
+`__str__` and `__repr__` have different outputs. The latter just prints the result of the custom `__dict__` function as idented JSON string. But `__str__` calls to `__format__` to create an elegant output.
+
+`__format__` operates on custom flags. A group of flags correspond to one digest. They are as follows.
+| Digest | `__format__` flags |  
+|--------|----------------------|
+| Sexdigest | `g`, `G`, `sex`, `SEX` |
+| Vigdiest | `v`, `V`, `vig`, `VIG`|
+| Hexdigest (lowwecase) | `h`, `hex` |
+| Hexdigest (uppercase) | `H`, `HEX` |
+| Tetdigest (lowercase) | `t`, `tet` |
+| Tetdigest (uppercase) | `T`, `TET` |
+| Duodigest | `d`, `D`, `duo`, `DUO`|
+| Octdigest | `o`, `O`, `oct`, `OCT` |
+| Sendgiest | `s`, `S`, `sen`, `SEN` |
+| Bindgiest | `b`, `B`, `bin`, `BIN` |
+| Bytes | `8`, `u8`, `Bytes` |
+| Words | `4`, `u16`, `Words` |
+| Doubles | `2`, `u32`, `Doubles` |
+| Quad | `1`, `u64`, `Quad` |
+
+Each flag can be used in severl ways, for example `f"{digest:G}"` or `format(digest, 'G')`.
 
 ### Note on `struct PoxDigest` in C
 
