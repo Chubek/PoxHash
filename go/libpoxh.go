@@ -789,8 +789,10 @@ func (pd PoxDigest) Format(f fmt.State, c rune) {
 		f.Write([]byte(fmt.Sprintf("%s", pd.Octdigest)))
 	case 's':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Sendigest)))
-	case 'y':
+	case 'Y':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Vigdigest)))
+	case 'y':
+		f.Write([]byte(fmt.Sprintf("%s", strings.ToLower(pd.Vigdigest))))
 	case 'G':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Sexdigest)))
 	case 'g':
