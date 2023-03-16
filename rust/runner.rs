@@ -92,7 +92,10 @@ fn print_help(exec: String) {
     println!();
     print!("\x1b[1;32mFlags:\x1b[0m\n");
     print!("\x1b[1;33m\t`{}`\x1b[0m: Echo argument\n", FLAG_ECHO);
-    print!("\x1b[1;33m\t`{}`\x1b[0m: Don't print header message\n", FLAG_NHEADER);
+    print!(
+        "\x1b[1;33m\t`{}`\x1b[0m: Don't print header message\n",
+        FLAG_NHEADER
+    );
     print!(
         "\x1b[1;33m\t`{}`\x1b[0m: Benchmark run (pass two to only show benchmark)\n",
         FLAG_BENCHMARK
@@ -529,7 +532,9 @@ fn main() {
     match arg_has_flag(&flag_arg, FLAG_JOIN) {
         true => {
             let args_joined = join_args(&argv[2..].to_vec());
-            if echo_arg { print!("Joined Args: \n`{}`\n", args_joined); }
+            if echo_arg {
+                print!("Joined Args: \n`{}`\n", args_joined);
+            }
             let t1 = get_time_in_us();
             hashes[0] = pox_hash(&args_joined.as_bytes().to_vec());
             let t2 = get_time_in_us();
@@ -538,7 +543,9 @@ fn main() {
         false => {
             let (mut t1, mut t2, mut total_time) = (0u128, 0u128, 0u128);
             for (i, arg) in argv[2..].into_iter().enumerate() {
-                if echo_arg { print!("Arg {}: {}\n", i + 1, arg); }
+                if echo_arg {
+                    print!("Arg {}: {}\n", i + 1, arg);
+                }
                 let processed_arg = process_arg(arg).as_bytes().to_vec();
                 t1 = get_time_in_us();
                 hashes[i] = pox_hash(&processed_arg);
