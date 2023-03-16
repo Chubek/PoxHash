@@ -67,6 +67,7 @@ case "$#" in
     1) if [[ "${1}" == "-h" ]]; then help; else wrong_arg; fi;;
     *)  
         language=$1 && shift
+        language=$(printf "${language}" | tr '[:upper:]' '[:lower:]')
         check_language
         sudo chmod +x $folder/poxh.sh && $folder/poxh.sh $@
 esac
