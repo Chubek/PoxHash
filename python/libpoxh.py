@@ -876,13 +876,13 @@ class PoxDigest:
             return self.sendigest
         elif spec == 'b' or spec == 'B' or spec == 'bin' or spec == 'BIN':
             return self.bindigest
-        elif spec == '8':
+        elif spec == '8' or spec == 'u8' or spec == 'Bytes':
             return f"U8[{self.bytes[0]}, {self.bytes[1]}, {self.bytes[2]}, {self.bytes[3]}, {self.bytes[4]}, {self.bytes[5]}, {self.bytes[6]}, {self.bytes[7]}]"
-        elif spec == '4':
+        elif spec == '4' or spec == 'u16' or spec == 'Words':
             return f"U16[{self.words[0]}, {self.words[1]}, {self.words[2]}, {self.words[3]}]"
-        elif spec == '2':
+        elif spec == '2' or spec == 'u32' or spec == 'Doubles':
             return f"U32[{self.doubles[0]}, {self.doubles[1]}]"
-        elif spec == '1':
+        elif spec == '1' or spec == 'u64' or spec == 'Quad':
             return f"U64[{self.quad[0]}]"
         else:
             return "EUF"
