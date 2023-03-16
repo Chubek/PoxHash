@@ -113,7 +113,7 @@
     input-raw -> The raw input sequence of variable size.
     input-padded -> The raw input converted to u16 and padded with z$eores until its size is divisible by 64
         block, block-size, block-array -> Block the hash operations on (which input-padded is divided to) and its size, which is 64
-    $chunk, $chunk-size -> Chunk the block is divided to and its size, which is 16
+    chunk, chunk-size -> Chunk the block is divided to and its size, which is 16
         portion, portion-size, portion-array -> Portion the $chunk is divided to and its size, which is 4
     round-num -> Number of rounds each portion is applied to the base-factors
     round -> Applying scrambling operations on base-factors. A prime number has been chosen for it because
