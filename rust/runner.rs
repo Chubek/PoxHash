@@ -397,7 +397,7 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
     let vig = arg_has_flag(flags, FLAG_VIG);
     let hex = arg_has_flag(flags, FLAG_HEX);
     let tet = arg_has_flag(flags, FLAG_TET);
-    let duo = arg_has_flag(flags, FLAG_TET);
+    let duo = arg_has_flag(flags, FLAG_DUO);
     let oct = arg_has_flag(flags, FLAG_OCT);
     let sen = arg_has_flag(flags, FLAG_SEN);
     let bin = arg_has_flag(flags, FLAG_BIN);

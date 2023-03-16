@@ -350,7 +350,7 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 	vig := argHasFlag(flag, flagVIG)
 	hex := argHasFlag(flag, flagHEX)
 	tet := argHasFlag(flag, flagTET)
-	duo := argHasFlag(flag, flagTET)
+	duo := argHasFlag(flag, flagDUO)
 	oct := argHasFlag(flag, flagOCT)
 	sen := argHasFlag(flag, flagSEN)
 	bin := argHasFlag(flag, flagBIN)

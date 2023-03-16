@@ -385,7 +385,7 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
     vig = arg_has_flag(flags, FLAG_VIG)
     hex = arg_has_flag(flags, FLAG_HEX)
     tet = arg_has_flag(flags, FLAG_TET)
-    duo = arg_has_flag(flags, FLAG_TET)
+    duo = arg_has_flag(flags, FLAG_DUO)
     oct = arg_has_flag(flags, FLAG_OCT)
     sen = arg_has_flag(flags, FLAG_SEN)
     bin = arg_has_flag(flags, FLAG_BIN)

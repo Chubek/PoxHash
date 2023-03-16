@@ -441,7 +441,7 @@ void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flag
     int vig = arg_has_flag(flags, len_flags, FLAG_VIG);
     int hex = arg_has_flag(flags, len_flags, FLAG_HEX);
     int tet = arg_has_flag(flags, len_flags, FLAG_TET);
-    int duo = arg_has_flag(flags, len_flags, FLAG_TET);
+    int duo = arg_has_flag(flags, len_flags, FLAG_DUO);
     int oct = arg_has_flag(flags, len_flags, FLAG_OCT);
     int sen = arg_has_flag(flags, len_flags, FLAG_SEN);
     int bin = arg_has_flag(flags, len_flags, FLAG_BIN);

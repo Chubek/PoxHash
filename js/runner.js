@@ -482,7 +482,7 @@ const printHashes = (hashes, flags, totalTime) => {
   const vig = argHasFlag(flags, FLAG_VIG);
   const hex = argHasFlag(flags, FLAG_HEX);
   const tet = argHasFlag(flags, FLAG_TET);
-  const duo = argHasFlag(flags, FLAG_TET);
+  const duo = argHasFlag(flags, FLAG_DUO);
   const oct = argHasFlag(flags, FLAG_OCT);
   const sen = argHasFlag(flags, FLAG_SEN);
   const bin = argHasFlag(flags, FLAG_BIN);
