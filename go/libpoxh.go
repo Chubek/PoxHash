@@ -523,6 +523,7 @@ func ladca(num, by uint32) uint32 {
 //////// .BITWISE OPS ////////
 //--------------------------//
 //////// BESPOKE OPS ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-c-bespoke-operations
 
 func gorda(num uint16, by uint32) uint16 {
 	var res uint32 = uint32(num)

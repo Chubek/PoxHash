@@ -522,7 +522,7 @@ def __lamed(res_array: __array, by: int) -> None:
 ######## /BITWISE OPS ########
 #----------------------------#
 ######## BESPOKE OPS ########
-
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-c-bespoke-operations
 
 def __gorda(num: int, by: int) -> __array:
     res_array = __array('I', [num])

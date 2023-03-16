@@ -401,6 +401,7 @@ proc ladca(num: uint32, by: uint32): uint32 = (num << by) | (num >> (
 ######## /BITWISE OPS ########
 #----------------------------#
 ######## BESPOKE OPS ########
+# https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-c-bespoke-operations
 
 proc gorda(num, by: uint16): uint16 =
    var res = ^^^^num

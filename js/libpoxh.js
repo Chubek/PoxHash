@@ -440,6 +440,7 @@ const lamed = (dwArr, by) => {
 //////// .BITWISE OPS ////////
 //--------------------------//
 //////// BESPOKE OPS ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-c-bespoke-operations
 
 const gorda = (num, by) => {
   let resUint32 = new Uint32Array([num]);
