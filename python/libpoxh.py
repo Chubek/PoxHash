@@ -524,6 +524,7 @@ def __lamed(res_array: __array, by: int) -> None:
 ######## BESPOKE OPS ########
 # https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-c-bespoke-operations
 
+
 def __gorda(num: int, by: int) -> __array:
     res_array = __array('I', [num])
     __lamed(res_array, by)
@@ -810,6 +811,81 @@ class PoxDigest:
         self.words = words
         self.doubles = doubles
         self.quad = quad
+
+    def __dict__(self) -> dict[str, any]:
+        return {
+            "Undecenary": {
+                "Sexdigest": self.sexdigest,
+                "Vigdigest": self.vigdigest,
+                "Hexdigest": self.hexdigest,
+                "Tetdigest": self.tetdigest,
+                "Duodigest": self.duodigest,
+                "Octdigest": self.octdigest,
+                "Sendigest": self.sendigest,
+                "Bindigest": self.bindigest,
+            },
+            "Decenary": {
+                "Bytes": self.bytes.tolist(),
+                "Words": self.words.tolist(),
+                "Doubles": self.doubles.tolist(),
+                "Quad": self.quad.tolist(),
+            }
+        }
+
+    def __repr__(self) -> str:
+        import json
+        return json.dumps(self.__dict__(), indent=4)
+
+    def __str__(self) -> str:
+        return f"""
+            - UNDECENARY:
+            + Sexdigest: {self:G},  
+            + Vigdigest: {self:V},
+            + Hexdigest: {self:H},
+            + Tetdigest: {self:T},
+            + Duodigest: {self:D},
+            + Octdigest: {self:O},
+            + Sendigest: {self:S},
+            + Bindigest: {self:B},
+
+            - DECENARY:
+            + Bytes:     {self:8},
+            + Words:     {self:4},
+            + Doubles:   {self:2},
+            + Quad:      {self:1},
+        """
+
+    def __format__(self, spec: str) -> str:
+        if spec == 'g' or spec == 'G' or spec == 'sex' or spec == 'SEX':
+            return self.sexdigest
+        elif spec == 'v' or spec == 'V' or spec == 'vig' or spec == 'VIG':
+            return self.vigdigest
+        elif spec == 'h' or spec == 'hex':
+            return self.hexdigest
+        elif spec == 'H' or spec == 'HEX':
+            return self.hexdigest.upper()
+        elif spec == 't' or spec == 'tet':
+            return self.tetdigest
+        elif spec == 'T' or spec == 'TET':
+            return self.tetdigest.upper()
+        elif spec == 'd' or spec == 'D' or spec == 'duo' or spec == 'DUO':
+            return self.duodigest
+        elif spec == 'o' or spec == 'O' or spec == 'oct' or spec == 'OCT':
+            return self.octdigest
+        elif spec == 's' or spec == 'S' or spec == 'sen' or spec == 'SEN':
+            return self.sendigest
+        elif spec == 'b' or spec == 'B' or spec == 'bin' or spec == 'BIN':
+            return self.bindigest
+        elif spec == '8':
+            return f"U8[{self.bytes[0]}, {self.bytes[1]}, {self.bytes[2]}, {self.bytes[3]}, {self.bytes[4]}, {self.bytes[5]}, {self.bytes[6]}, {self.bytes[7]}]"
+        elif spec == '4':
+            return f"U16[{self.words[0]}, {self.words[1]}, {self.words[2]}, {self.words[3]}]"
+        elif spec == '2':
+            return f"U32[{self.doubles[0]}, {self.doubles[1]}]"
+        elif spec == '1':
+            return f"U64[{self.quad[0]}]"
+        else:
+            return "EUF"
 
 
 def pox_hash(message: any) -> PoxDigest:
