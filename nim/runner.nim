@@ -1,6 +1,7 @@
 import libpoxh
 import os
 import times
+import sequtils
 
 const
   MAX_FLAG_SIZE: int = 24
@@ -124,8 +125,7 @@ proc `*`(c: char): string =
   result[0] = c
 proc `^^`(c: char): uint8 = cast[uint8](c)
 proc `^^`(str: string): seq[uint8] =
-  for c in **str:
-    result.add(^^c)
+    map(str, proc(x: char): uint8 = ^^x)
 
 proc printf(input: varargs[string, `$`]) =
   var
