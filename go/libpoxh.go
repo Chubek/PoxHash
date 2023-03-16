@@ -778,30 +778,43 @@ type PoxDigest struct {
 }
 
 func (pd PoxDigest) Format(f fmt.State, c rune) {
-	if c == 'b' {
+	switch c {
+	case 'b':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Bindigest)))
-	} else if c == 'X' {
+	case 'X':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Hexdigest)))
-	} else if c == 'x' {
+	case 'x':
 		f.Write([]byte(fmt.Sprintf("%s", strings.ToLower(pd.Hexdigest))))
-	} else if c == 'o' {
+	case 'o':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Octdigest)))
-	} else if c == 's' {
+	case 's':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Sendigest)))
-	} else if c == 'v' {
+	case 'y':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Vigdigest)))
-	} else if c == 'S' {
+	case 'G':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Sexdigest)))
-	} else if c == 't' {
+	case 'g':
+		f.Write([]byte(fmt.Sprintf("%s", strings.ToLower(pd.Sexdigest))))
+	case 't':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Tetdigest)))
-	} else if c == 'z' {
+	case 'f':
+		f.Write([]byte(fmt.Sprintf("%s", strings.ToLower(pd.Tetdigest))))
+	case 'd':
 		f.Write([]byte(fmt.Sprintf("%s", pd.Duodigest)))
-	} else if c == 'd' {
+	case 'B':
+		f.Write([]byte(fmt.Sprintf("U8[%d, %d, %d, %d, %d, %d, %d, %d]", pd.Bytes[0], pd.Bytes[1], pd.Bytes[2], pd.Bytes[3], pd.Bytes[4], pd.Bytes[5], pd.Bytes[6], pd.Bytes[7])))
+	case 'W':
+		f.Write([]byte(fmt.Sprintf("U16[%d, %d, %d, %d]", pd.Words[0], pd.Words[1], pd.Words[2], pd.Words[3])))
+	case 'D':
+		f.Write([]byte(fmt.Sprintf("U32[%d, %d]", pd.Doubles[0], pd.Doubles[1])))
+	case 'Q':
+		f.Write([]byte(fmt.Sprintf("Quad: U64[%d]", pd.Quad)))
+	case 'F':
 		f.Write([]byte(fmt.Sprintf("U8[%d, %d, %d, %d, %d, %d, %d, %d]\n", pd.Bytes[0], pd.Bytes[1], pd.Bytes[2], pd.Bytes[3], pd.Bytes[4], pd.Bytes[5], pd.Bytes[6], pd.Bytes[7])))
 		f.Write([]byte(fmt.Sprintf("U16[%d, %d, %d, %d]\n", pd.Words[0], pd.Words[1], pd.Words[2], pd.Words[3])))
 		f.Write([]byte(fmt.Sprintf("U32[%d, %d]\n", pd.Doubles[0], pd.Doubles[1])))
 		f.Write([]byte(fmt.Sprintf("Quad: U64[%d]", pd.Quad)))
-	} else if c == 'g' {
+	case 'N':
 		f.Write([]byte(fmt.Sprintf("Base60[%s]\n", pd.Sexdigest)))
 		f.Write([]byte(fmt.Sprintf("Base20[%s]\n", pd.Vigdigest)))
 		f.Write([]byte(fmt.Sprintf("Base16[%s]\n", pd.Hexdigest)))
@@ -810,7 +823,7 @@ func (pd PoxDigest) Format(f fmt.State, c rune) {
 		f.Write([]byte(fmt.Sprintf("Base8[%s]\n", pd.Octdigest)))
 		f.Write([]byte(fmt.Sprintf("Base6[%s]\n", pd.Sendigest)))
 		f.Write([]byte(fmt.Sprintf("Base2[%s]", pd.Bindigest)))
-	} else if c == 'Q' {
+	case 'A':
 		f.Write([]byte(fmt.Sprintf("Sexdigest: %s\n", pd.Sexdigest)))
 		f.Write([]byte(fmt.Sprintf("Vigdigest: %s\n", pd.Vigdigest)))
 		f.Write([]byte(fmt.Sprintf("Hexdigest: %s\n", pd.Hexdigest)))
@@ -823,9 +836,7 @@ func (pd PoxDigest) Format(f fmt.State, c rune) {
 		f.Write([]byte(fmt.Sprintf("Words: U16[%d, %d, %d, %d]\n", pd.Words[0], pd.Words[1], pd.Words[2], pd.Words[3])))
 		f.Write([]byte(fmt.Sprintf("Doubles: U32[%d, %d]\n", pd.Doubles[0], pd.Doubles[1])))
 		f.Write([]byte(fmt.Sprintf("Quad: U64[%d]", pd.Quad)))
-	} else if c == 'T' {
-		f.Write([]byte("PoxDigest"))
-	} else {
+	default:
 		f.Write([]byte("EUF"))
 	}
 }
