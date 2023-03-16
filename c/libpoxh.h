@@ -42,6 +42,17 @@
 #include <stdlib.h>
 #endif
 
+// CONSTANTS
+
+/// INITIAL PRIME NUMBERS
+/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#initial-prime-numbers
+#define POX_PRIME_INIT_A 0x17cb
+#define POX_PRIME_INIT_B 0x0371
+#define POX_PRIME_INIT_C 0x2419
+#define POX_PRIME_INIT_D 0xf223
+
+/// SIZE CONSTANTS
+/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#size-constants
 #define POX_ROUND_PRIME_NUM 90
 #define POX_BLOCK_NUM 64
 #define POX_8B_PRIME_NUM 54
@@ -51,6 +62,13 @@
 #define POX_SD_PRIME_NUM 3
 #define POX_MAGIC_PRIME_NUM 2
 
+/// BIT-RELATED CONSTANTS
+/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#bit-related-constants
+#define WORD_WIDTH 16
+#define BYTE_WIDTH 8
+
+/// MASKS
+/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
 #define MASK_DWORD_4F4Z 0xffff0000
 #define MASK_DWORD_4Z4F 0x0000ffff
 #define MASK_WORD_FZFZ 0xf0f0
@@ -71,8 +89,7 @@
 #define MASK_NIBBLET_11 0b11
 #define MASK_NIBBLET_00 0b00
 
-#define WORD_WIDTH 16
-#define BYTE_WIDTH 8
+/// CONVERSION CONSTANTS
 #define SEX_SIZE 3
 #define VIG_SIZE 4
 #define HEX_SIZE 4
@@ -96,6 +113,8 @@
 #define SIZE_BYTE_ARR(num) sizeof(char) * num
 #define SIZE_BYTE sizeof(char)
 
+/// PRIME_ARRAYS
+/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
 static const uint16_t cPOX_ROUND_PRIMES[POX_ROUND_PRIME_NUM] = {
     0x0377,
     0x0683,
@@ -197,11 +216,13 @@ static const uint16_t cPOX_8B_PRIMES[POX_8B_PRIME_NUM] = {
 static const uint16_t cPOX_SINGLE_DIGIT_PRIMES[POX_SD_PRIME_NUM] = {0x3, 0x5, 0x7};
 static const uint16_t cPOX_MAGIC_PRIMES[POX_MAGIC_PRIME_NUM] = {0x33, 0x65};
 
-static const uint16_t cPOX_PRIME_INIT_A = 0x17cb;
-static const uint16_t cPOX_PRIME_INIT_B = 0x0371;
-static const uint16_t cPOX_PRIME_INIT_C = 0x2419;
-static const uint16_t cPOX_PRIME_INIT_D = 0xf223;
+/// MISC
+/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#misc
+static const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
+static const size_t cCOMB_BIONOM[6][2] = {
+    {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}};
 
+/// CONVERSION CONSTANTS, CONT.
 static const char cSEX_CHARS[SEX_BASE] = {
     '0',
     '1',
@@ -347,9 +368,8 @@ static const char cOCT_CHARS[OCT_BASE] = {
 static const char cSEN_CHARS[SEN_BASE] = {
     '0', '1', '2', '3', '4', '5'};
 static const char cBIN_CHARS[BIN_BASE] = {'0', '1'};
-static const size_t cRANGE_ZTF[4] = {0, 1, 2, 3};
-static const size_t cCOMB_BIONOM[6][2] = {
-    {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}};
+
+////////    TOOLS     //////////
 
 static inline uint16_t log2n(uint16_t num)
 {
@@ -390,38 +410,6 @@ static inline uint16_t get_8b_prime(uint16_t num)
         b = __tmp;    \
     } while (0)
 
-#define OMEGA(num) \
-    num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH
-
-#define EPSILON(num) \
-    num &= MASK_DWORD_4Z4F
-
-#define LAMED(num, by) \
-    num = (num << by) | (num >> (WORD_WIDTH - by))
-
-#define GORDA(num, by)                     \
-    do                                     \
-    {                                      \
-        uint32_t __numcpy = (uint32_t)num; \
-        LAMED(__numcpy, by);               \
-        if (__numcpy > UINT16_MAX)         \
-        {                                  \
-            OMEGA(__numcpy);               \
-        }                                  \
-        num = (uint16_t)__numcpy;          \
-    } while (0)
-
-#define TASU(a, b, ptr)                          \
-    do                                           \
-    {                                            \
-        uint32_t __a_ttb = (uint32_t)a;          \
-        uint32_t __b_ttb = (uint32_t)b;          \
-        uint32_t __a_plus_b = __a_ttb + __b_ttb; \
-        if (__a_plus_b > UINT16_MAX)             \
-            EPSILON(__a_plus_b);                 \
-        *ptr = (uint16_t)__a_plus_b;             \
-    } while (0)
-
 #define WORD_TO_2BYTE(word, bytelow, bytehigh) \
     bytelow = word & MASK_WORD_ZZFF;           \
     bytehigh = (word & MASK_WORD_FFZZ) >> BYTE_WIDTH;
@@ -442,58 +430,6 @@ static inline uint16_t get_8b_prime(uint16_t num)
         {                                                \
             double += array[__kz] * weights[__kz];       \
         }                                                \
-    } while (0)
-
-#define CENTUM(arr, weights, res)                               \
-    do                                                          \
-    {                                                           \
-        uint32_t sum = 0;                                       \
-        SUM_DOUBLE_WEIGHTS(arr, weights, sum, POX_PORTION_NUM); \
-        sum /= POX_PORTION_NUM;                                 \
-        if (sum > UINT16_MAX)                                   \
-        {                                                       \
-            OMEGA(sum);                                         \
-        }                                                       \
-        res = (uint16_t)sum;                                    \
-    } while (0)
-
-#define SATEM(arr, weights, res)                                \
-    do                                                          \
-    {                                                           \
-        uint32_t sum = 0;                                       \
-        SUM_DOUBLE_WEIGHTS(arr, weights, sum, POX_PORTION_NUM); \
-        sum = (sum + 1) / 2;                                    \
-        if (sum > UINT16_MAX)                                   \
-        {                                                       \
-            EPSILON(sum);                                       \
-        }                                                       \
-        res = (uint16_t)sum;                                    \
-    } while (0)
-
-#define TAMAAM(arr, res)                       \
-    do                                         \
-    {                                          \
-        uint32_t sum = 0;                      \
-        SUM_DOUBLE(arr, sum, POX_PORTION_NUM); \
-        sum /= POX_PORTION_NUM;                \
-        if (sum > UINT16_MAX)                  \
-        {                                      \
-            OMEGA(sum);                        \
-        }                                      \
-        res = (uint16_t)sum;                   \
-    } while (0)
-
-#define DECA(arr, res)                         \
-    do                                         \
-    {                                          \
-        uint32_t sum = 0;                      \
-        SUM_DOUBLE(arr, sum, POX_PORTION_NUM); \
-        sum = (sum + 1) / 2;                   \
-        if (sum > UINT16_MAX)                  \
-        {                                      \
-            EPSILON(sum);                      \
-        }                                      \
-        res = (uint16_t)sum;                   \
     } while (0)
 
 #define MIN_ARGMIN(arr, min, minindex)                 \
@@ -519,6 +455,11 @@ static inline uint16_t get_8b_prime(uint16_t num)
             maxindex = __ir;                           \
         }                                              \
     }
+
+////////  .TOOLS      ////////
+//-------------------------//
+//////// CONVERSION ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-g-conversion--preparation-prep-methods
 
 #define PAD_SIZE_TO_BLOCK_SIZE(size)  \
     while (size % POX_BLOCK_NUM != 0) \
@@ -573,6 +514,104 @@ static inline uint16_t get_8b_prime(uint16_t num)
     quad |= ((uint64_t)warr[1]) << 16; \
     quad |= ((uint64_t)warr[2]) << 32; \
     quad |= ((uint64_t)warr[3]) << 48;
+
+//////// .CONVERSION ////////
+//-------------------------//
+//////// BITWISE OPS ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
+
+#define OMEGA(num) \
+    num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH
+
+#define EPSILON(num) \
+    num &= MASK_DWORD_4Z4F
+
+#define LAMED(num, by) \
+    num = (num << by) | (num >> (WORD_WIDTH - by))
+
+//////// .BITWISE OPS ////////
+//////// BESPOKE OPS ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-c-bespoke-operations
+
+#define GORDA(num, by)                     \
+    do                                     \
+    {                                      \
+        uint32_t __numcpy = (uint32_t)num; \
+        LAMED(__numcpy, by);               \
+        if (__numcpy > UINT16_MAX)         \
+        {                                  \
+            OMEGA(__numcpy);               \
+        }                                  \
+        num = (uint16_t)__numcpy;          \
+    } while (0)
+
+#define TASU(a, b, ptr)                          \
+    do                                           \
+    {                                            \
+        uint32_t __a_ttb = (uint32_t)a;          \
+        uint32_t __b_ttb = (uint32_t)b;          \
+        uint32_t __a_plus_b = __a_ttb + __b_ttb; \
+        if (__a_plus_b > UINT16_MAX)             \
+            EPSILON(__a_plus_b);                 \
+        *ptr = (uint16_t)__a_plus_b;             \
+    } while (0)
+
+#define CENTUM(arr, weights, res)                               \
+    do                                                          \
+    {                                                           \
+        uint32_t sum = 0;                                       \
+        SUM_DOUBLE_WEIGHTS(arr, weights, sum, POX_PORTION_NUM); \
+        sum /= POX_PORTION_NUM;                                 \
+        if (sum > UINT16_MAX)                                   \
+        {                                                       \
+            OMEGA(sum);                                         \
+        }                                                       \
+        res = (uint16_t)sum;                                    \
+    } while (0)
+
+#define SATEM(arr, weights, res)                                \
+    do                                                          \
+    {                                                           \
+        uint32_t sum = 0;                                       \
+        SUM_DOUBLE_WEIGHTS(arr, weights, sum, POX_PORTION_NUM); \
+        sum = (sum + 1) / 2;                                    \
+        if (sum > UINT16_MAX)                                   \
+        {                                                       \
+            EPSILON(sum);                                       \
+        }                                                       \
+        res = (uint16_t)sum;                                    \
+    } while (0)
+
+#define TAMAAM(arr, res)                       \
+    do                                         \
+    {                                          \
+        uint32_t sum = 0;                      \
+        SUM_DOUBLE(arr, sum, POX_PORTION_NUM); \
+        sum /= POX_PORTION_NUM;                \
+        if (sum > UINT16_MAX)                  \
+        {                                      \
+            OMEGA(sum);                        \
+        }                                      \
+        res = (uint16_t)sum;                   \
+    } while (0)
+
+#define DECA(arr, res)                         \
+    do                                         \
+    {                                          \
+        uint32_t sum = 0;                      \
+        SUM_DOUBLE(arr, sum, POX_PORTION_NUM); \
+        sum = (sum + 1) / 2;                   \
+        if (sum > UINT16_MAX)                  \
+        {                                      \
+            EPSILON(sum);                      \
+        }                                      \
+        res = (uint16_t)sum;                   \
+    } while (0)
+
+//////// .BESPOKE OPS ////////
+//--------------------------//
+//////// ALPHABET OPS ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-d-alphabet-operations
 
 #define POX_ALPHA(temp_array)                                          \
     uint16_t aleph = (temp_array[0] ^ temp_array[1]) & MASK_WORD_ZZFF; \
@@ -651,6 +690,11 @@ static inline uint16_t get_8b_prime(uint16_t num)
         POX_GAMMA(temp_array);     \
     } while (0)
 
+//////// .ALPHABET OPS ////////
+//---------------------------//
+////////   ROUND OPS   ////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-e-round-methods
+
 #define POX_ROUND_ALPHABET(temp_array) \
     POX_ALPHA_WRAP(temp_array);        \
     POX_DELTA_WRAP(temp_array);        \
@@ -696,6 +740,11 @@ static inline uint16_t get_8b_prime(uint16_t num)
     POX_ROUND_APPLY_PRIME(temp_array);                                                                           \
     POX_ROUND_APPLY_SHUFFLE(temp_array);                                                                         \
     POX_ROUND_ADD_TEMP_TO_FACTS(factor_array, temp_array);
+
+////////   .ROUND OPS   ////////
+//----------------------------//
+////////   BLOCK OPS   /////////
+// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-f-block-methods
 
 #define POX_APPLY_BYTES(factor_array, portion, index)                              \
     do                                                                             \
@@ -749,6 +798,8 @@ static inline uint16_t get_8b_prime(uint16_t num)
             POX_PROCESS_APPLY(factor_array, block_array, portion_array, __jt, __jt + POX_PORTION_NUM); \
         }                                                                                              \
     }
+
+////////   .BLOCK OPS   /////////
 
 typedef struct PoxDigest
 {
@@ -812,7 +863,7 @@ extern inline poxdigest_t pox_hash(uint8_t *message)
     uint8_t block_array[POX_BLOCK_NUM] = {0};
     uint8_t portion_array[POX_PORTION_NUM] = {0};
     uint16_t factor_array[POX_PORTION_NUM] = {
-        cPOX_PRIME_INIT_A, cPOX_PRIME_INIT_B, cPOX_PRIME_INIT_C, cPOX_PRIME_INIT_D};
+        POX_PRIME_INIT_A, POX_PRIME_INIT_B, POX_PRIME_INIT_C, POX_PRIME_INIT_D};
 
     size_t lengh_old = length_message;
     PAD_SIZE(length_message);
