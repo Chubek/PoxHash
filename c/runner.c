@@ -418,7 +418,7 @@ int all_are_false(int *arr, int size)
     return 1;
 }
 
-void print_hashes(poxhash_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time)
+void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time)
 {
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
         printf("Total time for hashing %d unsigned bytearrays(s): %luus\n", len_hashes, total_time);
@@ -625,10 +625,10 @@ int main(int argc, char **argv)
     }
 
     int echo_arg = arg_has_flag(argv[1], len_flags, FLAG_ECHO);
-    poxhash_t hashes[argc - 2];
+    poxdigest_t hashes[argc - 2];
     uint64_t total_time, t1, t2;
     total_time = 0;
-    memset(hashes, 0, (argc - 2) * sizeof(poxhash_t));
+    memset(hashes, 0, (argc - 2) * sizeof(poxdigest_t));
     if (arg_has_flag(argv[1], len_flags, FLAG_JOIN))
     {
         char *args_joined = join_args(argc, argv);

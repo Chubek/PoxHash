@@ -764,7 +764,7 @@ typedef struct PoxDigest
     uint16_t words[POX_PORTION_NUM];
     uint32_t doubles[POX_PORTION_NUM / 2];
     uint64_t quad;
-} poxhash_t;
+} poxdigest_t;
 
 #define INIT_POXHASH(poxhash, factor_array)                                                                                                                                                      \
     memset(poxhash.sexdigest, 0, SIZE_BYTE_ARR((SEX_SIZE * 4) + 1));                                                                                                                             \
@@ -786,12 +786,12 @@ typedef struct PoxDigest
     memcpy(poxhash.words, factor_array, SIZE_WORD_ARR(POX_PORTION_NUM));
 
 /**
- * Converts the given message into a struct PoxDigest (alias poxhash_t) object
+ * Converts the given message into a struct PoxDigest (alias poxdigest_t) object
  * Parameters:
  *      uint8_t *message
  *
  * Returns:
- *      struct PoxDigest (poxhash_t)
+ *      struct PoxDigest (poxdigest_t)
  *          PoxDigest.hexdigest: char[13] (null-terminated)
  *          PoxDigest.vigdigest: char[17] (null-terminated)
  *          PoxDigest.hexdigest: char[17] (null-terminated)
@@ -805,7 +805,7 @@ typedef struct PoxDigest
  *          PoxDigest.doubles uint32_t[2]
  *          PoxDigest.quad  uint64_t
  */
-extern inline poxhash_t pox_hash(uint8_t *message)
+extern inline poxdigest_t pox_hash(uint8_t *message)
 {
     size_t length_message = strlen((const char *)message);
 
@@ -825,7 +825,7 @@ extern inline poxhash_t pox_hash(uint8_t *message)
         POX_PROCESS_BLOCK(factor_array, message_padded, block_array, portion_array, i, i + POX_BLOCK_NUM);
     }
 
-    poxhash_t result;
+    poxdigest_t result;
     INIT_POXHASH(result, factor_array);
 
     return result;
