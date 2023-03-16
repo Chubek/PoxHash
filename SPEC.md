@@ -26,7 +26,7 @@
 
 # Specifications for PoxHash
 **A Block Hash Algorithm by Chubak Bidpaa**                        
-**NOTE: This document will contain character graphemes from LATIN-1 and UTF-8 charset**
+**NOTE: This document will contain characters from LATIN-1 and UTF-8 charset**
 
 ## PREFACE: CONVENTIONS
 In thise document we define the following as:
