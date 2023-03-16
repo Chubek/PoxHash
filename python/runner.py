@@ -131,7 +131,9 @@ def printHelp(exec_name: str, script_name: str) -> None:
            script_name)
     printf("wget -qO- www.example.com | xargs bash -c '%s %s -h+- $@'\n",
            exec_name, script_name)
-    printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n", FILE_PREFIX, FLAG_JOIN)
+    printf(
+        "If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n",
+        FILE_PREFIX, FLAG_JOIN)
     println()
     printf("\033[1;32mFlags:\033[0m\n")
     printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO)
@@ -497,14 +499,15 @@ def main(exec_name: str, argv: list[str]) -> None:
             "\033[1;30;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
         )
 
-    echo_arg = arg_has_flag(argv[1], FLAG_ECHO)
+    echo_arg = arg_has_flag(flags_arg, FLAG_ECHO)
     len_hashes = len(argv) - 1
     hashes = [None] * len_hashes
 
     total_time = 0
     if arg_has_flag(flags_arg, FLAG_JOIN):
         args_joined = join_args(argv[1:])
-        if echo_arg: printf("Joined Args: \n`%s`\n", args_joined)
+        if echo_arg: 
+            printf("Joined Args: \n`%s`\n", args_joined)
         u8_arg = to_ubyte_array(args_joined.encode())
         t1 = get_time_in_us()
         hashes[0] = pox_hash(u8_arg)
@@ -512,7 +515,8 @@ def main(exec_name: str, argv: list[str]) -> None:
         print_hashes(hashes[:1], flags_arg, t2 - t1)
     else:
         for i, arg in enumerate(argv[1:]):
-            if echo_arg: printf("Arg %d: %s\n", i + 1, arg)
+            if echo_arg: 
+                printf("Arg %d: %s\n", i + 1, arg)
             processed_arg = process_arg(arg)
             t1 = get_time_in_us()
             hashes[i] = pox_hash(to_ubyte_array(processed_arg))
