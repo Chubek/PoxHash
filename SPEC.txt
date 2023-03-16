@@ -572,7 +572,7 @@
 
 // POXHASH SAMPLES
 /// The following table will show sample hashes in various forms for several bytesarrays.
-/// Node: bytearray digits are in hexadecimal.
+/// Note: bytearray digits are in hexadecimal.
 
              Charstring           ASCI Bytes             Pox Hexdigest       
               PoxHash         50 6f 78 48 61 73 68      C28BDAFFCCD40526
