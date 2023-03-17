@@ -64,5 +64,4 @@ If you made a PR to both formal implementations and the `contrib` directory, and
 - Chubak#7400 on Discord
 - @bidpaafx on Telegram
 
-
 **This is a live docment. It will definitely be updated in the future**
