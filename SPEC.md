@@ -108,7 +108,7 @@ In thise document we define the following as:
 
 - **message** -> the byte array passed to the hasher
 - **digest** -> the resulting hash, which can be in various forms
-- **decimal-digests** ->
+- - **decimal-digests** ->
 - - _bytes_ -> Each u16 factor divided in 2 u8s, a total of 8 bytes
 - - _words_ -> The raw factors, all 4 of them
 - - _doubles_ -> The 4 words put together into 2 doubles
