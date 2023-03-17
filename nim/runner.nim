@@ -12,7 +12,6 @@ const
   FORMAT_STR: char = 's'
   FORMAT_DIGIT: char = 'd'
   FORMAT_CHAR: char = 'c'
-  NS_TO_US = 1000
   BENCHMARK_BYTE_INDEX = 94
 
   FLAG_BENCHMARK = '^'
@@ -125,7 +124,7 @@ proc `*`(c: char): string =
   result[0] = c
 proc `^^`(c: char): uint8 = cast[uint8](c)
 proc `^^`(str: string): seq[uint8] =
-    map(str, proc(x: char): uint8 = ^^x)
+  map(str, proc(x: char): uint8 = ^^x)
 
 proc printf(input: varargs[string, `$`]) =
   var
@@ -171,7 +170,8 @@ proc printHelp(execName: string) =
   printf("%s -Dhob- word1 word 2\n", execName)
   printf("%s -^^+- large seq  to join and  benchmark\n", execName)
   printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", execName)
-  printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n", FILE_PREFIX, FLAG_JOIN)
+  printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n",
+      FILE_PREFIX, FLAG_JOIN)
   println()
   printf("\x1b[1;32mFlags:\x1b[0m\n")
   printf("\x1b[1;33m\t`%c`\x1b[0m: Echo argument\n", FLAG_ECHO)
@@ -383,7 +383,7 @@ proc validateFlags(exec: string, argv: seq[string]) =
       else:
         errorOut("Unknown flag detected!")
 
-proc getTimeInUS(): uint64 = cast[uint64](getTime().nanosecond() div NS_TO_US)
+proc getTimeInUS(): Duration = initDuration(nanoseconds = getTime().nanosecond())
 
 proc allAreFalse(bools: seq[bool]): bool =
   for bl in **bools:
@@ -391,7 +391,7 @@ proc allAreFalse(bools: seq[bool]): bool =
       return false
   return true
 
-proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: uint64) =
+proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: int64) =
   var
     lenHashes = hashes.len()
     reoccurrance = searchForFlagReoccurrances(flags)
@@ -537,7 +537,8 @@ proc main(exec: string, argv: seq[string]) =
     flagsArg = argv[0]
     lenHashes = argv.len() - 1
     hashes = newSeq[PoxDigest](lenHashes)
-    totalTime, t1, t2: uint64
+    t1, t2: Duration
+    totalTime = 0i64
     processedArg: seq[uint8]
     echoArg = false
 
@@ -545,14 +546,14 @@ proc main(exec: string, argv: seq[string]) =
     printf("\x1b[1;30;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
 
   echoArg = argHasFlag(flagsArg, FLAG_ECHO)
-  totalTime = 0
   if argHasFlag(flagsArg, FLAG_JOIN):
     var argsJoined = joinArgs(argv[1..lenHashes])
     if echoArg: printf("Joined Args: \n`%s`\n", args_joined)
     t1 = getTimeInUS()
     hashes[0] = PoxHash(^^argsJoined)
     t2 = getTimeInUS()
-    printHashes(hashes[0..0], flagsArg, t2 - t1)
+    totalTime = (t2 - t1).inMicroseconds()
+    printHashes(hashes[0..0], flagsArg, totalTime)
   else:
     for (i, arg) in enumerate(argv[1..lenHashes]):
       if echoArg: printf("Arg %d: %s\n", i + 1, arg)
@@ -560,10 +561,8 @@ proc main(exec: string, argv: seq[string]) =
       t1 = getTimeInUS()
       hashes[i] = PoxHash(processedArg)
       t2 = getTimeInUS()
-      totalTime += t2 - t1
+      totalTime = totalTime + (t2 - t1).inMicroseconds()
     printHashes(hashes, flagsArg, totalTime)
-
-
 
 var
   cmdParams = os.commandLineParams()
