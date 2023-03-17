@@ -1,3 +1,3 @@
-# PoxHash: A Checksum Hash
+# PoxHash: A Block Hash Algorithm
 
-Rust, Python, JS, C added. Go and Nim remaining. If you stumbled upon this, it's not over yet. I will add specs soon.
+PoxHash is a block hash algorithm that I came up with. It focuses on universality and irreversibility rather than speed. The algorithm is made up of several intricate bitwise operations that scramble the message into a final 64bit hash digest. The current implementations offer this digest in 7 non-decimal and 4 decimal digests. This algorithm is released u
