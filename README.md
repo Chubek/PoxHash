@@ -35,23 +35,31 @@ To demonstate the universality of PoxHash, look at the table below. The strings 
 #### Some Longer Messages
 
 First, let hash the static HTML page of example.com.
-We get -> 5D485D326ADE5220
+
+We get -> **5D485D326ADE5220**
+
 Now, let's replace the string `<html>`, which only appears once on top, with `<htlm>`.
-Now, we get -> C6AE61C95D0C481F
+
+Now, we get -> **C6AE61C95D0C481F**
 
 The RFC for HTTP 1.1 text file: https://www.ietf.org/rfc/rfc2616.txt
-Intact -> E8F8CCD71D80CEA4
+
+Intact -> **E8F8CCD71D80CEA4**
+
 With 'must-revalidate' which appears only once change to 'must-ervalidate'
-We get -> E3C6E071187CD358
+
+We get -> **E3C6E071187CD358**
+
 With the same string changed to 'must-revalidbte':
-We get -> F3E8D234423EBE97
+
+We get -> **F3E8D234423EBE97**
 
 #### Unsigned Byte Arrays
 
-- [0x00, 0x00] -> 1474F230D6D1CDEC
-- [0x01, 0x00] -> E4170016DBDE32E5
-- [0x00, 0x01] -> E5B5FC44DCA9CF55
-- [0...255] -> 810432FC3F471642
+- [0x00, 0x00] -> **1474F230D6D1CDEC**
+- [0x01, 0x00] -> **E4170016DBDE32E5**
+- [0x00, 0x01] -> **E5B5FC44DCA9CF55**
+- [0...255]    -> **810432FC3F471642**
 
 ### Irreversibility
 
@@ -77,6 +85,8 @@ In the table below you will see the time it takes to hash 25KBs of data, in micr
 ## Future Plans
 
 I am currently done with this version of PoxHash. What I wanna do is to use the experience I earned from designing my first hash to come up with a faster, more universal hash.
+
+I may add a Kotlin version very soon. Java is out of the question. Functional programming is impossible with Java and I want all the formal implementations to remain unifromly functional in paradigm.
 
 I also wish to design PoxCipher. That is why the files are all called `libpoxh.*` and not just `libpox.*`, because I wish there to be `libpoxc.*` one day.
 
