@@ -92,6 +92,6 @@ I also wish to design PoxCipher. That is why the files are all called `libpoxh.*
 
 Another interest of mine are EC ciphers. Curve-based ciphers fascinate me. I have previously implemented Edwards-512 in my [mathcord](https://github.com/chbuek/mathcord) project and I wish to come up with one of myself.
 
-Currently I am running out of money, and I want to work on a photo color manipulation utility which I will again implement cross-language. If you find this project useful, please consider a small [donation](https://github.com/Chubek/chubek/blob/master/README.md#donation-%E2%80%BF) my way. It will go a long way!
+Currently, I want to work on a photo color manipulation utility which I will again implement cross-language. If you find this project useful, please consider a small [donation](https://github.com/Chubek/chubek/blob/master/README.md#donation-%E2%80%BF) my way. It will go a long way!
 
 If you have any questions or requests, my contact details are inside my Github profile. Thank you.
