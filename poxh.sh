@@ -17,12 +17,12 @@ help() {
     printf "The second argument should be the flags to the runner program\n"
     printf "and then the strings which you wish to hash as the consecutive\n"
     printf "arguments. Supperted language names as argument are:\n\n"
-    printf "\t${RED}py${NC} or ${RED}python${NC} or ${RED}1${NC}\n"
-    printf "\t${YELLOW}rs${NC} or ${YELLOW}rust${NC} or ${YELLOW}2${NC}\n"
-    printf "\t${GREEN}c${NC} or ${GREEN}3${NC}\n"
-    printf "\t${BLUE}js${NC} or ${BLUE}javascript${NC} or ${BLUE}4${NC}\n"
-    printf "\t${PURPLE}go${NC} or ${PURPLE}5${NC}\n"
-    printf "\t${CYAN}nim${NC} or ${CYAN}6${NC}\n\n"
+    printf "\t${GREEN}c${NC} ||  ${GREEN}cc${NC} || ${GREEN}1${NC}\n"
+    printf "\t${PURPLE}g${NC} || ${PURPLE}go${NC} || ${PURPLE}2${NC}\n"
+    printf "\t${CYAN}n${NC} || ${CYAN}nim${NC} || ${CYAN}3${NC}\n\n"
+    printf "\t${YELLOW}r${NC} || ${YELLOW}rs${NC} || ${YELLOW}rust${NC} or ${YELLOW}4${NC}\n"
+    printf "\t${RED}p${NC} || ${RED}py${NC} || ${RED}python${NC} || ${RED}5${NC}\n"
+    printf "\t${BLUE}j${NC} || ${BLUE}js${NC}  || ${BLUE}javascript${NC} || ${BLUE}6${NC}\n"
     echo "Runner codes accept flags between two dashes. Pass -?- to view help."
     echo -e "Example 1: ${BLD}bash ./poxh.sh c -?-${NC}"
     echo -e "Example 2: ${BLD}bash ./poxh.sh c -h- myString${NC}"
@@ -43,23 +43,23 @@ wrong_arg() {
 }
 
 check_language() {
-    if [ "${language}" = "python" ] || [ "${language}" = "py" ] || [ "${language}" = "1" ]; then
-        to_print="Selected: ${RED}Python${NC}\n"
+    if [ "${language}" = "python" ] || [ "${language}" = "p" ] || [ "${language}" = "py" ] || [ "${language}" = "5" ]; then
+        to_print="+${RED}Python${NC}\n"
         folder="python"
-    elif [ "${language}" = "rust" ] || [ "${language}" = "rs" ] || [ "${language}" = "2" ]; then
-        to_print="Selected: ${YELLOW}Rust${NC}\n"
+    elif [ "${language}" = "rust" ] || [ "${language}" = "r" ] || [ "${language}" = "rs" ] || [ "${language}" = "4" ]; then
+        to_print="+${YELLOW}Rust${NC}\n"
         folder="rust"
-    elif [ "${language}" = "c" ] || [ "${language}" = "3" ]; then
-        to_print="Selected: ${GREEN}C${NC}\n"
+    elif [ "${language}" = "c" ] || [ "${language}" = "cc" ]  || [ "${language}" = "1" ]; then
+        to_print="+${GREEN}C${NC}\n"
         folder="c"
-    elif [ "${language}" = "js" ] || [ "${language}" = "javascript" ] || [ "${language}" = "4" ]; then
-        to_print="Selected: ${BLUE}JavaScript${NC}\n"
+    elif [ "${language}" = "js" ] || [ "${language}" = "j" ] || [ "${language}" = "javascript" ] || [ "${language}" = "6" ]; then
+        to_print="+${BLUE}JavaScript${NC}\n"
         folder="js"
-    elif [ "${language}" = "go" ] || [ "${language}" = "5" ]; then
-        to_print="Selected: ${PURPLE}Go${NC}\n"
+    elif [ "${language}" = "go" ] || [ "${language}" = "g" ] || [ "${language}" = "2" ]; then
+        to_print="+${PURPLE}Go${NC}\n"
         folder="go"
-    elif [ "${language}" = "nim" ] || [ "${language}" = "6" ]; then
-        to_print="Selected: ${CYAN}Nim${NC}\n"
+    elif [ "${language}" = "nim" ] || [ "${language}" = "n" ] || [ "${language}" = "3" ]; then
+        to_print="+${CYAN}Nim${NC}\n"
         folder="nim"
     else
         printf "${RED}Wrong argument as language passed!${NC}\n"
