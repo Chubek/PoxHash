@@ -1,0 +1,3 @@
+# Index for PoxHash Miscellaneous Paradigm Implementations
+
+...

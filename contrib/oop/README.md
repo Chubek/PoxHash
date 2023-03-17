@@ -1,0 +1,3 @@
+# Index for PoxHash OOP Paradigm Contributions
+
+...
