@@ -655,12 +655,12 @@ const toInt = (arg) => {
         result.push(parseInt(sansBase, 16));
         break;
       default:
-        if (parseInt(sansBase) == NaN) {
+        if (parseInt(num) == NaN) {
           errorOut(
             "With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2"
           );
         }
-        const dec = result.push(parseInt(sansBase));
+        const dec = result.push(parseInt(num));
         if ((dec >>> 0).toString(2).length > MAX_OCT) {
           errorOut("Given integer must be byte-sized (0-255)");
         }

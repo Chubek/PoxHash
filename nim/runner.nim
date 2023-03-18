@@ -590,9 +590,9 @@ proc toInt(arg: string): string =
           errorOut("Size of hexadecimal number should not exceed 2")
         convt = parseBinInt(numSansPrefix)
       else:
-        if not strIsAllDigit(numSansPrefix):
+        if not strIsAllDigit(num):
           errorOut("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2")
-        convt = numSansPrefix.parseInt()
+        convt = num.parseInt()
         if ?convt:
           errorOut("Given integer must be byte-sized (0-255)")
 

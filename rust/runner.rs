@@ -555,11 +555,11 @@ fn to_int(arg: &String) -> String {
                     u8::from_str_radix(sans_prefix, 16).expect("Bad hexadecimal number") as char
                 },
                 _ => {
-                    if sans_prefix.to_string().chars().any(|c| !c.is_numeric()) {
+                    if n.to_string().chars().any(|c| !c.is_numeric()) {
                         error_out!("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2");
                     }
 
-                    u8::from_str_radix(sans_prefix, 10).expect("Given integer must be byte-sized (0-255)") as char
+                    u8::from_str_radix(n, 10).expect("Given integer must be byte-sized (0-255)") as char
                 }
             }
         })
