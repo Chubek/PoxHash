@@ -555,7 +555,7 @@ def to_ubyte_array(arg: str) -> any:
 
 
 def process_arg(arg: str) -> any:
-    if not assert_file(arg):
+    if not assert_file(arg) and not assert_int(arg):
         return to_ubyte_array(arg.encode())
     elif assert_int(arg):
         return to_int(arg[INT_PREFIX_LEN:])
