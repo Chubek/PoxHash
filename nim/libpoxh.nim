@@ -44,6 +44,7 @@ const
    POX_ROUND_NUM = 31
    POX_CHUNK_NUM = 16
    POX_PORTION_NUM = 4
+   POX_MASKS_ARRAY_NUM = 4
    POX_SD_PRIME_NUM = 3
    POX_MAGIC_PRIME_NUM = 2
 
@@ -57,6 +58,7 @@ const
 
    ## MASKS
    ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
+   MASK_QWORD_14Z2F = 0x00000000000000ff
    MASK_DWORD_4F4Z = 0xffff0000u32
    MASK_DWORD_4Z4F = 0x0000ffffu32
    MASK_WORD_FZFZ = 0xf0f0u16
@@ -73,6 +75,9 @@ const
    MASK_WORD_10 = 0b10u16
    MASK_WORD_11 = 0b11u16
    MASK_WORD_00 = 0b00u16
+   MASKS_ARRAY = @[
+      MASK_WORD_FFZZ, MASK_WORD_ZFFF, MASK_WORD_FFFZ, MASK_WORD_ZZFF
+   ]
 
    ## PRIME_ARRAYS
    ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
@@ -176,6 +181,7 @@ proc `%`[T](a, b: T): T = a mod b
 proc `//=`[T](a: var T, b: T) = a = a // b
 proc `>>=`[T](a: var T, b: T) = a = a >> b
 proc `%=`[T](a: var T, b: T) = a = a % b
+proc `&=`[T](a: var T, b: T) = a = a & b
 proc `^=`[T](a: var T, b: T) = a = a ^ b
 proc `|=`[T](a: var T, b: T) = a = a | b
 
@@ -183,7 +189,6 @@ proc `^^^^*`[T](a: T): uint64 = cast[uint64](a)
 proc `^^^^`[T](a: T): uint32 = cast[uint32](a)
 proc `^^`[T](a: T): uint16 = cast[uint16](a)
 proc `^`[T](a: T): uint8 = cast[uint8](a)
-proc `^-`[T](a: T): int8 = cast[int8](a)
 
 ######## TOOLS ########
 
@@ -231,18 +236,6 @@ iterator `...`[T](sequence: seq[T]): T =
    for i in ...sequence.len:
       yield sequence[i]
 
-iterator enumerate[T](sequence: seq[T]): (int, T) =
-   for i in ...sequence.len:
-      yield (i, sequence[i])
-
-proc `--->`(sequence: var WordSeq, len: int) =
-   for _ in ...len:
-      sequence.add(0u16)
-
-proc `--->`(wseq: var WordSeq, bseq: MessageSeq) =
-   for (i, b) in enumerate(bseq):
-      wseq[i] = ^^(^(^-b))
-
 proc `--->`(arr1: FactorArray, arr2: var FactorArray) =
    for i in ...POX_PORTION_NUM:
       arr2[i] = arr1[i]
@@ -260,6 +253,10 @@ proc `--->`(barrAndStart: (BlockArray, int), portionArray: var PortionArray) =
    for i in startIndex..+POX_PORTION_NUM:
       portionArray[j] = barrAndStart[0][i]
       ++j
+
+proc `--->`(a: MessageSeq, b: var WordSeq) =
+   for item in ...a:
+      b.add(item)
 
 proc `:::`(num: uint16): uint16 =
    return POX_8B_PRIMES[num % POX_8BPRIME_NUM]
@@ -382,10 +379,13 @@ proc wordArrayToBinDigest(warr: FactorArray): string =
    return bin
 
 proc byteArrayToPortionArrayAndPad(barray: MessageSeq): WordSeq =
-   var length = barray.len
-   while ^^^^length % POX_BLOCK_NUM != 0: ++length
-   result ---> length
-   result ---> barray
+   var
+      original_len = ^^^^*barray.len()
+      n: uint64 = ^^^^*original_len
+   barray ---> result
+   while result.len() % POX_BLOCK_NUM != 0:
+      result.add(result[n % original_len] ^ ^^(n & MASK_QWORD_14Z2F))
+      n += ^^^^*result[n % original_len]
 
 ######## /CONVERSION ########
 #---------------------------#
@@ -569,12 +569,29 @@ proc poxRoundApplyAlphabet(tempArray: var FactorArray) =
    poxTheta(tempArray)
    poxGamma(tempArray)
 
+proc poxApplyBahman(tempArray: var FactorArray, pnum: uint16) =
+   var
+      cica = pnum % POX_PORTION_NUM
+      mica = (cica + 1) % POX_PORTION_NUM
+      nica = (mica + 2) % POX_PORTION_NUM
+      wica = (nica + 3) % POX_PORTION_NUM
+      mianju = tempArray[cica] % POX_MASKS_ARRAY_NUM
+      mianja = tempArray[mica] % POX_MASKS_ARRAY_NUM
+      sosu = tempArray[nica] % POX_ROUND_PRIME_NUM
+      sosa = tempArray[wica] % POX_ROUND_PRIME_NUM
+
+   tempArray[cica] ^= (tempArray[mica] << cica) & MASKS_ARRAY[mianju]
+   tempArray[wica] &= tempArray[wica] ^ POX_ROUND_PRIMES[sosu]
+   tempArray[nica] ^= (tempArray[cica] << (wica * 2)) & MASKS_ARRAY[mianja]
+   tempArray[mica] |= tempArray[nica] | POX_ROUND_PRIMES[sosa]
+
 proc poxRoundApplyPrime(tempArray: var FactorArray) =
    for i in ...POX_ROUND_PRIME_NUM:
       tempArray[0] %= POX_ROUND_PRIMES[i]
       tempArray[1] %= POX_ROUND_PRIMES[i]
       tempArray[2] %= POX_ROUND_PRIMES[i]
       tempArray[3] %= POX_ROUND_PRIMES[i]
+      poxApplyBahman(tempArray, POX_ROUND_PRIMES[i])
 
 proc poxRoundApplyShuffle(tempArray: var FactorArray) =
    for (iof, iwith) in ...COMB_BIONOM:
@@ -608,8 +625,8 @@ proc poxApplyByte(factorArray: var FactorArray, portion: PortionArray,
 
    tmt = tamaam(portion)
    dca = deca(portion)
-   tmtOddFactor = BIT_UINT16_MAX_U16 ^ (tmt % 4)
-   dcaOddFactor = BIT_UINT16_MAX_U16 ^ (dca % 3)
+   tmtOddFactor = BIT_UINT16_MAX_U16 ^ (tmt % (dca + 2))
+   dcaOddFactor = BIT_UINT16_MAX_U16 ^ (dca % (tmt + 3))
 
    ng = (portion[0] + index) % POX_PORTION_NUM
    chu = (portion[1] + index) % POX_PORTION_NUM
