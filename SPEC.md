@@ -54,6 +54,8 @@ In thise document we define the following as:
 
 - `a gt b` -> greater than
 - `a lt b` -> lesser than
+- `a eq b` -> equals
+- `a not <op> b` -> <op> between a and b is not true
 - `if (condition)` -> if conditional
 - `for n in (iterator)` -> for loop
 - `a...b` -> iterate from num a to num b
@@ -97,6 +99,8 @@ In thise document we define the following as:
 - `min, argmin` -> minimum value inside an array, and its corresponding index
 - `range a, b` -> Select a range of memebers from the array from indices a to b
 - `{ty, size}` -> size and type
+- `append a to` -> append value a to array
+- `make-array-from(<type>)[<values>]` -> Create an array of of `<type>` from `<values>`
 
 ### Message Types
 
@@ -151,7 +155,38 @@ that bytearray into an unsigned word array. It should then pad this wordarray an
 now-8-bit byte in chunks, and then portions, 4 predetermined prime factors. it then should put
 these 4 factors into rounds of operations and at the end our message will be these 4 unsigned words.
 
-Below is the entire algorithm in detail.
+### Order of operations:
+
+- @INSTANTIATE_FACTORS
+- @OCTOPAD
+- @PROCESS_BLOCK
+- - @APPLY_BYTES_TO_FACTORS
+- - @APPLY_ROUND
+- - - @APPLY_ALPHABET
+- - - - @ALPHA
+- - - - @DELTA
+- - - - @THETA
+- - - - @GAMMA
+- - - @APPLY_ROUND_PRIME
+- - - - @APPLY_BAHMAN
+- - - @APPLY_SHUFFLE
+- - - @APPLY_ADD_TEMPORARY
+
+### The main function
+
+```
+@POXHASH(u8 *message-bytes) ->
+    u16 *message-words-padded instantiate-with @OCTOPAD
+    u16 *factor-array instantiate-with make-array-from(u16)[#PRIME_INIT_A, #PRIME_INIT_B, #PRIME_INIT_C, #PRIME_INIT_D]
+
+    for i in 0...size *message-words-padded step #BLOCK_NUM:
+        *block instantiate-with *message-words range i to i + #BLOCK_NUM
+        @PROCESS_BLOCK(*factor-array, *block)
+
+    //// Final digest is now the modified message-words-padded
+    //// It can be turned into any sort of digest
+    ret *message-word-padded
+```
 
 ## PREFIX NOTATIONS
 
@@ -186,6 +221,7 @@ In this document we will refer to several constant values, which are defined as 
 #ROUND_NUM is 31
 #CHUNK_NUM is 16
 #PORTION_NUM is 4
+#MASKS_NUM is 4
 ##SD_PRIME_NUM is 3
 #MAGIC_PRIME_NUM is 2
 ```
@@ -201,6 +237,7 @@ In this document we will refer to several constant values, which are defined as 
 ### MASKS
 
 ```
+^^QWORD_14Z2F is 0x00000000000000ff
 ^^DWORD_4F4Z is 0xffff0000
 ^^DWORD_4Z4F is 0x0000ffff
 ^^WORD_FZFZ is 0xf0f0
@@ -249,6 +286,9 @@ In this document we will refer to several constant values, which are defined as 
 []SINGLE_DIGIT_PRIMES {u16, 3}[
     0x3, 0x5, 0x7,
 ]
+[]MASKS_ARRAY {u16, 4}[
+        ^^WORD_FFZZ, ^^WORD_ZFFF, ^^WORD_FFFZ, ^^WORD_ZZFF
+    ]
 ```
 
 ### MISC
@@ -265,6 +305,19 @@ These are the result of bionomial coefficients of 4 to 2
 We use several bitwise operations in our bitwise operations, as follows:
 
 ```
+// The input must be put through this operation before being fed to the hash
+@OCTOPAD(byte-array *input)
+    word-array *padded instantiate-with *input as an u16 array
+    u64 $original-len instantiate-with size of padded
+    u64 $n instantiate-with original-len
+
+    while size of *padded mod #BLOCK_NUM not eq 0:
+        $pad-bit instantiate-wth *padded[$n mod $original-len] xor ($n and ^^QWORD_14Z2F)
+        append $pad-bit to *padded
+        $n assign-with $n add arr[$n mod $original-len]
+
+    ret *padded
+
 @OMEGA(u32 $num) -> ret ($num and ^^DWORD_4F4Z) shr #WORD_WIDTH
 @EPSILON(u32 $num) -> ret $num and ^^DWORD_4Z4F
 // Basically, bitwise rotation of 16-bits
@@ -436,6 +489,27 @@ In round methods we apply the ALPHABET OPERATIONS, shuffle around the factors, a
     @GAMMA(*tmp)
 ```
 
+- BAHMAN operation focuses on flipping upper bits to lower and vice versa
+
+```
+@APPLY_BAHMAN(mutarg temp-factors *tmp, u16 $curr-prime) ->
+    $cica instantiate-with $curr-prime % #PORTION_NUM
+    $mica instantiate-with ($cica + 1) mod #PORTION_NUM
+    $nica instantiate-with ($mica + 2) mod #PORTION_NUM
+    $wica instantiate-with ($nica + 3) mod #PORTION_NUM
+
+    $mianju instantiate-with *tmp[$cica] mod #MASKS_ARRAY_NUM
+    $mianja instantiate-with *tmp[$mica] mod #MASKS_ARRAY_NUM
+
+    $sosu instantiate-with *tmp[$nica] mod #ROUND_PRIME_NUM
+    $sosa instantiate-with *tmp[$wica] mod #ROUND_PRIME_NUM
+
+    *tmp[$cica] assign-with *tmp[$cica] xor ((*tmp[$mica] shl $cica) and []MASKS_ARRAY[$mianju])
+    *tmp[$wica] assign-with  *tmp[$wica] and (*tmp[$wica] xor []ROUND_PRIMES[$sosu])
+    *tmp[$nica] assign-with *tmp[$nica] xor (assign-with (*tmp[$cica] shl ($wica mul 2)) and []MASKS_ARRAY[$mianja])
+    *tmp[$mica] assign-with *tmp[$mica] or  (*tmp[$nica] or []ROUND_PRIMES[$sosa])
+```
+
 - Apply the []ROUND_PRIMES array to temporary factors
 
 ```
@@ -445,6 +519,7 @@ In round methods we apply the ALPHABET OPERATIONS, shuffle around the factors, a
         *tmp[1] assign-with *tmp[1] mod []ROUND_PRIMES[i]
         *tmp[2] assign-with *tmp[2] mod []ROUND_PRIMES[i]
         *tmp[3] assign-with *tmp[3] mod []ROUND_PRIMES[i]
+        @APPLY_BAHMAN(*tmp, []ROUND_PRIMES[i])
 ```
 
 - Shuffle the array around a bit with C(4, 2) as indices
@@ -485,8 +560,8 @@ Below are the methods that happen at every block
 @APPLY_BYTES_TO_FACTORS(base-factors *base, portion-array *portion, word index) ->
     $tmt instantiate-with TAMAAM(*portion)
     $dca instantiate-with DECA(*portion)
-    $tmtOddFactor instantiate-with #MAX_UINT16 xor ($tmt mod 4)
-    $dcaOddFactor instantiate-with #MAX_UINT16 xor ($dca mod 3)
+    $tmtOddFactor instantiate-with #MAX_UINT16 xor ($tmt % ($dca + 2))
+    $dcaOddFactor instantiate-with #MAX_UINT16 xor ($dca % ($tmt + 3))
 
     $ng assign-with (*portion[0] add index) mod #PORTION_NUM)
     $chu assign-with (*portion[1] add index) mod #PORTION_NUM)
@@ -503,10 +578,10 @@ Below are the methods that happen at every block
     *base[$yo] assign-with *base[$yo] xor ((*portion[$chu] xor $tmt) xor $dca_odd_factor) or $dit
     *base[$eo] assign-with *base[$eo] xor (((*portion[ng] shr yo) or $dca) xor $tmt_odd_factor) xor $kit
 
-    *base*[0] assign-with *base*[0] shr (*portion[3] mod (ng add 1))
-    *base*[1] assign-with *base*[1] shr (*portion[2] mod (chu add 1))
-    *base*[2] assign-with *base*[2] xor (*portion[1] shr (dca mod 2))
-    *base*[3] assign-with *base*[0] shr (*portion[0] mod (eo add 1))
+    *base*[0] assign-with *base*[0] shr (*portion[3] mod ($ng add 1))
+    *base*[1] assign-with *base*[1] shr (*portion[2] mod ($chu add 1))
+    *base*[2] assign-with *base*[2] xor (*portion[1] shr ($dca mod 2))
+    *base*[3] assign-with *base*[0] shr (*portion[0] mod ($eo add 1))
 ```
 
 - The main process block loop
@@ -672,64 +747,49 @@ the decimal systeme has no letters for, the following letters must be used:
 
 ## POXHASH SAMPLES
 
-### Short messages
+### Short String Messages
 
-The following table will show sample hashes in various forms for several bytesarrays.
-Node: bytearray digits are in hexadecimal.
+| Message | Hexdigest        |
+| ------- | ---------------- |
+| PoxHash | 07D04B8CD2E47BF3 |
+| oPxHash | 8F7D20ECC51F3285 |
+| PoxaHsh | 547CBDB0CB569320 |
+| PxoHash | D92204E8D1C90376 |
+| PoxHahs | 8D1DFF6A365C6E1A |
+| QoxHash | 74B3D0533F14145B |
+| PpxHash | E6DD8876150D0CBA |
+| PoyHash | 337BA5F968A3927E |
+| PoxIash | 61C8B88057481B42 |
 
-| Charstring | ASCI Bytes           | Pox Hexdigest    |
-| ---------- | -------------------- | ---------------- |
-| PoxHash    | 50 6f 78 48 61 73 68 | C28BDAFFCCD40526 |
-| QoxHash    | 51 6f 78 48 61 73 68 | FB441271DAED0056 |
-| oPxHash    | 6f 50 78 48 61 73 68 | C7E81CB4D222EBE5 |
-| OoxHash    | 4f 6f 78 48 61 73 68 | BA3221948193E9D5 |
-| 29-221     | 32 39 2d 32 32 31    | D89FEC31CD86BB35 |
-| 29-231     | 32 39 2d 32 33 31    | E15BDBF46DAE5109 |
-| Felix      | 46 65 6c 69 78       | 93D9E06FD6CFC2DA |
-| Feliz      | 46 65 6c 69 7a       | 8A11D66FC211E7BE |
-| Tanami     | 54 61 6e 61 6d 69    | 3641F6F8D849AA04 |
-| Tanammi    | 54 61 6e 61 6d 6d 69 | 99F13D64CE45153E |
-| 000000     | 30 30 30 30 30 30    | 168803FDDD1DCCE9 |
-| 000001     | 30 30 30 30 30 31    | B999EEE4DA2DACF5 |
+### Long String Messages
 
-### Longer messages
+- Message A: HTML for `www.example.com`
+- Message A': Message A, with <html>`changes to`<htlm>`
+- Message B: contents of `https://www.ietf.org/rfc/rfc2616.txt`
+- Message B': Message B, with `[Page 116]` changed to `[Page 161]`
 
-Message: _Xmas! #jubliant was trending. Eli called 123-456-HAPPY!? to be happy. A $20 bill was hanging from the ceiling & today was a good day to catch some Zzzs at the pool ^\_^_  
-Hexdigest -> **3873579228EE6868**
-Now a slight change (3 to 4): _Xmas! #jubliant was trending. Eli called 124-456-HAPPY!? to be happy. A $20 bill was hanging from the ceiling & today was a good day to catch some Zzzs at the pool ^\_^_
-Hexdigest -> **3E745203845B706B**
+| Message | Hexdigest        |
+| ------- | ---------------- |
+| A       | 53F0C77BD979E4C9 |
+| A'      | DC1119514D34DD17 |
+| B       | 43B9A61E5A9A5441 |
+| B'      | 332BF0AEDC518AF1 |
 
-The HTML page for www.example.com: **5D485D326ADE5220**
-Same page, with "<html>" changed to "<htlm>": **65925A228BE3423D**
+### Byte Arrays
 
-The RFC for HTTP 1.1 text file: https://www.ietf.org/rfc/rfc2616.txt
-Intact: **E8F8CCD71D80CEA4**
-With 'must-revalidate' which appears only once change to 'must-ervalidate': **E3C6E071187CD358**
-With the same string changed to 'must-revalidbte': **F3E8D234423EBE97**
+- Message A; [0b00100010, 0b01100101, 0b10110101, 0b10110101, 0b01011101, 0b1111110, 0b1111101]
+- Message B: [0b00100010, 0b01100100, 0b10110101, 0b10110101, 0b01011101, 0b1111110, 0b1111101]
+- Message C: [0b00100010, 0b01100101, 0b10110101, 0b10110101, 0b01011101, 0b1101110, 0b1111101]
+- Message D: [0b00100010, 0b01100101, 0b10110101, 0b10111101, 0b01011101, 0b1111110, 0b1111101]
 
-### Various Text Codes
+| Message | Hexdigest        |
+| ------- | ---------------- |
+| A       | 41BA2FB4D6421610 |
+| B       | 1568B6F5F5948EF6 |
+| C       | 6293E59B2064CD28 |
+| D       | 8D91A7BC753E223D |
 
-- Unicode encoded in UTF-8\*:
-- - 'ƿʘϰႹᗅⓈĦ' -> **2DF8AB56B29A0BC0**
-- - 'پاکس هش' -> **D922E6147C9CA6E6**
-- - 'پاکش هش' -> **F22BDEBEB066AEC1**
-
-- Characters encoded in LATIN-1:
-- - 'ßæšþ' -> **E865F6CA90C9D2B2**
-
-- Characters encoded in Windows-1252:
-- - 'ßæRþ' -> **E6D4F4359C58D837**
-
-- 'PoxHash' in EBCDIC is [0xD7, 0x96, 0xA7, 0xC8, 0x81, 0xA2, 0x88] and Hexdigest for this byte sequence is: **C327DD41CE586407**
-
-### Byte Sequences
-
-- [0x00, 0x00] -> **1474F230D6D1CDEC**
-- [0x01, 0x00] -> **E4170016DBDE32E5**
-- [0x00, 0x01] -> **E5B5FC44DCA9CF55**
-- [0...255] -> **810432FC3F471642**
-
-Finished version 1 of the PoxHash specs.
+Finished version 2 of the PoxHash specs.
 Please report all errors and suggestions to Chubak#7400 on Discord
 Or chubakbidpaa@gmail.com
 Or @bidpaafx on Telegram
