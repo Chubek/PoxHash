@@ -61,8 +61,20 @@ const FLAG_DASH = "-";
 const FLAG_NHEADER = "z";
 const FLAG_ECHO = "e";
 
+const MAX_HEX = 4;
+const MAX_OCT = 5;
+const MAX_BIN = 8;
+
 const FILE_PREFIX = "file=";
 const FILE_PREFIX_LEN = 5;
+
+const INT_PREFIX = "int=";
+const INT_PREFIX_LEN = 4;
+
+const HEX_PREFIX = "0x";
+const BIN_PREFIX = "0b";
+const OCT_PREFIX = "0o";
+const BASE_PREFIX_NUM = 2;
 
 const WRONG_FLAGS = [
   ["G", "g"],
@@ -611,10 +623,53 @@ const newNullArray = (size) => {
 };
 
 const assertFile = (arg) => {
-  return (
-    arg.substring(0, FILE_PREFIX_LEN) == FILE_PREFIX &&
-    arg.length > FILE_PREFIX_LEN
-  );
+  return arg.length > FILE_PREFIX_LEN && arg.startsWith(FILE_PREFIX);
+};
+
+const assertInt = (arg) => {
+  return arg.length > INT_PREFIX_LEN && arg.startsWith(INT_PREFIX);
+};
+
+const toInt = (arg) => {
+  let result = [];
+  arg.split(",").forEach((num) => {
+    const base = num.substring(0, BASE_PREFIX_NUM);
+    const sansBase = num.substring(BASE_PREFIX_NUM);
+    switch (base) {
+      case BIN_PREFIX:
+        if (sansBase.length > MAX_BIN) {
+          errorOut("Size of binary number should not exceed 8");
+        }
+        result.push(parseInt(sansBase, 2));
+        break;
+      case OCT_PREFIX:
+        if (sansBase.length > MAX_OCT) {
+          errorOut("Size of octal number should not exceed 5");
+        }
+        result.push(parseInt(sansBase, 8));
+        break;
+      case HEX_PREFIX:
+        if (sansBase.length > MAX_HEX) {
+          errorOut("Size of hexadecimal number should not exceed 2");
+        }
+        result.push(parseInt(sansBase, 16));
+        break;
+      default:
+        if (parseInt(sansBase) == NaN) {
+          errorOut(
+            "With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2"
+          );
+        }
+        const dec = result.push(parseInt(sansBase));
+        if ((dec >>> 0).toString(2).length > MAX_OCT) {
+          errorOut("Given integer must be byte-sized (0-255)");
+        }
+        result.push(dec);
+        break;
+    }
+  });
+  console.log(result);
+  return new Uint8Array(result);
 };
 
 const isRegularFile = async (fpath) => {
@@ -668,8 +723,10 @@ const stringToU8Array = (str) => {
 };
 
 const processArg = async (arg) => {
-  if (!assertFile(arg)) {
+  if (!assertFile(arg) && !assertInt(arg)) {
     return stringToU8Array(arg);
+  } else if (assertInt(arg)) {
+    return toInt(arg.substring(INT_PREFIX_LEN));
   }
   return stringToU8Array(await readGivenFile(arg.substring(FILE_PREFIX_LEN)));
 };
