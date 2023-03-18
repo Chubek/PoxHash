@@ -33,6 +33,9 @@ import (
 	"os"
 	"pox/libpoxh"
 	"time"
+	"strconv"
+	"strings"
+	"unicode"
 )
 
 const (
@@ -67,6 +70,21 @@ const (
 
 	filePREFIX     = "file="
 	filePREFIX_LEN = 5
+
+	intPREFIX = "int="
+	intPREFIX_LEN = 4
+
+	maxHEX = 2
+	maxOCT = 5
+	maxBIN = 8
+	maxU8 = 255
+
+	prefixBIN = "0b"
+	prefixOCT = "0o"
+	prefixHEX = "0x"
+
+	basePREFIX_NUM = 2
+
 )
 
 var wrongFLAGS = [numWRONG_FLAGS][2]byte{
@@ -147,6 +165,15 @@ func printHelp(exec string) {
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", flagBIN)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", flagHELP)
 	os.Exit(1)
+}
+
+func isAllDigit(numStr string) bool {
+	for _, c := range numStr {
+		if !unicode.IsDigit(c) {
+			return false
+		}
+	}
+	return true
 }
 
 func getExecName(args0 string) string {
@@ -448,7 +475,61 @@ func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
 }
 
 func assertFile(arg string) bool {
-	return len(arg) > filePREFIX_LEN && arg[:filePREFIX_LEN] == filePREFIX
+	return len(arg) > filePREFIX_LEN && strings.HasPrefix(arg, filePREFIX)
+}
+
+func assertInt(arg string) bool {
+	return len(arg) > intPREFIX_LEN && strings.HasPrefix(arg, intPREFIX)
+}
+
+func toInt(arg string) []uint8 {
+	split := strings.Split(arg, ",")
+	
+	var result []uint8
+	var convt uint64
+	var err error
+	for _, num := range split {
+		sansPrefix := string(num[basePREFIX_NUM:])
+		prefix := string(num[:basePREFIX_NUM])
+
+		switch(prefix) {
+		case prefixBIN:
+			if len(sansPrefix) > maxBIN {
+				errorOut("Size of binary number should not exceed 8")
+			}
+			convt, err = strconv.ParseUint(sansPrefix, 2, 8)
+			result = append(result, uint8(convt))
+			break
+		case prefixOCT:
+			if len(sansPrefix) > maxOCT {
+				errorOut("Size of octal number should not exceed 5")
+			}
+			convt, err = strconv.ParseUint(sansPrefix, 8, 8)
+			result = append(result, uint8(convt))
+			break
+		case prefixHEX:
+			if len(sansPrefix) > maxOCT {
+				errorOut("Size of hexadecimal number should not exceed 2")
+			}
+			convt, err = strconv.ParseUint(sansPrefix, 16, 8)
+			result = append(result, uint8(convt))
+			break
+		default:
+			if !isAllDigit(num) {
+				errorOut("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2")
+			}
+			convt, err = strconv.ParseUint(num, 10, 8)
+			if convt > maxU8 {
+				errorOut("Given integer must be byte-sized (0-255)")
+			}
+			result = append(result, uint8(convt))
+			break
+		if err != nil {
+			errorOut(fmt.Sprintf("%s", err))
+		}
+	}
+	}
+	return result
 }
 
 func joinArgs(argsSlicedAfterTwo []string) string {
@@ -488,10 +569,11 @@ func readGivenFile(fpath string) []byte {
 }
 
 func processArg(arg string) []uint8 {
-	if !assertFile(arg) {
+	if !assertFile(arg) && !assertInt(arg) {
 		return []uint8(arg)
+	} else if assertInt(arg) {
+		return toInt(string(arg[intPREFIX_LEN:]))
 	}
-
 	return []uint8(readGivenFile(string(arg[filePREFIX_LEN:])))
 }
 
