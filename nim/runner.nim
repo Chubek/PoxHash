@@ -30,6 +30,7 @@ import libpoxh
 import os
 import times
 import sequtils
+import strutils
 
 const
   MAX_FLAG_SIZE: int = 24
@@ -66,6 +67,20 @@ const
 
   FILE_PREFIX = "file="
   FILE_PREFIX_LEN = 5
+
+  INT_PREFIX = "int="
+  INT_PREFIX_LEN = 4
+
+  MAX_U8 = 255
+
+  MAX_HEX = 2
+  MAX_OCT = 3
+  MAX_BIN = 8
+
+  HEX_PREFIX = "0x"
+  BIN_PREFIX = "0b"
+  OCT_PREFIX = "0o"
+  BASE_PREFIX_NUM = 2
 
   WRONG_FLAGS = @[
     ('G', 'g'),
@@ -145,6 +160,8 @@ proc `+`(str1, str2: string): string =
   for k in len1...(len1 + len2):
     result[k] = str2[j]
     inc j
+proc `?`(c: char): bool = isDigit(c)
+proc `?`(i: int): bool = cast[uint](i) > MAX_U8
 
 proc `+=`(str1: var string, str2: string) = str1 = str1 + str2
 proc `*`(c: char): string =
@@ -153,6 +170,13 @@ proc `*`(c: char): string =
 proc `^^`(c: char): uint8 = cast[uint8](c)
 proc `^^`(str: string): seq[uint8] =
   map(str, proc(x: char): uint8 = ^^x)
+proc `^^`(i: int): char = cast[char](i)
+
+proc strIsAllDigit(str: string): bool =
+  for c in **str:
+    if not ?c:
+      return false
+  return true
 
 proc printf(input: varargs[string, `$`]) =
   var
@@ -533,7 +557,10 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: int64) =
     printf("----\n")
 
 proc assertFile(arg: string): bool =
-  result = arg.len() > FILE_PREFIX_LEN and arg[0..FILE_PREFIX_LEN - 1] == FILE_PREFIX
+  result = arg.len() > FILE_PREFIX_LEN and arg.startsWith(FILE_PREFIX)
+
+proc assertInt(arg: string): bool =
+  result = arg.len() > INT_PREFIX_LEN and arg.startsWith(INT_PREFIX)
 
 proc isRegularFile(fpath: string) =
   if not fileExists(fpath):
@@ -543,6 +570,33 @@ proc readGivenFile(fpath: string): string =
   isRegularFile(fpath)
   result = readFile(fpath)
 
+proc toInt(arg: string): string =
+  var
+    convt: int
+    numSansPrefix: string
+  for num in arg.split(','):
+    numSansPrefix = num.substr(BASE_PREFIX_NUM)
+    case num.substr(0, BASE_PREFIX_NUM - 1):
+      of BIN_PREFIX:
+        if numSansPrefix.len() > MAX_BIN:
+          errorOut("Size of binary number should not exceed 8")
+        convt = parseBinInt(numSansPrefix)
+      of OCT_PREFIX:
+        if numSansPrefix.len() > MAX_OCT:
+          errorOut("Size of octal number should not exceed 5")
+        convt = parseOctInt(numSansPrefix)
+      of HEX_PREFIX:
+        if numSansPrefix.len() > MAX_HEX:
+          errorOut("Size of hexadecimal number should not exceed 2")
+        convt = parseBinInt(numSansPrefix)
+      else:
+        if not strIsAllDigit(numSansPrefix):
+          errorOut("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2")
+        convt = numSansPrefix.parseInt()
+        if ?convt:
+          errorOut("Given integer must be byte-sized (0-255)")
+
+    result.add(^^convt)
 
 proc joinArgs(args: seq[string]): string =
   var warned = false
@@ -555,9 +609,11 @@ proc joinArgs(args: seq[string]): string =
   result = result[0..result.len() - 2]
 
 proc processArg(arg: string): string =
-  if not assertFile(arg):
+  if not assertFile(arg) and not assertInt(arg):
     return arg
-  result = readGivenFile(arg[FILE_PREFIX_LEN..arg.len() - 1])
+  if assertInt(arg):
+    return toInt(arg.substr(INT_PREFIX_LEN))
+  result = readGivenFile(arg.substr(FILE_PREFIX_LEN))
 
 proc main(exec: string, argv: seq[string]) =
   validateFlags(exec, argv)
