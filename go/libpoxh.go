@@ -44,14 +44,15 @@ const (
 
 	/// SIZE CONSTANTS
 	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#size-constants
-	poxROUND_PRIME_NUM int = 90
-	poxBLOCK_NUM           = 64
-	pox8B_PRIME_NUM        = 54
-	poxROUND_NUM           = 31
-	poxCHUNK_NUM           = 16
-	poxPORTION_NUM         = 4
-	poxSD_PRIME_NUM        = 3
-	poxMAGIC_PRIME_NUM     = 2
+	poxROUND_PRIME_NUM = 90
+	poxBLOCK_NUM       = 64
+	pox8B_PRIME_NUM    = 54
+	poxROUND_NUM       = 31
+	poxCHUNK_NUM       = 16
+	poxPORTION_NUM     = 4
+	poxMASKS_ARRAY_NUM = 4
+	poxSD_PRIME_NUM    = 3
+	poxMAGIC_PRIME_NUM = 2
 
 	/// BIT-RELATED CONSTANTS
 	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#bit-related-constants
@@ -64,22 +65,23 @@ const (
 
 	/// MASKS
 	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
-	maskDWORD_4F4Z uint32 = 0xffff0000
-	maskDWORD_4Z4F        = 0x0000ffff
-	maskWORD_FZFZ  uint16 = 0xf0f0
-	maskWORD_ZFZF         = 0x0f0f
-	maskWORD_FZZZ         = 0xf000
-	maskWORD_ZZFZ         = 0x00f0
-	maskWORD_ZZZF         = 0x000f
-	maskWORD_ZZFF         = 0x00ff
-	maskWORD_FFZZ         = 0xff00
-	maskWORD_FZZF         = 0xf00f
-	maskWORD_FFFZ         = 0xfff0
-	maskWORD_ZFFF         = 0x0fff
-	maskNIBBLET_01 int    = 0b01
-	maskNIBBLET_10        = 0b10
-	maskNIBBLET_11        = 0b11
-	maskNIBBLET_00        = 0b00
+	maskQWORD_14Z2F uint64 = 0x00000000000000ff
+	maskDWORD_4F4Z  uint32 = 0xffff0000
+	maskDWORD_4Z4F         = 0x0000ffff
+	maskWORD_FZFZ   uint16 = 0xf0f0
+	maskWORD_ZFZF          = 0x0f0f
+	maskWORD_FZZZ          = 0xf000
+	maskWORD_ZZFZ          = 0x00f0
+	maskWORD_ZZZF          = 0x000f
+	maskWORD_ZZFF          = 0x00ff
+	maskWORD_FFZZ          = 0xff00
+	maskWORD_FZZF          = 0xf00f
+	maskWORD_FFFZ          = 0xfff0
+	maskWORD_ZFFF          = 0x0fff
+	maskNIBBLET_01  int    = 0b01
+	maskNIBBLET_10         = 0b10
+	maskNIBBLET_11         = 0b11
+	maskNIBBLET_00         = 0b00
 
 	numCOMB_BIONOM = 6
 	numRANGE_ZTF   = 4
@@ -207,9 +209,9 @@ var (
 
 	/// MISC
 	/// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#miscv
-	iterCOMB_BIONOM      = [numCOMB_BIONOM][2]int{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
-	iterRANGE_ZTF        = [numRANGE_ZTF]int{0, 1, 2, 3}
-	byteZERO_CHAR   byte = 48
+	iterCOMB_BIONOM = [numCOMB_BIONOM][2]int{{0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
+	iterRANGE_ZTF   = [numRANGE_ZTF]int{0, 1, 2, 3}
+	masksARRAY      = []uint16{maskWORD_FFZZ, maskWORD_ZFFF, maskWORD_FFFZ, maskWORD_ZZFF}
 
 	// CONVERSION CONSTS, CONTINUED
 	bytesCHAR_SEX = [baseSEX_NUM]byte{
@@ -363,6 +365,14 @@ func log2N(num uint16) uint16 {
 	return 0
 }
 
+func copyByteArrayToWordArray(barr []uint8) []uint16 {
+	newArr := make([]uint16, len(barr))
+	for i, b := range barr {
+		newArr[i] = uint16(b)
+	}
+	return newArr
+}
+
 ////////  .TOOLS      ////////
 //-------------------------//
 //////// CONVERSION ////////
@@ -420,15 +430,15 @@ func wordArrToByteArr(wordarr factorType) byteType {
 }
 
 func byteArrToWordArrAndPad(bytearr []byte) []uint16 {
-	length := len(bytearr)
-	for length%poxBLOCK_NUM != 0 {
-		length++
+	var n, original_len uint64
+	original_len = uint64(len(bytearr))
+	n = original_len
+	wordArr := copyByteArrayToWordArray(bytearr)
+	for len(wordArr)%poxBLOCK_NUM != 0 {
+		wordArr = append(wordArr, uint16(uint64(wordArr[n%original_len])^(n&maskQWORD_14Z2F)))
+		n += uint64(wordArr[n%original_len])
 	}
-	padded := make([]uint16, length)
-	for i, b := range bytearr {
-		padded[i] = uint16(b)
-	}
-	return padded
+	return wordArr
 }
 
 func decimalToBase(base, dec uint16, size, offset int, chars, res []byte) {
@@ -711,6 +721,26 @@ func poxRoundApplyAlphabet(tempArray factorType) factorType {
 	return tempArrayCpy
 }
 
+func poxRoundApplayBahman(tempArray factorType, pnum uint16) factorType {
+	tempArrayCpy := copyWordArray(tempArray)
+
+	cica := pnum % poxPORTION_NUM
+	mica := (cica + 1) % poxPORTION_NUM
+	nica := (mica + 2) % poxPORTION_NUM
+	wica := (nica + 3) % poxPORTION_NUM
+	mianju := tempArrayCpy[cica] % poxMASKS_ARRAY_NUM
+	mianja := tempArrayCpy[mica] % poxMASKS_ARRAY_NUM
+	sosu := tempArrayCpy[nica] % poxROUND_PRIME_NUM
+	sosa := tempArrayCpy[wica] % poxROUND_PRIME_NUM
+
+	tempArrayCpy[cica] ^= (tempArrayCpy[mica] << cica) & masksARRAY[mianju]
+	tempArrayCpy[wica] &= tempArrayCpy[wica] ^ poxROUND_PRIMES[sosu]
+	tempArrayCpy[nica] ^= (tempArrayCpy[cica] << (wica * 2)) & masksARRAY[mianja]
+	tempArrayCpy[mica] |= tempArrayCpy[nica] | poxROUND_PRIMES[sosa]
+
+	return tempArrayCpy
+}
+
 func poxRoundApplyPrime(tempArray factorType) factorType {
 	tempArrayCpy := copyWordArray(tempArray)
 	for i := 0; i < poxROUND_PRIME_NUM; i++ {
@@ -718,6 +748,7 @@ func poxRoundApplyPrime(tempArray factorType) factorType {
 		tempArrayCpy[1] %= poxROUND_PRIMES[i]
 		tempArrayCpy[2] %= poxROUND_PRIMES[i]
 		tempArrayCpy[3] %= poxROUND_PRIMES[i]
+		tempArrayCpy = poxRoundApplayBahman(tempArrayCpy, poxROUND_PRIMES[i])
 	}
 
 	return tempArrayCpy
@@ -765,8 +796,8 @@ func poxApplyBytes(factorArray, portion factorType, index uint16) factorType {
 
 	tmt = tamaam(portion)
 	dca = deca(portion)
-	tmtOddFactor := bitUINT16_MAX_U16 ^ (tmt % 4)
-	dcaOddFactor := bitUINT16_MAX_U16 ^ (dca % 3)
+	tmtOddFactor := bitUINT16_MAX_U16 ^ (tmt % (dca + 2))
+	dcaOddFactor := bitUINT16_MAX_U16 ^ (dca % (tmt + 3))
 
 	ng := (portion[0] + index) % poxPORTION_NUM
 	chu := (portion[1] + index) % poxPORTION_NUM
@@ -911,11 +942,11 @@ func PoxHash(message []uint8) PoxDigest {
 	//			PoxDigest.Words: [4]uint16
 	//			PoxDigest.Doubles [2]uint32
 	//			PoxDigest.Quad 	uint64
-	padded := byteArrToWordArrAndPad(message)
+	maskded := byteArrToWordArrAndPad(message)
 	factorArray := newFactorArray()
 
-	for i := 0; i < len(padded); i += poxBLOCK_NUM {
-		block := newBlock(padded, i)
+	for i := 0; i < len(maskded); i += poxBLOCK_NUM {
+		block := newBlock(maskded, i)
 		factorArray = poxProcessBlock(factorArray, block)
 	}
 
