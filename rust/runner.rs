@@ -609,7 +609,7 @@ fn main() {
 
     if !arg_has_flag(flag_arg, FLAG_NHEADER) {
         print!(
-            "\x1b[1;30;47mPoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n"
+            "\x1b[1;30;47m   PoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  MIT  \x1b[0m\n"
         );
     }
     let echo_arg = arg_has_flag(flag_arg, FLAG_ECHO);
