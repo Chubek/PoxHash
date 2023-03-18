@@ -386,7 +386,6 @@ def __pad_array_with_bytes(arr: __array) -> __array:
     while len(arr) % __POX_BLOCK_NUM != 0:
         arr.append(arr[n % original_len] ^ (n & __MASK_QWORD_14Z2F))
         n += arr[n % original_len]
-
     return arr
 
 

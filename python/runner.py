@@ -26,9 +26,9 @@
 #####################################################################################
 
 import sys
-from time import time_ns
-from pathlib import Path
 from array import array
+from pathlib import Path
+from time import time_ns
 
 from libpoxh import PoxDigest, pox_hash
 
