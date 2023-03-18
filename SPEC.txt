@@ -265,14 +265,15 @@
 // PART B: BITWISE OPERATIONS
 // We use several bitwise operations in our bitwise operations, as follows:
     /// The input must be put through this operation before being fed to the hash
-    @OCTOPAD(u8 *input-array)
-        u16 *padded instantiate-with *input-array as an u16 array
+    @OCTOPAD(byte-array *input)
+        word-array *padded instantiate-with *input as an u16 array
         u64 $original-len instantiate-with size of padded
         u64 $n instantiate-with original-len
         
         while size of *padded mod #BLOCK_NUM not eq 0:
             $pad-bit instantiate-wth *padded[$n mod $original-len] xor ($n and ^^QWORD_14Z2F)
             append $pad-bit to *padded
+            $n assign-with $n add arr[$n mod $original-len]
         
         ret *padded
 
