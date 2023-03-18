@@ -25,20 +25,24 @@
 // SOFTWARE.                                                                       //
 /////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef __POX_H
-#define __POX_H
+#ifndef POX_H
+#define POX_H
 
-#ifndef __POX_HEADERS_STRING
-#define __POX_HEADERS_STRING
+#ifndef POX_HEADERS_STRING
+#define POX_HEADERS_STRING
 #include <string.h>
 #endif
-#ifndef __POX_HEADERS_STDINT
-#define __POX_HEADERS_STDINT
+#ifndef POX_HEADERS_STDINT
+#define POX_HEADERS_STDINT
 #include <stdint.h>
 #endif
-#ifndef __POX_HEADERS_STDLIB
-#define __POX_HEADERS_STDLIB
+#ifndef POX_HEADERS_STDLIB
+#define POX_HEADERS_STDLIB
 #include <stdlib.h>
+#endif
+#ifndef POX_HEADERS_STDIO
+#define POX_HEADERS_STDIO
+#include <stdio.h>
 #endif
 
 // CONSTANTS
@@ -58,6 +62,7 @@
 #define POX_ROUND_NUM 31
 #define POX_CHUNK_NUM 16
 #define POX_PORTION_NUM 4
+#define POX_MASKS_ARRAY_NUM 4
 #define POX_SD_PRIME_NUM 3
 #define POX_MAGIC_PRIME_NUM 2
 
@@ -68,6 +73,7 @@
 
 /// MASKS
 /// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
+#define MASK_QWORD_14Z2F 0x00000000000000ff
 #define MASK_DWORD_4F4Z 0xffff0000
 #define MASK_DWORD_4Z4F 0x0000ffff
 #define MASK_WORD_FZFZ 0xf0f0
@@ -214,6 +220,8 @@ static const uint16_t cPOX_8B_PRIMES[POX_8B_PRIME_NUM] = {
     0xe5, 0xe9, 0xef, 0xf1, 0xfb};
 static const uint16_t cPOX_SINGLE_DIGIT_PRIMES[POX_SD_PRIME_NUM] = {0x3, 0x5, 0x7};
 static const uint16_t cPOX_MAGIC_PRIMES[POX_MAGIC_PRIME_NUM] = {0x33, 0x65};
+static const uint16_t cMASKS_ARRAY[POX_MASKS_ARRAY_NUM] = {
+    MASK_WORD_FFZZ, MASK_WORD_ZFFF, MASK_WORD_FFFZ, MASK_WORD_ZZFF};
 
 /// MISC
 /// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#misc
@@ -388,11 +396,31 @@ static inline uint16_t get_8b_prime(uint16_t num)
     return cPOX_8B_PRIMES[remainder];
 }
 
-#define PAD_SIZE(strsize)                \
-    while (strsize % POX_BLOCK_NUM != 0) \
-    {                                    \
-        strsize++;                       \
-    }
+#define PADINGU(barr, warrptr, padded_size)                                                             \
+    do                                                                                                  \
+    {                                                                                                   \
+        size_t original_size = strlen(barr);                                                            \
+        size_t n = original_size;                                                                       \
+        warrptr = calloc(0, sizeof(uint16_t));                                                          \
+        for (int i = 0; i < original_size; i++)                                                         \
+        {                                                                                               \
+            warrptr[i] = (uint16_t)barr[i];                                                             \
+        }                                                                                               \
+        padded_size = original_size;                                                                    \
+        void *nnptr;                                                                                    \
+        while (padded_size % POX_BLOCK_NUM != 0)                                                        \
+        {                                                                                               \
+            nnptr = realloc(warrptr, ++padded_size * sizeof(uint16_t));                                 \
+            if (!nnptr)                                                                                 \
+            {                                                                                           \
+                fprintf(stderr, "Problem reallocating padded array");                                   \
+                exit(1);                                                                                \
+            }                                                                                           \
+            warrptr = nnptr;                                                                            \
+            warrptr[padded_size - 1] = warrptr[n % original_size] ^ ((uint16_t)(n & MASK_QWORD_14Z2F)); \
+            n += (size_t)warrptr[n % original_size];                                                    \
+        }                                                                                               \
+    } while (0)
 
 #define COPY_WORDS_TO_SUBARRAY(wordarr, subarr, start, end) \
     int __jz = 0;                                           \
@@ -700,13 +728,32 @@ static inline uint16_t get_8b_prime(uint16_t num)
     POX_THETA_WRAP(temp_array);        \
     POX_GAMMA_WRAP(temp_array);
 
-#define POX_APPLY_PRIME(temp_array, pnum) \
-    do                                    \
-    {                                     \
-        temp_array[0] %= pnum;            \
-        temp_array[1] %= pnum;            \
-        temp_array[2] %= pnum;            \
-        temp_array[3] %= pnum;            \
+#define POX_ROUND_APPLY_BAHMAN(temp_array, pnum)                                     \
+    do                                                                               \
+    {                                                                                \
+        size_t cica, mica, nica, wica, mianju, mianja, sosu, sosa;                   \
+        cica = pnum % POX_PORTION_NUM;                                               \
+        mica = (cica + 1) % POX_PORTION_NUM;                                         \
+        nica = (mica + 2) % POX_PORTION_NUM;                                         \
+        wica = (nica + 3) % POX_PORTION_NUM;                                         \
+        mianju = temp_array[cica] % POX_MASKS_ARRAY_NUM;                             \
+        mianja = temp_array[mica] % POX_MASKS_ARRAY_NUM;                             \
+        sosu = temp_array[nica] % POX_ROUND_PRIME_NUM;                               \
+        sosa = temp_array[wica] % POX_ROUND_PRIME_NUM;                               \
+        temp_array[cica] ^= (temp_array[mica] << cica) & cMASKS_ARRAY[mianju];       \
+        temp_array[wica] &= temp_array[wica] ^ cPOX_ROUND_PRIMES[sosu];              \
+        temp_array[nica] ^= (temp_array[cica] << (wica * 2)) & cMASKS_ARRAY[mianja]; \
+        temp_array[mica] |= temp_array[nica] | cPOX_ROUND_PRIMES[sosa];              \
+    } while (0)
+
+#define POX_APPLY_PRIME(temp_array, pnum)         \
+    do                                            \
+    {                                             \
+        temp_array[0] %= pnum;                    \
+        temp_array[1] %= pnum;                    \
+        temp_array[2] %= pnum;                    \
+        temp_array[3] %= pnum;                    \
+        POX_ROUND_APPLY_BAHMAN(temp_array, pnum); \
     } while (0)
 
 #define POX_ROUND_APPLY_PRIME(temp_array)                     \
@@ -754,8 +801,8 @@ static inline uint16_t get_8b_prime(uint16_t num)
         dca = 0;                                                                   \
         TAMAAM(portion, tmt);                                                      \
         DECA(portion, dca);                                                        \
-        odd_factor_tmt = UINT16_MAX ^ (tmt % 4);                                   \
-        odd_factor_dca = UINT16_MAX ^ (dca % 3);                                   \
+        odd_factor_tmt = UINT16_MAX ^ (tmt % (dca + 2));                           \
+        odd_factor_dca = UINT16_MAX ^ (dca % (tmt + 3));                           \
         ng = (portion[0] + index) % POX_PORTION_NUM;                               \
         chu = (portion[1] + index) % POX_PORTION_NUM;                              \
         yo = (portion[2] + index) % POX_PORTION_NUM;                               \
@@ -857,20 +904,16 @@ typedef struct PoxDigest
  */
 extern inline poxdigest_t pox_hash(uint8_t *message)
 {
-    size_t length_message = strlen((const char *)message);
-
     uint8_t block_array[POX_BLOCK_NUM] = {0};
     uint8_t portion_array[POX_PORTION_NUM] = {0};
     uint16_t factor_array[POX_PORTION_NUM] = {
         POX_PRIME_INIT_A, POX_PRIME_INIT_B, POX_PRIME_INIT_C, POX_PRIME_INIT_D};
 
-    size_t lengh_old = length_message;
-    PAD_SIZE(length_message);
-    uint8_t message_padded[length_message];
-    memset(message_padded, 0, SIZE_BYTE_ARR(length_message));
-    memcpy(message_padded, message, SIZE_BYTE_ARR(lengh_old));
+    size_t length_padded;
+    uint16_t *message_padded;
+    PADINGU(message, message_padded, length_padded);
 
-    for (int i = 0; i < length_message; i += POX_BLOCK_NUM)
+    for (int i = 0; i < length_padded; i += POX_BLOCK_NUM)
     {
         POX_PROCESS_BLOCK(factor_array, message_padded, block_array, portion_array, i, i + POX_BLOCK_NUM);
     }
