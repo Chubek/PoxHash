@@ -67,7 +67,7 @@ mod consts {
         pub const NIBBLET_10: usize = 0b10;
         pub const NIBBLET_11: usize = 0b11;
         pub const NIBBLET_00: usize = 0b00;
-        pub const WORD_MASKS: &'static [u16] =  &[
+        pub const MASKS_ARRAY: &'static [u16] =  &[
             WORD_FFZZ, WORD_ZFFF, WORD_FFFZ, WORD_ZZFF];
     }
 
@@ -614,9 +614,9 @@ mod round {
         let sosu = (temp_array[nica] % (size_values::ROUND_PRIME_NUM as u16)) as usize;
         let sosa = (temp_array[wica] % (size_values::ROUND_PRIME_NUM as u16)) as usize;
 
-        temp_array_cpy[cica] ^= (temp_array_cpy[mica] << cica) & masks::WORD_MASKS[mianju];
+        temp_array_cpy[cica] ^= (temp_array_cpy[mica] << cica) & masks::MASKS_ARRAY[mianju];
         temp_array_cpy[wica] &= temp_array_cpy[wica] ^ prime_arrays::ROUND_PRIMES[sosu];
-        temp_array_cpy[nica] ^= (temp_array_cpy[cica] << (wica * 2)) & masks::WORD_MASKS[mianja];
+        temp_array_cpy[nica] ^= (temp_array_cpy[cica] << (wica * 2)) & masks::MASKS_ARRAY[mianja];
         temp_array_cpy[mica] |= temp_array_cpy[nica] | prime_arrays::ROUND_PRIMES[sosa];
         
         temp_array_cpy

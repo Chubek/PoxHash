@@ -61,6 +61,10 @@ const FILE_PREFIX_LEN: usize = 5;
 const INT_PREFIX: &'static str = "int=";
 const INT_PREFIX_LEN: usize = 4;
 
+const MAX_BIN: usize = 8;
+const MAX_OCT: usize = 5;
+const MAX_HEX: usize = 2;
+
 const HEX_PREFIX: &'static str = "0x";
 const BIN_PREFIX: &'static str = "0b";
 const OCT_PREFIX: &'static str = "0o";
@@ -527,18 +531,35 @@ fn assert_int(arg: &String) -> bool {
 fn to_int(arg: &String) -> String {
     arg.split(",")
         .map(|n| {
+            let sans_prefix = &n[BASE_PREFIX_NUM..];
             match &n[..BASE_PREFIX_NUM] {
                 BIN_PREFIX => {
-                    u8::from_str_radix(&n[BASE_PREFIX_NUM..], 2).expect("Size of binary number should not exceed 8") as char
+                    if sans_prefix.len() > MAX_BIN {
+                        error_out!("Size of binary number should not exceed 8");
+                    }
+                    
+                    u8::from_str_radix(sans_prefix, 2).expect("Bad binary number") as char
                 },
                 OCT_PREFIX => {
-                    u8::from_str_radix(&n[BASE_PREFIX_NUM..], 8).expect("Size of octal number should not exceed 5") as char
+                    if sans_prefix.len() > MAX_OCT {
+                        error_out!("Size of octal number should not exceed 5");
+                    }
+
+                    u8::from_str_radix(sans_prefix, 8).expect("Bad octal number") as char
                 },
                 HEX_PREFIX => {
-                    u8::from_str_radix(&n[BASE_PREFIX_NUM..], 16).expect("Size of hexadecimal number should not exceed 16") as char
+                    if sans_prefix.len() > MAX_HEX {
+                        error_out!("Size of hexadecimal number should not exceed 2");
+                    }
+
+                    u8::from_str_radix(sans_prefix, 16).expect("Bad hexadecimal number") as char
                 },
                 _ => {
-                    u8::from_str_radix(&n[BASE_PREFIX_NUM..], 10).expect("When 'int=' is specifiend, you must pass a binary, octal, or hexadecial number between 0-255") as char
+                    if sans_prefix.to_string().chars().any(|c| !c.is_numeric()) {
+                        error_out!("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2");
+                    }
+
+                    u8::from_str_radix(sans_prefix, 10).expect("Given integer must be byte-sized (0-255)") as char
                 }
             }
         })
@@ -572,10 +593,10 @@ fn read_given_file(fpath: &String) -> String {
 }
 
 fn process_arg(arg: &String) -> String {
-    if !assert_file(arg) {
+    if !assert_file(arg) && !assert_int(arg) {
         return arg.clone();
     } else if assert_int(arg) {
-        return to_int(arg);
+        return to_int(&arg[INT_PREFIX_LEN..].to_string());
     }
     read_given_file(&arg[FILE_PREFIX_LEN..].to_string())
 }
