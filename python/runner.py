@@ -517,7 +517,6 @@ def to_int(numbers: str) -> array:
                 result.append(integer)
             else:
                 error_out("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2")
-
     return array('B', result)
 
 def join_args(args: list[str]) -> str:
@@ -568,7 +567,7 @@ def main(exec_name: str, argv: list[str]) -> None:
 
     if not arg_has_flag(flags_arg, FLAG_NHEADER):
         printf(
-            "\033[1;30;47mPoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
+            "\033[1;30;47m   PoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  MIT  \033[0m\n"
         )
 
     echo_arg = arg_has_flag(flags_arg, FLAG_ECHO)
