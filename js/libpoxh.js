@@ -355,12 +355,12 @@ const doubleArrayToQuad = (dArr) => {
 const byteArrayToWordArrayAndPad = (bytearr) => {
   let original_len = bytearr.length;
   let n = original_len;
-  let word_vec = copyArray(bytearr);
-  while (word_vec.length % cPOX_BLOCK_NUM != 0) {
-    word_vec.push(word_vec[n % original_len] ^ (n & cMASK_QWORD_14Z2F));
-    n += word_vec[n % original_len];
+  let wordArr = copyArray(bytearr);
+  while (wordArr.length % cPOX_BLOCK_NUM != 0) {
+    wordArr.push(wordArr[n % original_len] ^ (n & cMASK_QWORD_14Z2F));
+    n += wordArr[n % original_len];
   }
-  return new Uint16Array(word_vec);
+  return new Uint16Array(wordArr);
 };
 
 const convertBaseFromDecimal = (base, size, chars, res, dec, offset) => {
