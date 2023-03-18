@@ -588,7 +588,7 @@ proc toInt(arg: string): string =
       of HEX_PREFIX:
         if numSansPrefix.len() > MAX_HEX:
           errorOut("Size of hexadecimal number should not exceed 2")
-        convt = parseBinInt(numSansPrefix)
+        convt = parseHexInt(numSansPrefix)
       else:
         if not strIsAllDigit(num):
           errorOut("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2")
@@ -627,7 +627,7 @@ proc main(exec: string, argv: seq[string]) =
     echoArg = false
 
   if not argHasFlag(flagsArg, FLAG_NHEADER):
-    printf("\x1b[1;30;47mPoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3  \x1b[0m\n")
+    printf("\x1b[1;30;47m   PoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  MIT  \x1b[0m\n")
 
   echoArg = argHasFlag(flagsArg, FLAG_ECHO)
   if argHasFlag(flagsArg, FLAG_JOIN):
