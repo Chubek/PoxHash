@@ -73,6 +73,9 @@ __MASK_NIBBLET_01 = 0b01
 __MASK_NIBBLET_10 = 0b10
 __MASK_NIBBLET_11 = 0b11
 __MASK_NIBBLET_00 = 0b00
+__WORD_MASKS = __array(
+    'H',
+    [__MASK_WORD_FFZZ, __MASK_WORD_ZFFF, __MASK_WORD_FFFZ, __MASK_WORD_ZZFF])
 
 ## PRIME_ARRAYS
 ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
@@ -178,9 +181,7 @@ __POX_8B_PRIMES = __array('H', [
 ])
 __POX_SINGLE_DIGIT_PRIMES = __array('H', [0x3, 0x5, 0x7])
 __POX_MAGIC_PRIMES = __array('H', [0x33, 0x65])
-__POX_WORD_MASKS = __array(
-    'H',
-    [__MASK_WORD_FFZZ, __MASK_WORD_ZFFF, __MASK_WORD_FFFZ, __MASK_WORD_ZZFF])
+
 
 ## MISC
 ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#misc
@@ -707,9 +708,9 @@ def __pox_round_apply_bahman(temp_array: __array, pnum: int):
     sosu = temp_array[nica] % __POX_ROUND_PRIME_NUM
     sosa = temp_array[wica] % __POX_ROUND_PRIME_NUM
 
-    temp_array[cica] ^= (temp_array[mica] << cica) & __POX_WORD_MASKS[mianju]
+    temp_array[cica] ^= (temp_array[mica] << cica) & __WORD_MASKS[mianju]
     temp_array[wica] &= temp_array[wica] ^ __POX_ROUND_PRIMES[sosu]
-    temp_array[nica] ^= (temp_array[cica] << (wica * 2)) & __POX_WORD_MASKS[mianja]
+    temp_array[nica] ^= (temp_array[cica] << (wica * 2)) & __WORD_MASKS[mianja]
     temp_array[mica] |= temp_array[nica] | __POX_ROUND_PRIMES[sosa]
 
 
