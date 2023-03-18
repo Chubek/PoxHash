@@ -432,6 +432,7 @@
             *tmp[1] assign-with *tmp[1] mod []ROUND_PRIMES[i]
             *tmp[2] assign-with *tmp[2] mod []ROUND_PRIMES[i]
             *tmp[3] assign-with *tmp[3] mod []ROUND_PRIMES[i]
+            @APPLY_BAHMAN(*temp-factors, []ROUND_PRIMES[i])
 
     /// Shuffle the array around a bit with C(4, 2) as indices
     @APPLY_SHUFFLE(mutarg temp-array *tmp) ->
