@@ -56,7 +56,15 @@ const FLAG_NHEADER: char = 'z';
 const FLAG_ECHO: char = 'e';
 
 const FILE_PREFIX: &'static str = "file=";
-const FLE_PREFIX_LEN: usize = 5;
+const FILE_PREFIX_LEN: usize = 5;
+
+const INT_PREFIX: &'static str = "int=";
+const INT_PREFIX_LEN: usize = 4;
+
+const HEX_PREFIX: &'static str = "0x";
+const BIN_PREFIX: &'static str = "0b";
+const OCT_PREFIX: &'static str = "0o";
+const BASE_PREFIX_NUM: usize = 2;
 
 const WRONG_FLAGS: &'static [(char, char)] = &[
     ('G', 'g'),
@@ -509,7 +517,32 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
 }
 
 fn assert_file(arg: &String) -> bool {
-    arg.len() > FLE_PREFIX_LEN && arg.starts_with(FILE_PREFIX)
+    arg.len() > FILE_PREFIX_LEN && arg.starts_with(FILE_PREFIX)
+}
+
+fn assert_int(arg: &String) -> bool {
+    arg.len() > INT_PREFIX_LEN && arg.starts_with(INT_PREFIX)
+}
+
+fn to_int(arg: &String) -> String {
+    arg.split(",")
+        .map(|n| {
+            match &n[..BASE_PREFIX_NUM] {
+                BIN_PREFIX => {
+                    u8::from_str_radix(&n[BASE_PREFIX_NUM..], 2).expect("Size of binary number should not exceed 8") as char
+                },
+                OCT_PREFIX => {
+                    u8::from_str_radix(&n[BASE_PREFIX_NUM..], 8).expect("Size of octal number should not exceed 5") as char
+                },
+                HEX_PREFIX => {
+                    u8::from_str_radix(&n[BASE_PREFIX_NUM..], 16).expect("Size of hexadecimal number should not exceed 16") as char
+                },
+                _ => {
+                    u8::from_str_radix(&n[BASE_PREFIX_NUM..], 10).expect("When 'int=' is specifiend, you must pass a binary, octal, or hexadecial number between 0-255") as char
+                }
+            }
+        })
+        .collect()
 }
 
 fn join_args(argv: &Vec<String>) -> String {
@@ -541,8 +574,10 @@ fn read_given_file(fpath: &String) -> String {
 fn process_arg(arg: &String) -> String {
     if !assert_file(arg) {
         return arg.clone();
+    } else if assert_int(arg) {
+        return to_int(arg);
     }
-    read_given_file(&arg[FLE_PREFIX_LEN..].to_string())
+    read_given_file(&arg[FILE_PREFIX_LEN..].to_string())
 }
 
 #[allow(unused_assignments)]

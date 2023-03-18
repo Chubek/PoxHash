@@ -43,12 +43,14 @@ mod consts {
         pub const ROUND_NUM: usize = 31;
         pub const CHUNK_NUM: usize = 16;
         pub const PORTION_NUM: usize = 4;
+        pub const MASKS_ARRAY_NUM: usize = 4;
         pub const SD_PRIME_NUM: usize = 3;
         pub const MAGIC_PRIME_NUM: usize = 2;
     }
 
     // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
     pub mod masks {
+        pub const MASK_QWORD_14Z2F: usize = 0x00000000000000ff;
         pub const DWORD_4F4Z: u32 = 0xffff0000;
         pub const DWORD_4Z4F: u32 = 0x0000ffff;
         pub const WORD_FZFZ: u16 = 0xf0f0;
@@ -65,6 +67,8 @@ mod consts {
         pub const NIBBLET_10: usize = 0b10;
         pub const NIBBLET_11: usize = 0b11;
         pub const NIBBLET_00: usize = 0b00;
+        pub const WORD_MASKS: &'static [u16] =  &[
+            WORD_FFZZ, WORD_ZFFF, WORD_FFFZ, WORD_ZZFF];
     }
 
     // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
@@ -376,12 +380,12 @@ mod convert {
     }
 
     pub fn byte_vec_to_word_vec_and_pad(byte_array: &Vec<u8>) -> Vec<u16> {
-        let mut word_vec = byte_array
-            .into_iter()
-            .map(|b| *b as u16)
-            .collect::<Vec<u16>>();
+        let original_len = byte_array.len();
+        let mut n = original_len;
+        let mut word_vec = byte_array.into_iter().map(|b| *b as u16).collect::<Vec<u16>>();
         while word_vec.len() % size_values::BLOCK_NUM != 0 {
-            word_vec.push(0);
+            word_vec.push(word_vec[n % original_len] ^ (n & masks::MASK_QWORD_14Z2F) as u16);
+            n += word_vec[n % original_len] as usize;
         }
         word_vec
     }
@@ -597,6 +601,27 @@ mod round {
         temp_array_cpy
     }
 
+    fn apply_bahman(temp_array: types::ArrTypeRef, pnum: u16) -> types::ArrType {
+        let mut temp_array_cpy = tools::copy_array(temp_array);
+        let cica = (pnum % (size_values::PORTION_NUM as u16)) as usize;
+        let mica = ((cica + 1) % size_values::PORTION_NUM) as usize;
+        let nica = ((mica + 2) % size_values::PORTION_NUM) as usize;
+        let wica = ((nica + 3) % size_values::PORTION_NUM) as usize;
+
+        let mianju = (temp_array[cica] % (size_values::MASKS_ARRAY_NUM as u16)) as usize;
+        let mianja = (temp_array[mica] % (size_values::MASKS_ARRAY_NUM as u16)) as usize;
+
+        let sosu = (temp_array[nica] % (size_values::ROUND_PRIME_NUM as u16)) as usize;
+        let sosa = (temp_array[wica] % (size_values::ROUND_PRIME_NUM as u16)) as usize;
+
+        temp_array_cpy[cica] ^= (temp_array_cpy[mica] << cica) & masks::WORD_MASKS[mianju];
+        temp_array_cpy[wica] &= temp_array_cpy[wica] ^ prime_arrays::ROUND_PRIMES[sosu];
+        temp_array_cpy[nica] ^= (temp_array_cpy[cica] << (wica * 2)) & masks::WORD_MASKS[mianja];
+        temp_array_cpy[mica] |= temp_array_cpy[nica] | prime_arrays::ROUND_PRIMES[sosa];
+        
+        temp_array_cpy
+    }
+
     fn apply_prime(temp_array: types::ArrTypeRef) -> types::ArrType {
         let mut temp_array_cpy = tools::copy_array(temp_array);
         for i in 0..size_values::ROUND_PRIME_NUM {
@@ -604,6 +629,7 @@ mod round {
             temp_array_cpy[1] %= prime_arrays::ROUND_PRIMES[i];
             temp_array_cpy[2] %= prime_arrays::ROUND_PRIMES[i];
             temp_array_cpy[3] %= prime_arrays::ROUND_PRIMES[i];
+            temp_array_cpy = apply_bahman(&temp_array_cpy, prime_arrays::ROUND_PRIMES[i]);
         }
         temp_array_cpy
     }
@@ -652,8 +678,8 @@ mod block {
     fn apply_bytes(factor_array: types::ArrTypeRef, portion: &[u16], index: u16) -> types::ArrType {
         let tmt = bespoke::tamaam(portion);
         let dca = bespoke::deca(portion);
-        let tmt_odd_factor = bit_values::UINT16_MAX_U16 ^ (tmt % 4);
-        let dca_odd_factor = bit_values::UINT16_MAX_U16 ^ (dca % 3);
+        let tmt_odd_factor = bit_values::UINT16_MAX_U16 ^ (tmt % (dca + 2));
+        let dca_odd_factor = bit_values::UINT16_MAX_U16 ^ (dca % (tmt + 3));
 
         let ng = ((portion[0] + index) % (size_values::PORTION_NUM as u16)) as usize;
         let chu = ((portion[1] + index) % (size_values::PORTION_NUM as u16)) as usize;

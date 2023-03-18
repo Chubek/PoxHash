@@ -44,6 +44,7 @@ __POX_8B_PRIME_NUM = 54
 __POX_ROUND_NUM = 31
 __POX_CHUNK_NUM = 16
 __POX_PORTION_NUM = 4
+__POX_MASKS_ARRAY_NUM = 4
 __POX_SD_PRIME_NUM = 3
 __POX_MAGIC_PRIME_NUM = 2
 
@@ -55,6 +56,7 @@ __UINT16_MAX = 65535
 
 ## MASKS
 ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
+__MASK_QWORD_14Z2F = 0x00000000000000ff
 __MASK_DWORD_4F4Z = 0xffff0000
 __MASK_DWORD_4Z4F = 0x0000ffff
 __MASK_WORD_FZFZ = 0xf0f0
@@ -176,6 +178,9 @@ __POX_8B_PRIMES = __array('H', [
 ])
 __POX_SINGLE_DIGIT_PRIMES = __array('H', [0x3, 0x5, 0x7])
 __POX_MAGIC_PRIMES = __array('H', [0x33, 0x65])
+__POX_WORD_MASKS = __array(
+    'H',
+    [__MASK_WORD_FFZZ, __MASK_WORD_ZFFF, __MASK_WORD_FFFZ, __MASK_WORD_ZZFF])
 
 ## MISC
 ## https://github.com/Chubek/PoxHash/blob/master/SPEC.md#misc
@@ -374,17 +379,19 @@ def __byte_to_array(barray: bytearray) -> __array:
     return __array('H', list(barray))
 
 
-def __pad_array_with_zero(arr: __array) -> __array:
+def __pad_array_with_bytes(arr: __array) -> __array:
+    original_len = len(arr)
+    n = original_len
     while len(arr) % __POX_BLOCK_NUM != 0:
-        arr.append(0)
-
+        arr.append(arr[n % original_len] ^ (n & __MASK_QWORD_14Z2F))
+        n += arr[n % original_len]
     return arr
 
 
 def __process_input(input: any) -> __array:
     if type(input) == __array and input.typecode == 'B':
         ubyte_array = __byte_to_array(input)
-        ubyte_array = __pad_array_with_zero(ubyte_array)
+        ubyte_array = __pad_array_with_bytes(ubyte_array)
         return ubyte_array
     return None
 
@@ -688,12 +695,32 @@ def __pox_round_apply_alphabet(temp_array: __array) -> None:
     __pox_gamma(temp_array)
 
 
+def __pox_round_apply_bahman(temp_array: __array, pnum: int):
+    cica = pnum % __POX_PORTION_NUM
+    mica = (cica + 1) % __POX_PORTION_NUM
+    nica = (mica + 2) % __POX_PORTION_NUM
+    wica = (nica + 3) % __POX_PORTION_NUM
+
+    mianju = temp_array[cica] % __POX_MASKS_ARRAY_NUM
+    mianja = temp_array[mica] % __POX_MASKS_ARRAY_NUM
+
+    sosu = temp_array[nica] % __POX_ROUND_PRIME_NUM
+    sosa = temp_array[wica] % __POX_ROUND_PRIME_NUM
+
+    temp_array[cica] ^= (temp_array[mica] << cica) & __POX_WORD_MASKS[mianju]
+    temp_array[wica] &= temp_array[wica] ^ __POX_ROUND_PRIMES[sosu]
+    temp_array[nica] ^= (temp_array[cica] << (wica * 2)) & __POX_WORD_MASKS[mianja]
+    temp_array[mica] |= temp_array[nica] | __POX_ROUND_PRIMES[sosa]
+
+
 def __pox_round_apply_prime(temp_array: __array) -> None:
     for i in range(__POX_ROUND_PRIME_NUM):
-        temp_array[0] %= __POX_ROUND_PRIMES[i]
-        temp_array[1] %= __POX_ROUND_PRIMES[i]
-        temp_array[2] %= __POX_ROUND_PRIMES[i]
-        temp_array[3] %= __POX_ROUND_PRIMES[i]
+        curr_pnum = __POX_ROUND_PRIMES[i]
+        temp_array[0] %= curr_pnum
+        temp_array[1] %= curr_pnum
+        temp_array[2] %= curr_pnum
+        temp_array[3] %= curr_pnum
+        __pox_round_apply_bahman(temp_array, curr_pnum)
 
 
 def __pox_round_add_tmp_to_facts(factor_array: __array,
@@ -733,8 +760,8 @@ def __pox_apply_bytes(factor_array: __array, subportion: __array,
                       index: int) -> None:
     tmt = __tamaam(subportion)
     dca = __deca(subportion)
-    tmt_odd_factor = __UINT16_MAX ^ (tmt % 4)
-    dca_odd_factor = __UINT16_MAX ^ (dca % 3)
+    tmt_odd_factor = __UINT16_MAX ^ (tmt % (dca + 2))
+    dca_odd_factor = __UINT16_MAX ^ (dca % (tmt + 3))
     ng = (subportion[0] + index) % __POX_PORTION_NUM
     chu = (subportion[1] + index) % __POX_PORTION_NUM
     yo = (subportion[2] + index) % __POX_PORTION_NUM

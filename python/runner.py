@@ -28,6 +28,7 @@
 import sys
 from time import time_ns
 from pathlib import Path
+from array import array
 
 from libpoxh import PoxDigest, pox_hash
 
@@ -68,6 +69,18 @@ SKIPPER_FLAGS = [FLAG_BENCHMARK, FLAG_JOIN, FLAG_NHEADER, FLAG_ECHO]
 
 FILE_PREFIX = "file="
 FILE_PREFIX_LEN = 5
+
+INT_PREFIX = "int="
+INT_PREFIX_LEN = 4
+
+MAX_HEX = 2
+MAX_OCT = 3
+MAX_BIN = 8
+
+HEX_PREFIX = "0x"
+BIN_PREFIX = "0b"
+OCT_PREFIX = "0o"
+BASE_PREFIX_NUM = 2
 
 WRONG_FLAGS = [
     ('G', 'g'),
@@ -476,6 +489,36 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
 def assert_file(arg: str) -> bool:
     return len(arg) > FILE_PREFIX_LEN and arg.startswith(FILE_PREFIX)
 
+def assert_int(arg: str) -> bool:
+    return len(arg) > INT_PREFIX_LEN and arg.startswith(INT_PREFIX)
+
+def to_int(numbers: str) -> array:
+    result = []
+
+    split_up = numbers.split(",")
+    for num in split_up:
+        if num.startswith(BIN_PREFIX):
+            if len(num) - BASE_PREFIX_NUM > MAX_BIN:
+                error_out("Size of binary number should not exceed 8")
+            result.append(int(num[BASE_PREFIX_NUM:], 2))
+        elif num.startswith(OCT_PREFIX):
+            if len(num) - BASE_PREFIX_NUM > MAX_OCT:
+                error_out("Size of octal number should not exceed 5")
+            result.append(int(num[BASE_PREFIX_NUM:], 8))
+        elif num.startswith(HEX_PREFIX):
+            if len(num) - BASE_PREFIX_NUM > MAX_HEX:
+                error_out("Size of hexadecimal number should not exceed 2")
+            result.append(int(num[BASE_PREFIX_NUM:], 16))
+        else:
+            if num.isdigit():
+                integer = int(num)
+                if len(bin(integer)) > MAX_BIN:
+                    error_out("Given integer must be byte-sized (0-255)")
+                result.append(integer)
+            else:
+                error_out("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2")
+
+    return array('B', result)
 
 def join_args(args: list[str]) -> str:
     joined = ""
@@ -514,6 +557,8 @@ def to_ubyte_array(arg: str) -> any:
 def process_arg(arg: str) -> any:
     if not assert_file(arg):
         return to_ubyte_array(arg.encode())
+    elif assert_int(arg):
+        return to_int(arg[INT_PREFIX_LEN:])
     return to_ubyte_array(read_given_file(arg[FILE_PREFIX_LEN:]).encode())
 
 
