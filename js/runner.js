@@ -631,8 +631,9 @@ const assertInt = (arg) => {
 };
 
 const toInt = (arg) => {
-  let result = [];
-  arg.split(",").forEach((num) => {
+  const split = arg.split(",");
+  let result = new Uint8Array(split.length);
+  split.forEach((num, i) => {
     const base = num.substring(0, BASE_PREFIX_NUM);
     const sansBase = num.substring(BASE_PREFIX_NUM);
     switch (base) {
@@ -640,19 +641,19 @@ const toInt = (arg) => {
         if (sansBase.length > MAX_BIN) {
           errorOut("Size of binary number should not exceed 8");
         }
-        result.push(parseInt(sansBase, 2));
+        result[i] = parseInt(sansBase, 2);
         break;
       case OCT_PREFIX:
         if (sansBase.length > MAX_OCT) {
           errorOut("Size of octal number should not exceed 5");
         }
-        result.push(parseInt(sansBase, 8));
+        result[i] = parseInt(sansBase, 8);
         break;
       case HEX_PREFIX:
         if (sansBase.length > MAX_HEX) {
           errorOut("Size of hexadecimal number should not exceed 2");
         }
-        result.push(parseInt(sansBase, 16));
+        result[i] = parseInt(sansBase, 16);
         break;
       default:
         if (parseInt(num) == NaN) {
@@ -660,16 +661,15 @@ const toInt = (arg) => {
             "With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2"
           );
         }
-        const dec = result.push(parseInt(num));
+        const dec = parseInt(num);
         if ((dec >>> 0).toString(2).length > MAX_OCT) {
           errorOut("Given integer must be byte-sized (0-255)");
         }
-        result.push(dec);
+        result[i] = dec;
         break;
     }
   });
-  console.log(result);
-  return new Uint8Array(result);
+  return result;
 };
 
 const isRegularFile = async (fpath) => {
@@ -737,7 +737,7 @@ const main = async (argv0, argv1, argv) => {
 
   if (!argHasFlag(flagsArg, FLAG_NHEADER)) {
     printf(
-      "\033[1;30;47mPoxHashRunner   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n"
+      "\033[1;30;47m   PoxHashRunner   |  JavaScript   |  March 2023 - Chubak Bidpaa  |  MIT  \033[0m\n"
     );
   }
 
