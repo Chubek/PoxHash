@@ -56,6 +56,10 @@
 #define __INCLUDE_STAT
 #include <sys/stat.h>
 #endif
+#ifndef __INCLUDE_STR
+#define __INCLUDE_STR
+#include <string.h>
+#endif
 
 #define SEC_TO_US(sec) ((sec)*1000000)
 #define NS_TO_US(ns) ((ns) / 1000)
@@ -68,8 +72,35 @@
 #define NUM_ASCII 128
 #define LEN_WRONG_FLAGS 34
 #define BENCHMARK_BYTE_INDEX 94
-#define FILE_DENOTE_LEN 5
+#define FILE_PREFIX_LEN 5
 #define FILE_PREFIX "file="
+#define INT_PREFIX_LEN 5
+#define INT_PREFIX "int="
+#define NUM_ALL_DIGITS 10
+
+#define MAX_HEX 4
+#define MAX_OCT 5
+#define MAX_BIN 8
+
+#define PREFIX_HEX "0x"
+#define PREFIX_OCT "0o"
+#define PREFIX_BIN "0b"
+
+#define BASE_PREFIX_NUM 2
+
+#define COMPARE_STR(a, b, n) (strncmp(a, b, n) == 0)
+#define IS_STRLEN_BIGGER(a, len) (strlen(a) > len)
+
+#define REALLOC_ARR(size, arr)                                    \
+    do                                                            \
+    {                                                             \
+        void *nnptr = realloc(arr, size++ * sizeof(uint8_t));     \
+        if (!nnptr)                                               \
+        {                                                         \
+            ERR_OUT("Problem reallocating integer result array"); \
+        }                                                         \
+        arr = nnptr;                                              \
+    } while (0)
 
 #define ERR_OUT(message)                                                                        \
     printf("\n");                                                                               \
@@ -103,7 +134,7 @@ typedef enum FLAGS
     FLAG_ECHO = 'e',
 } flag_t;
 
-const char cFILE_DENOTE_PREFIX[FILE_DENOTE_LEN] = {
+const char cFILE_DENOTE_PREFIX[FILE_PREFIX_LEN] = {
     'f',
     'i',
     'l',
@@ -146,6 +177,18 @@ const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
     {'w', 'e'},
     {'r', 'e'},
     {'i', 'e'},
+};
+const char cALL_DIGITS[10] = {
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
 };
 
 void print_help(char *exec)
@@ -532,6 +575,48 @@ void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flag
     }
 }
 
+int string_starts_with(char *str, char *prefix)
+{
+    return strncmp(prefix, str, strlen(prefix)) == 0;
+}
+
+char *substring(char *str, size_t start, size_t end)
+{
+    char *sub = calloc((end - start) + 1, sizeof(char));
+    memcpy(sub, &str[start], end - start);
+    return sub;
+}
+
+char *append_str(char *str, char append_char)
+{
+    size_t len = strlen(str);
+    char *append = calloc(len + 2, sizeof(char));
+    memcpy(append, str, len * sizeof(char));
+    append[len] = append_char;
+    return append;
+}
+
+int char_is_in_array(const char *array, char is_in, int len) {
+    for (int i = 0; i < len; i++) {
+        if (array[i] == is_in) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int string_is_numeric(char *str)
+{
+    size_t len_str = strlen(str);
+    for (int i = 0; i < len_str; i++)
+    {
+       if (!char_is_in_array(cALL_DIGITS, str[i], NUM_ALL_DIGITS)) {
+            return 0;
+       }
+    }
+    return 1;
+}
+
 uint8_t *char_to_uint8(char *carr)
 {
     int size = strlen(carr);
@@ -545,16 +630,78 @@ uint8_t *char_to_uint8(char *carr)
 
 int assert_file(char *message_arg)
 {
-    if (strlen(message_arg) < FILE_DENOTE_LEN + 1)
+    return strlen(message_arg) > FILE_PREFIX_LEN && string_starts_with(message_arg, FILE_PREFIX);
+}
+
+int assert_int(char *message_arg)
+{
+    return strlen(message_arg) > INT_PREFIX_LEN && string_starts_with(message_arg, INT_PREFIX);
+}
+
+uint8_t *to_int(char *arg)
+{
+    uint8_t *result = NULL;
+    size_t size = 0;
+    char *num = strtok(arg, ",");
+    while (num != NULL)
     {
-        return 0;
+        char *base = substring(num, 0, BASE_PREFIX_NUM);
+        if COMPARE_STR (base, PREFIX_BIN, 2)
+        {
+            if IS_STRLEN_BIGGER (num, MAX_BIN + 2)
+            {
+                ERR_OUT("Size of binary number should not exceed 8");
+            }
+            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_BIN);
+            REALLOC_ARR(size, result);
+            result[size - 1] = (uint8_t)strtol(sans_base, NULL, 2);
+            free(base);
+            free(sans_base);
+        }
+        else if COMPARE_STR (base, PREFIX_OCT, 2)
+        {
+            if IS_STRLEN_BIGGER (num, MAX_OCT + 2)
+            {
+                ERR_OUT("Size of octal number should not exceed 5");
+            }
+            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_OCT);
+            REALLOC_ARR(size, result);
+            result[size - 1] = (uint8_t)strtol(sans_base, NULL, 8);
+            free(base);
+            free(sans_base);
+        }
+        else if COMPARE_STR (num, PREFIX_HEX, 2)
+        {
+            if IS_STRLEN_BIGGER (num, MAX_HEX + 2)
+            {
+                ERR_OUT("Size of hexadecimal number should not exceed 2");
+            }
+            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_HEX);
+            REALLOC_ARR(size, result);
+            result[size - 1] = (uint8_t)strtol(sans_base, NULL, 16);
+            free(base);
+            free(sans_base);
+        }
+        else
+        {
+            if (!string_is_numeric(num))
+            {
+                ERR_OUT("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2");
+            }
+            unsigned long convt = (unsigned long)strtol(num, NULL, 10);
+            if (convt > UINT8_MAX)
+            {
+                ERR_OUT("Given integer must be byte-sized (0-255)");
+            }
+            REALLOC_ARR(size, result);
+            result[size - 1] = (uint8_t)convt;
+            free(base);
+        }
+     //   printf("%u\n", (uint8_t)result[size - 1]);
+        num = strtok(NULL, ",");
     }
-    for (int i = 0; i < FILE_DENOTE_LEN; i++)
-    {
-        if (message_arg[i] != cFILE_DENOTE_PREFIX[i])
-            return 0;
-    }
-    return 1;
+    free(arg);
+    return result;
 }
 
 char *join_args(int argc, char **argv)
@@ -625,17 +772,21 @@ uint8_t *read_given_file(char *fpath)
 
 char *truncate_denotation(char *arg)
 {
-    size_t size = (strlen(arg) - FILE_DENOTE_LEN) + 1;
+    size_t size = (strlen(arg) - FILE_PREFIX_LEN) + 1;
     char *ret = calloc(size, sizeof(char));
-    memcpy(ret, &arg[FILE_DENOTE_LEN], size);
+    memcpy(ret, &arg[FILE_PREFIX_LEN], size);
     return ret;
 }
 
 uint8_t *process_arg(char *arg)
 {
-    if (!assert_file(arg))
+    if (!assert_file(arg) && !assert_int(arg))
     {
         return char_to_uint8(arg);
+    }
+    else if (assert_int(arg))
+    {
+        return to_int(substring(arg, INT_PREFIX_LEN - 1, strlen(arg)));
     }
 
     char *fpath = truncate_denotation(arg);
@@ -650,7 +801,7 @@ int main(int argc, char **argv)
 
     if (!arg_has_flag(argv[1], len_flags, FLAG_NHEADER))
     {
-        printf("\033[1;30;47mPoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n");
+        printf("\033[1;30;47m   PoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  MIT  \033[0m\n");
     }
 
     int echo_arg = arg_has_flag(argv[1], len_flags, FLAG_ECHO);
