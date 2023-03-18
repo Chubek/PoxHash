@@ -42,6 +42,7 @@ const cPOX_8B_PRIME_NUM = 54;
 const cPOX_ROUND_NUM = 31;
 const cPOX_CHUNK_NUM = 16;
 const cPOX_PORTION_NUM = 4;
+const cPOX_MASKS_ARRAY_NUM = 4;
 const cPOX_SD_PRIME_NUM = 3;
 const cPOX_MAGIC_PRIME_NUM = 2;
 
@@ -53,6 +54,7 @@ const cUINT16_MAX = 2 ** 16 - 1;
 
 /// MASKS
 /// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#masks
+const cMASK_QWORD_14Z2F = 0x00000000000000ff;
 const cMASK_DWORD_4F4Z = 0xffff0000;
 const cMASK_DWORD_4Z4F = 0x0000ffff;
 const cMASK_WORD_FZFZ = 0xf0f0;
@@ -69,6 +71,12 @@ const cMASK_NIBBLET_01 = 0b01;
 const cMASK_NIBBLET_10 = 0b10;
 const cMASK_NIBBLET_11 = 0b11;
 const cMASK_NIBBLET_00 = 0b00;
+const cMASKS_ARRAY = [
+  cMASK_WORD_FFZZ,
+  cMASK_WORD_ZFFF,
+  cMASK_WORD_FFFZ,
+  cMASK_WORD_ZZFF,
+];
 
 /// PRIME_ARRAYS
 /// https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
@@ -284,6 +292,14 @@ const log2N = (num) => {
   return num > 1 ? 1 + log2N(iDiv(num, 2)) : 0;
 };
 
+const copyArray = (arr) => {
+  result = [];
+  arr.forEach((item) => {
+    result.push(item);
+  });
+  return result;
+};
+
 ////////  .TOOLS      ////////
 //-------------------------//
 //////// CONVERSION ////////
@@ -337,15 +353,14 @@ const doubleArrayToQuad = (dArr) => {
 };
 
 const byteArrayToWordArrayAndPad = (bytearr) => {
-  let size = bytearr.length;
-  while (size % cPOX_BLOCK_NUM != 0) {
-    size += 1;
+  let original_len = bytearr.length;
+  let n = original_len;
+  let word_vec = copyArray(bytearr);
+  while (word_vec.length % cPOX_BLOCK_NUM != 0) {
+    word_vec.push(word_vec[n % original_len] ^ (n & cMASK_QWORD_14Z2F));
+    n += word_vec[n % original_len];
   }
-  let u16Array = new Uint16Array(size);
-  for (let i = 0; i < size; i++) {
-    u16Array[i] = bytearr[i];
-  }
-  return u16Array;
+  return new Uint16Array(word_vec);
 };
 
 const convertBaseFromDecimal = (base, size, chars, res, dec, offset) => {
@@ -610,12 +625,31 @@ const poxRoundApplyAlphabet = (tempArray) => {
   poxGamma(tempArray);
 };
 
+const applyBahman = (tempArray, pnum) => {
+  const cica = pnum % cPOX_PORTION_NUM;
+  const mica = (cica + 1) % cPOX_PORTION_NUM;
+  const nica = (mica + 2) % cPOX_PORTION_NUM;
+  const wica = (nica + 3) % cPOX_PORTION_NUM;
+
+  const mianju = tempArray[cica] % cPOX_MASKS_ARRAY_NUM;
+  const mianja = tempArray[mica] % cPOX_MASKS_ARRAY_NUM;
+
+  const sosu = tempArray[nica] % cPOX_ROUND_PRIME_NUM;
+  const sosa = tempArray[wica] % cPOX_ROUND_PRIME_NUM;
+
+  tempArray[cica] ^= (tempArray[mica] << cica) & cMASKS_ARRAY[mianju];
+  tempArray[wica] &= tempArray[wica] ^ cPOX_ROUND_PRIMES[sosu];
+  tempArray[nica] ^= (tempArray[cica] << (wica * 2)) & cMASKS_ARRAY[mianja];
+  tempArray[mica] |= tempArray[nica] | cPOX_ROUND_PRIMES[sosa];
+};
+
 const poxRoundApplyPrime = (tempArray) => {
   for (let i = 0; i < cPOX_ROUND_PRIME_NUM; i++) {
     tempArray[0] %= cPOX_ROUND_PRIMES[i];
     tempArray[1] %= cPOX_ROUND_PRIMES[i];
     tempArray[2] %= cPOX_ROUND_PRIMES[i];
     tempArray[3] %= cPOX_ROUND_PRIMES[i];
+    applyBahman(tempArray, cPOX_ROUND_PRIMES[i]);
   }
 };
 
@@ -654,8 +688,8 @@ const poxRound = (factorArray) => {
 const poxApplySubportion = (factorArray, subportion, index) => {
   const tmt = tamaam(subportion);
   const dca = deca(subportion);
-  const tmtOddFactor = cUINT16_MAX ^ tmt % 4;
-  const dcaOddFactor = cUINT16_MAX ^ dca % 3;
+  const tmtOddFactor = cUINT16_MAX ^ tmt % (dca + 2);
+  const dcaOddFactor = cUINT16_MAX ^ dca % (tmt + 3);
 
   const ng = (subportion[0] + index) % cPOX_PORTION_NUM;
   const chu = (subportion[1] + index) % cPOX_PORTION_NUM;
