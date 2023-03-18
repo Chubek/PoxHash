@@ -32,9 +32,9 @@ import (
 	"fmt"
 	"os"
 	"pox/libpoxh"
-	"time"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -71,20 +71,19 @@ const (
 	filePREFIX     = "file="
 	filePREFIX_LEN = 5
 
-	intPREFIX = "int="
+	intPREFIX     = "int="
 	intPREFIX_LEN = 4
 
 	maxHEX = 2
 	maxOCT = 5
 	maxBIN = 8
-	maxU8 = 255
+	maxU8  = 255
 
 	prefixBIN = "0b"
 	prefixOCT = "0o"
 	prefixHEX = "0x"
 
 	basePREFIX_NUM = 2
-
 )
 
 var wrongFLAGS = [numWRONG_FLAGS][2]byte{
@@ -125,10 +124,10 @@ var wrongFLAGS = [numWRONG_FLAGS][2]byte{
 }
 
 func errorOut(message string) {
-	fmt.Println()
-	fmt.Printf(message)
-	fmt.Println()
-	fmt.Printf("\033[1;31mError ocurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n")
+	os.Stderr.WriteString("\n")
+	os.Stderr.WriteString(message)
+	os.Stderr.WriteString("\n")
+	os.Stderr.WriteString("\033[1;31mError ocurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n")
 	os.Exit(1)
 }
 
@@ -141,7 +140,8 @@ func printHelp(exec string) {
 	fmt.Printf("%s -Dhob- word1 word 2\n", exec)
 	fmt.Printf("%s -^^+- large seq  to join and  benchmark\n", exec)
 	fmt.Printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec)
-	fmt.Printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n", filePREFIX, flagJOIN)
+	fmt.Printf("If an argument stats with `%s`, it will lead to file read attempt, unless `%c` is passed\n", filePREFIX, flagJOIN)
+	fmt.Printf("If an argument stats with `%s`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", intPREFIX)
 	fmt.Println()
 	fmt.Printf("\033[1;32mFlags:\033[0m\n")
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", flagECHO)
@@ -484,7 +484,7 @@ func assertInt(arg string) bool {
 
 func toInt(arg string) []uint8 {
 	split := strings.Split(arg, ",")
-	
+
 	var result []uint8
 	var convt uint64
 	var err error
@@ -492,7 +492,7 @@ func toInt(arg string) []uint8 {
 		sansPrefix := string(num[basePREFIX_NUM:])
 		prefix := string(num[:basePREFIX_NUM])
 
-		switch(prefix) {
+		switch prefix {
 		case prefixBIN:
 			if len(sansPrefix) > maxBIN {
 				errorOut("Size of binary number should not exceed 8")
@@ -524,10 +524,10 @@ func toInt(arg string) []uint8 {
 			}
 			result = append(result, uint8(convt))
 			break
-		if err != nil {
-			errorOut(fmt.Sprintf("%s", err))
+			if err != nil {
+				errorOut(fmt.Sprintf("%s", err))
+			}
 		}
-	}
 	}
 	return result
 }
@@ -582,7 +582,7 @@ func main() {
 	flagsByte := []byte(os.Args[1])
 
 	if !argHasFlag(flagsByte, flagNHEADER) {
-		fmt.Printf("\033[1;30;47mPoxHashRunner   |    Go    |  March 2023 - Chubak Bidpaa  |  GPLv3  \033[0m\n")
+		fmt.Printf("\033[1;30;47m   PoxHashRunner   |    Go    |  March 2023 - Chubak Bidpaa  |  MIT  \033[0m\n")
 	}
 
 	echoArg := argHasFlag(flagsByte, flagECHO)

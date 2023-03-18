@@ -222,8 +222,9 @@ proc printHelp(execName: string) =
   printf("%s -Dhob- word1 word 2\n", execName)
   printf("%s -^^+- large seq  to join and  benchmark\n", execName)
   printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", execName)
-  printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n",
+  printf("If an argument stats with `%s`, it will lead to file read attempt, unless `%c` is passed\n",
       FILE_PREFIX, FLAG_JOIN)
+  printf("If an argument stats with `%s`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", INT_PREFIX)
   println()
   printf("\x1b[1;32mFlags:\x1b[0m\n")
   printf("\x1b[1;33m\t`%c`\x1b[0m: Echo argument\n", FLAG_ECHO)

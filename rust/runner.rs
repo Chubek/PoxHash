@@ -109,10 +109,10 @@ const WRONG_FLAGS: &'static [(char, char)] = &[
 
 macro_rules! error_out {
     ($message: literal) => {{
-        println!();
-        print!($message);
-        println!();
-        print!("\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[1;34m-?-\x1b[0m to show help\n");
+        eprintln!();
+        eprint!($message);
+        eprintln!();
+        eprint!("\x1b[1;31mError occurred\x1b[0m. Please pass \x1b[1;34m-?-\x1b[0m to show help\n");
         std::process::exit(1);
     }};
 }
@@ -129,7 +129,8 @@ fn print_help(exec: String) {
         "wget -qO- www.example.com | xargs bash -c '{} -h+- $@'\n",
         exec
     );
-    print!("If an argument stats with `{}`, it will lead to file read attempt, unles `{}` is passed\n", FILE_PREFIX, FLAG_JOIN);
+    print!("If an argument stats with `{}`, it will lead to file read attempt, unless `{}` is passed\n", FILE_PREFIX, FLAG_JOIN);
+    print!("If an argument stats with `{}`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", INT_PREFIX);
     println!();
     print!("\x1b[1;32mFlags:\x1b[0m\n");
     print!("\x1b[1;33m\t`{}`\x1b[0m: Echo argument\n", FLAG_ECHO);

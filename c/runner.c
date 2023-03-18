@@ -102,11 +102,11 @@
         arr = nnptr;                                              \
     } while (0)
 
-#define ERR_OUT(message)                                                                        \
-    printf("\n");                                                                               \
-    printf(message);                                                                            \
-    printf("\n");                                                                               \
-    printf("\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n"); \
+#define ERR_OUT(message)                                                                                 \
+    fprintf(stderr, "\n");                                                                               \
+    fprintf(stderr, message);                                                                            \
+    fprintf(stderr, "\n");                                                                               \
+    fprintf(stderr, "\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n"); \
     exit(1)
 
 typedef enum FLAGS
@@ -201,7 +201,8 @@ void print_help(char *exec)
     printf("%s -Dhob- word1 word 2\n", exec);
     printf("%s -^^+- large seq  to join and  benchmark\n", exec);
     printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec);
-    printf("If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n", FILE_PREFIX, FLAG_JOIN);
+    printf("If an argument stats with `%s`, it will lead to file read attempt, unless `%c` is passed\n", FILE_PREFIX, FLAG_JOIN);
+    printf("If an argument stats with `%s`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", INT_PREFIX);
     printf("\n");
     printf("\033[1;32mFlags:\033[0m\n");
     printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO);
@@ -596,9 +597,12 @@ char *append_str(char *str, char append_char)
     return append;
 }
 
-int char_is_in_array(const char *array, char is_in, int len) {
-    for (int i = 0; i < len; i++) {
-        if (array[i] == is_in) {
+int char_is_in_array(const char *array, char is_in, int len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        if (array[i] == is_in)
+        {
             return 1;
         }
     }
@@ -610,9 +614,10 @@ int string_is_numeric(char *str)
     size_t len_str = strlen(str);
     for (int i = 0; i < len_str; i++)
     {
-       if (!char_is_in_array(cALL_DIGITS, str[i], NUM_ALL_DIGITS)) {
+        if (!char_is_in_array(cALL_DIGITS, str[i], NUM_ALL_DIGITS))
+        {
             return 0;
-       }
+        }
     }
     return 1;
 }
@@ -697,7 +702,7 @@ uint8_t *to_int(char *arg)
             result[size - 1] = (uint8_t)convt;
             free(base);
         }
-     //   printf("%u\n", (uint8_t)result[size - 1]);
+        //   printf("%u\n", (uint8_t)result[size - 1]);
         num = strtok(NULL, ",");
     }
     free(arg);

@@ -152,10 +152,10 @@ const println = () => {
 };
 
 const errorOut = (message) => {
-  println();
-  printf(message);
-  println();
-  printf(
+  process.stderr.write("\n");
+  process.stderr.write(message);
+  process.stderr.write("\n");
+  process.stderr.write(
     "\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n"
   );
   process.exit(1);
@@ -181,7 +181,7 @@ const printHelp = (execApp, execScript) => {
     execScript
   );
   printf(
-    "If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n",
+    "If an argument stats with `%s`, it will lead to file read attempt, unless `%c` is passed\n",
     FILE_PREFIX,
     FLAG_JOIN
   );

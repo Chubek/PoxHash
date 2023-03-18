@@ -149,10 +149,10 @@ def println() -> None:
 
 
 def error_out(message: str) -> None:
-    println()
-    printf(message)
-    println()
-    printf(
+    sys.stderr.write("\n")
+    sys.stderr.write(message)
+    sys.stderr.write("\n")
+    sys.stderr.write(
         "\033[1;31mError occurred\033[0m. Please pass \033[134m-?-\033[0m to show help\n"
     )
     exit(1)
@@ -172,8 +172,9 @@ def printHelp(exec_name: str, script_name: str) -> None:
     printf("wget -qO- www.example.com | xargs bash -c '%s %s -h+- $@'\n",
            exec_name, script_name)
     printf(
-        "If an argument stats with `%s`, it will lead to file read attempt, unles `%c` is passed\n",
+        "If an argument stats with `%s`, it will lead to file read attempt, unless `%c` is passed\n",
         FILE_PREFIX, FLAG_JOIN)
+    printf("If an argument stats with `%s`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", INT_PREFIX)
     println()
     printf("\033[1;32mFlags:\033[0m\n")
     printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO)
