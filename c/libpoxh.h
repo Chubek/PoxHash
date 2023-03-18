@@ -401,7 +401,7 @@ static inline uint16_t get_8b_prime(uint16_t num)
     {                                                                                                   \
         size_t original_size = strlen(barr);                                                            \
         size_t n = original_size;                                                                       \
-        warrptr = calloc(0, sizeof(uint16_t));                                                          \
+        warrptr = calloc(original_size, sizeof(uint16_t));                                                          \
         for (int i = 0; i < original_size; i++)                                                         \
         {                                                                                               \
             warrptr[i] = (uint16_t)barr[i];                                                             \
