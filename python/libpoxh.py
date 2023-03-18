@@ -73,7 +73,7 @@ __MASK_NIBBLET_01 = 0b01
 __MASK_NIBBLET_10 = 0b10
 __MASK_NIBBLET_11 = 0b11
 __MASK_NIBBLET_00 = 0b00
-__WORD_MASKS = __array(
+__MASKS_ARRAY = __array(
     'H',
     [__MASK_WORD_FFZZ, __MASK_WORD_ZFFF, __MASK_WORD_FFFZ, __MASK_WORD_ZZFF])
 
@@ -386,6 +386,7 @@ def __pad_array_with_bytes(arr: __array) -> __array:
     while len(arr) % __POX_BLOCK_NUM != 0:
         arr.append(arr[n % original_len] ^ (n & __MASK_QWORD_14Z2F))
         n += arr[n % original_len]
+
     return arr
 
 
@@ -708,9 +709,9 @@ def __pox_round_apply_bahman(temp_array: __array, pnum: int):
     sosu = temp_array[nica] % __POX_ROUND_PRIME_NUM
     sosa = temp_array[wica] % __POX_ROUND_PRIME_NUM
 
-    temp_array[cica] ^= (temp_array[mica] << cica) & __WORD_MASKS[mianju]
+    temp_array[cica] ^= (temp_array[mica] << cica) & __MASKS_ARRAY[mianju]
     temp_array[wica] &= temp_array[wica] ^ __POX_ROUND_PRIMES[sosu]
-    temp_array[nica] ^= (temp_array[cica] << (wica * 2)) & __WORD_MASKS[mianja]
+    temp_array[nica] ^= (temp_array[cica] << (wica * 2)) & __MASKS_ARRAY[mianja]
     temp_array[mica] |= temp_array[nica] | __POX_ROUND_PRIMES[sosa]
 
 
