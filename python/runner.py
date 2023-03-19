@@ -142,6 +142,10 @@ def to_e_notation(num_in: float, places: int) -> str:
                 continue
             truncs = f"{truncs}{c}"
 
+        if len(truncs) < places:
+            pad = "0" * (places - len(truncs))
+            truncs = f"{truncs}{pad}"
+
         e_str = f"{e}" if e > 9 else f"0{e}"
         return f"{first_digit}.{truncs}e+{e_str}"
     elif 0.0 < num < 1.0:
@@ -158,11 +162,16 @@ def to_e_notation(num_in: float, places: int) -> str:
             if first_non_zero_index != 0 and len(truncs) < places:
                 truncs = f"{truncs}{c}"
 
+        if len(truncs) < places:
+            pad = "0" * (places - len(truncs))
+            truncs = f"{truncs}{pad}"
+
         e = first_non_zero_index - 1
         e_str = f"{e}" if e > 9 else f"0{e}"
         return f"{first_digit}.{truncs}e-{e_str}"
     else:
         return f"{num}"
+
 
 def printf(*argc, **_) -> None:
     message = argc[0]
@@ -341,6 +350,7 @@ def validate_flags(exec: str, argv: list[str]) -> None:
     if reoccurrance != '\0' and reoccurrance != FLAG_BENCHMARK:
         printf("Flag `%c` appears twice", reoccurrance)
         error_out("Only `^` can appear twice")
+    double_benchmark = reoccurrance == FLAG_BENCHMARK
 
     if len_argv < MIN_ARG_NUM + 1:
         error_out("You must pass at least one argument to hash")
@@ -358,6 +368,8 @@ def validate_flags(exec: str, argv: list[str]) -> None:
                 error_out(
                     "When a timestamp flag has passed, `^` must be passed as well"
                 )
+            elif double_benchmark:
+                error_out("When double benchmark (`^^`) is passed, you may not pass a timestamp flag")
             continue
         if flag == FLAG_EVERTHING:
             if all_flags_dec_passed or all_flags_non_dec_passed:
@@ -474,30 +486,31 @@ def all_are_false(bools: list[bool]) -> bool:
 def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
     len_hashes = len(hashes)
     reoccurrance = search_for_flag_occurrances(flags[1:-1])
+    double_benchmark = reoccurrance == FLAG_BENCHMARK
 
     if arg_has_flag(flags, FLAG_BENCHMARK):
-        printf("| %d Messages ||", len(hashes))
+        printf("| %d Message(s) ||", len(hashes))
         has_printed = False
-        if arg_has_flag(flags, FLAG_NS):
+        if arg_has_flag(flags, FLAG_NS) or double_benchmark:
             printf(" %dns |", convert_time(total_time, NS_TO_NS))
             has_printed = True
-        if arg_has_flag(flags, FLAG_US):
+        if arg_has_flag(flags, FLAG_US) or double_benchmark:
             printf(" %dus |", convert_time(total_time, NS_TO_US))
             has_printed = True
-        if arg_has_flag(flags, FLAG_MS):
+        if arg_has_flag(flags, FLAG_MS) or double_benchmark:
             printf(" %dms |", convert_time(total_time, NS_TO_MS))
             has_printed = True
-        if arg_has_flag(flags, FLAG_SS):
+        if arg_has_flag(flags, FLAG_SS) or double_benchmark:
             printf(" %ds |", convert_time(total_time, NS_TO_SS))
             has_printed = True
-        if arg_has_flag(flags, FLAG_MM):
+        if arg_has_flag(flags, FLAG_MM) or double_benchmark:
             printf(" %dm |", convert_time(total_time, NS_TO_MM))
             has_printed = True
         if not has_printed:
             printf(" %dus |", convert_time(total_time, NS_TO_US))
         println()
 
-    if reoccurrance == FLAG_BENCHMARK:
+    if double_benchmark:
         println()
         exit(0)
 
@@ -656,7 +669,7 @@ def main(exec_name: str, argv: list[str]) -> None:
 
     if not arg_has_flag(flags_arg, FLAG_NHEADER):
         printf(
-            "\033[1;3047m   PoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  MIT  \033[0m\n"
+            "\033[1;30;47m   PoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  MIT  \033[0m\n"
         )
 
     echo_arg = arg_has_flag(flags_arg, FLAG_ECHO)
