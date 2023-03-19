@@ -173,6 +173,11 @@ const toENotation = (numIn, places) => {
         }
       });
 
+    if (truncs.length < places) {
+      const pad = "0".repeat(places - truncs.length);
+      truncs = `${truncs}${pad}`;
+    }
+
     const eStr = e > 9 ? `${e}` : `0${e}`;
     return `${firstDigit}.${truncs}e+${eStr}`;
   } else if (num > 0.0 && num < 1.0) {
@@ -190,6 +195,11 @@ const toENotation = (numIn, places) => {
         truncs = `${truncs}${c}`;
       }
     });
+
+    if (truncs.length < places) {
+      const pad = "0".repeat(places - truncs.length);
+      truncs = `${truncs}${pad}`;
+    }
 
     const e = firstNonZeroIndex - 1;
     const eStr = e > 9 ? `${e}` : `0${e}`;
@@ -419,6 +429,7 @@ const validateFlags = (argv0, argv1, argv) => {
     printf("Flag `%c` appears twice", reoccurrance);
     errorOut("Only `^` can appear twice");
   }
+  const doubleBenchmark = reoccurrance == FLAG_BENCHMARK;
 
   if (lenArgv < MIN_ARG_NUM) {
     errorOut("You must pass at least one argument to hash");
@@ -444,6 +455,10 @@ const validateFlags = (argv0, argv1, argv) => {
         if (!benchmarkHasPassed) {
           errorOut(
             "When a timestamp flag has passed, `^` must be passed as well"
+          );
+        } else if (doubleBenchmark) {
+          errorOut(
+            "When double benchmark (`^^`) is passed, you may not pass a timestamp flag"
           );
         }
         continue;
@@ -580,27 +595,29 @@ const allAreFalse = (arr) => {
 const printHashes = (hashes, flags, totalTime) => {
   const lenFlags = flags.length;
   const lenHashes = hashes.length;
+  const reoccurrance = searchForFlagReoccurrances(flags, lenFlags);
+  const doubleBenchmark = reoccurrance == FLAG_BENCHMARK;
 
   if (argHasFlag(flags, FLAG_BENCHMARK)) {
-    printf("| %d Messages ||", lenHashes);
+    printf("| %d Message(s) ||", lenHashes);
     let hasPrinted = false;
-    if (argHasFlag(flags, FLAG_NS)) {
+    if (argHasFlag(flags, FLAG_NS) || doubleBenchmark) {
       printf(" %sns |", convertTime(totalTime, NS_TO_NS));
       hasPrinted = true;
     }
-    if (argHasFlag(flags, FLAG_US)) {
+    if (argHasFlag(flags, FLAG_US) || doubleBenchmark) {
       printf(" %sus |", convertTime(totalTime, NS_TO_US));
       hasPrinted = true;
     }
-    if (argHasFlag(flags, FLAG_MS)) {
+    if (argHasFlag(flags, FLAG_MS) || doubleBenchmark) {
       printf(" %sms |", convertTime(totalTime, NS_TO_MS));
       hasPrinted = true;
     }
-    if (argHasFlag(flags, FLAG_SS)) {
+    if (argHasFlag(flags, FLAG_SS) || doubleBenchmark) {
       printf(" %ss |", convertTime(totalTime, NS_TO_SS));
       hasPrinted = true;
     }
-    if (argHasFlag(flags, FLAG_MM)) {
+    if (argHasFlag(flags, FLAG_MM) || doubleBenchmark) {
       printf(" %sm |", convertTime(totalTime, NS_TO_MM));
       hasPrinted = true;
     }
@@ -610,8 +627,7 @@ const printHashes = (hashes, flags, totalTime) => {
     println();
   }
 
-  const reoccurrance = searchForFlagReoccurrances(flags, lenFlags);
-  if (reoccurrance == FLAG_BENCHMARK) {
+  if (doubleBenchmark) {
     println();
     process.exit(0);
   }
