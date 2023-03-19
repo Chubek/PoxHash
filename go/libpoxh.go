@@ -429,18 +429,6 @@ func wordArrToByteArr(wordarr factorType) byteType {
 	return bytearr
 }
 
-func byteArrToWordArrAndPad(bytearr []byte) []uint16 {
-	var n, original_len uint64
-	original_len = uint64(len(bytearr))
-	n = original_len
-	wordArr := copyByteArrayToWordArray(bytearr)
-	for len(wordArr)%poxBLOCK_NUM != 0 {
-		wordArr = append(wordArr, uint16(uint64(wordArr[n%original_len])^(n&maskQWORD_14Z2F)))
-		n += uint64(wordArr[n%original_len])
-	}
-	return wordArr
-}
-
 func decimalToBase(base, dec uint16, size, offset int, chars, res []byte) {
 	for i := ((offset * size) + size) - 1; i >= offset*size; i-- {
 		res[i] = chars[dec%base]
@@ -516,6 +504,18 @@ func wordArrToBinDigest(wordarr factorType) string {
 //-------------------------//
 //////// BITWISE OPS ////////
 // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
+
+func octopad(bytearr []byte) []uint16 {
+	var n, original_len uint64
+	original_len = uint64(len(bytearr))
+	n = original_len
+	wordArr := copyByteArrayToWordArray(bytearr)
+	for len(wordArr)%poxBLOCK_NUM != 0 {
+		wordArr = append(wordArr, uint16(uint64(wordArr[n%original_len])^(n&maskQWORD_14Z2F)))
+		n += uint64(wordArr[n%original_len])
+	}
+	return wordArr
+}
 
 func omega(num uint32) uint32 {
 	return (num & maskDWORD_4F4Z) >> bitWORD_WIDTH_U32
@@ -942,7 +942,7 @@ func PoxHash(message []uint8) PoxDigest {
 	//			PoxDigest.Words: [4]uint16
 	//			PoxDigest.Doubles [2]uint32
 	//			PoxDigest.Quad 	uint64
-	maskded := byteArrToWordArrAndPad(message)
+	maskded := octopad(message)
 	factorArray := newFactorArray()
 
 	for i := 0; i < len(maskded); i += poxBLOCK_NUM {
