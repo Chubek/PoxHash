@@ -32,7 +32,7 @@ const MAX_FLAG_SIZE = 24;
 const MIN_FLAG_SIZE = 3;
 const MIN_ARG_NUM = 2;
 const NUM_ASCII = 128;
-const LEN_WRONG_FLAGS = 34;
+const LEN_WRONG_FLAGS = 28;
 const FORMAT_MARKER = "%";
 const FORMAT_STR = "s";
 const FORMAT_DIGIT = "d";
@@ -56,6 +56,11 @@ const FLAG_DUO = "d";
 const FLAG_OCT = "o";
 const FLAG_SEN = "s";
 const FLAG_BIN = "b";
+const FLAG_NS = "9";
+const FLAG_US = "6";
+const FLAG_MS = "3";
+const FLAG_SS = "5";
+const FLAG_MM = "0";
 const FLAG_HELP = "?";
 const FLAG_DASH = "-";
 const FLAG_NHEADER = "z";
@@ -64,6 +69,8 @@ const FLAG_ECHO = "e";
 const MAX_HEX = 4;
 const MAX_OCT = 5;
 const MAX_BIN = 8;
+
+const MAX_U8 = 255;
 
 const FILE_PREFIX = "file=";
 const FILE_PREFIX_LEN = 5;
@@ -75,6 +82,14 @@ const HEX_PREFIX = "0x";
 const BIN_PREFIX = "0b";
 const OCT_PREFIX = "0o";
 const BASE_PREFIX_NUM = 2;
+
+const NS_TO_NS = 100;
+const NS_TO_US = 1000;
+const NS_TO_MS = 1000000;
+const NS_TO_SS = 1000000000;
+const NS_TO_MM = 60000000000;
+
+const E_NOT_TRUNC_LEN = 4;
 
 const WRONG_FLAGS = [
   ["G", "g"],
@@ -88,12 +103,6 @@ const WRONG_FLAGS = [
   ["w", "4"],
   ["q", "1"],
   ["Q", "1"],
-  ["3", "2"],
-  ["5", "4"],
-  ["6", "^"],
-  ["7", "8"],
-  ["9", "8"],
-  ["0", "1"],
   ["/", "?"],
   ["=", "+"],
   ["B", "b"],
@@ -146,6 +155,49 @@ function printf() {
   finalMessage += message[lenMessage - 1];
   process.stdout.write(finalMessage);
 }
+
+const toENotation = (numIn, places) => {
+  const num = Math.abs(numIn);
+  if (num > 1.0) {
+    const numStr = `${num}`;
+    const indexOfPeriod = numStr.indexOf(".");
+    const e = indexOfPeriod - 1;
+    const firstDigit = numStr.charAt(0);
+    let truncs = "";
+    numStr
+      .substring(1, places + 1)
+      .split("")
+      .forEach((char_at) => {
+        if (char_at != ".") {
+          truncs = `${truncs}${char_at}`;
+        }
+      });
+
+    const eStr = e > 9 ? `${e}` : `0${e}`;
+    return `${firstDigit}.${truncs}e+${eStr}`;
+  } else if (num > 0.0 && num < 1.0) {
+    const numStr = `${num}`;
+    let firstNonZeroIndex = 0;
+    let truncs = "";
+    let firstDigit = "\0";
+    numStr.split("").forEach((c, i) => {
+      if (c != "0" && c != "." && firstNonZeroIndex == 0) {
+        firstNonZeroIndex = i;
+        firstDigit = c;
+        return;
+      }
+      if (firstNonZeroIndex != 0 && truncs.length < places) {
+        truncs = `${truncs}${c}`;
+      }
+    });
+
+    const e = firstNonZeroIndex - 1;
+    const eStr = e > 9 ? `${e}` : `0${e}`;
+    return `${firstDigit}.${truncs}e-${eStr}`;
+  } else {
+    return `${num}`;
+  }
+};
 
 const println = () => {
   process.stdout.write("\n");
@@ -248,6 +300,17 @@ const printHelp = (execApp, execScript) => {
   );
   printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
   printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
+  printf("\033[1;33m\t`%c`\033[0m: Print total time in nanoseconds\n", FLAG_NS);
+  printf(
+    "\033[1;33m\t`%c`\033[0m: Print total time in mictoseconds\n",
+    FLAG_US
+  );
+  printf(
+    "\033[1;33m\t`%c`\033[0m: Print total time in milliseconds\n",
+    FLAG_MS
+  );
+  printf("\033[1;33m\t`%c`\033[0m: Print total time in seconds\n", FLAG_SS);
+  printf("\033[1;33m\t`%c`\033[0m: Print total time in minutes\n", FLAG_MM);
   printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
   process.exit(1);
 };
@@ -262,7 +325,7 @@ const checkForWrongFlags = (flags) => {
       right_flag = WRONG_FLAGS[j][1];
       if (flag == wrong_flag) {
         printf("No flag for `%c`, perhaps you meant `%c`?", flag, right_flag);
-        errorOut("Flag erreror");
+        errorOut("Flag errror");
       }
     }
   }
@@ -364,6 +427,7 @@ const validateFlags = (argv0, argv1, argv) => {
   const allFlagsPassed = argHasFlag(flagsArg, FLAG_EVERTHING);
   const allFlagsDecPassed = argHasFlag(flagsArg, FLAG_ALL_DECIMAL);
   const allFlagsNonDecPassed = argHasFlag(flagsArg, FLAG_ALL_NON_DEC);
+  const benchmarkHasPassed = argHasFlag(flagsArg, FLAG_BENCHMARK);
 
   for (let i = 1; i < lenFlags - 1; i++) {
     switch (flagsArg[i]) {
@@ -371,6 +435,17 @@ const validateFlags = (argv0, argv1, argv) => {
       case FLAG_JOIN:
       case FLAG_NHEADER:
       case FLAG_ECHO:
+        continue;
+      case FLAG_NS:
+      case FLAG_US:
+      case FLAG_MS:
+      case FLAG_SS:
+      case FLAG_MM:
+        if (!benchmarkHasPassed) {
+          errorOut(
+            "When a timestamp flag has passed, `^` must be passed as well"
+          );
+        }
         continue;
       case FLAG_EVERTHING:
         if (allFlagsDecPassed || allFlagsNonDecPassed) {
@@ -485,8 +560,12 @@ const validateFlags = (argv0, argv1, argv) => {
   }
 };
 
-const getTimeInUS = () => {
-  return Number(Date.now() + String(process.hrtime()[1]).slice(3, 6));
+const getTimeInNS = () => {
+  return Number(Date.now() + String(process.hrtime()[1]).slice(3));
+};
+
+const convertTime = (time, divisor) => {
+  return toENotation(time / divisor, E_NOT_TRUNC_LEN);
 };
 
 const allAreFalse = (arr) => {
@@ -501,12 +580,35 @@ const allAreFalse = (arr) => {
 const printHashes = (hashes, flags, totalTime) => {
   const lenFlags = flags.length;
   const lenHashes = hashes.length;
-  if (argHasFlag(flags, FLAG_BENCHMARK))
-    printf(
-      "Total time for hashing %d unsigned bytearrays(s): %dus \n",
-      lenHashes,
-      totalTime
-    );
+
+  if (argHasFlag(flags, FLAG_BENCHMARK)) {
+    printf("| %d Messages ||", lenHashes);
+    let hasPrinted = false;
+    if (argHasFlag(flags, FLAG_NS)) {
+      printf(" %sns |", convertTime(totalTime, NS_TO_NS));
+      hasPrinted = true;
+    }
+    if (argHasFlag(flags, FLAG_US)) {
+      printf(" %sus |", convertTime(totalTime, NS_TO_US));
+      hasPrinted = true;
+    }
+    if (argHasFlag(flags, FLAG_MS)) {
+      printf(" %sms |", convertTime(totalTime, NS_TO_MS));
+      hasPrinted = true;
+    }
+    if (argHasFlag(flags, FLAG_SS)) {
+      printf(" %ss |", convertTime(totalTime, NS_TO_SS));
+      hasPrinted = true;
+    }
+    if (argHasFlag(flags, FLAG_MM)) {
+      printf(" %sm |", convertTime(totalTime, NS_TO_MM));
+      hasPrinted = true;
+    }
+    if (!hasPrinted) {
+      printf(" %sus |", convertTime(totalTime, NS_TO_US));
+    }
+    println();
+  }
 
   const reoccurrance = searchForFlagReoccurrances(flags, lenFlags);
   if (reoccurrance == FLAG_BENCHMARK) {
@@ -662,7 +764,8 @@ const toInt = (arg) => {
           );
         }
         const dec = parseInt(num);
-        if ((dec >>> 0).toString(2).length > MAX_OCT) {
+        const u16Container = new Uint16Array([dec]);
+        if (u16Container[0] > MAX_U8) {
           errorOut("Given integer must be byte-sized (0-255)");
         }
         result[i] = dec;
@@ -754,9 +857,9 @@ const main = async (argv0, argv1, argv) => {
       printf("Joined Args: \n`%s`\n", argsJoined);
     }
     const u8Array = stringToU8Array(argsJoined);
-    t1 = getTimeInUS();
+    t1 = getTimeInNS();
     hashes[0] = libpoxh.poxHash(u8Array);
-    t2 = getTimeInUS();
+    t2 = getTimeInNS();
     printHashes(hashes.slice(0, 1), flagsArg, t2 - t1);
   } else {
     let cursor = 0;
@@ -766,9 +869,9 @@ const main = async (argv0, argv1, argv) => {
         printf("Arg %d: %s\n", i - 1, argv[i]);
       }
       processedArg = await processArg(argv[i]);
-      t1 = getTimeInUS();
+      t1 = getTimeInNS();
       hashes[cursor] = libpoxh.poxHash(processedArg);
-      t2 = getTimeInUS();
+      t2 = getTimeInNS();
       cursor += 1;
       totalTime += t2 - t1;
     }
