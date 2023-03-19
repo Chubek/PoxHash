@@ -380,23 +380,6 @@ def __byte_to_array(barray: bytearray) -> __array:
     return __array('H', list(barray))
 
 
-def __pad_array_with_bytes(arr: __array) -> __array:
-    original_len = len(arr)
-    n = original_len
-    while len(arr) % __POX_BLOCK_NUM != 0:
-        arr.append(arr[n % original_len] ^ (n & __MASK_QWORD_14Z2F))
-        n += arr[n % original_len]
-    return arr
-
-
-def __process_input(input: any) -> __array:
-    if type(input) == __array and input.typecode == 'B':
-        ubyte_array = __byte_to_array(input)
-        ubyte_array = __pad_array_with_bytes(ubyte_array)
-        return ubyte_array
-    return None
-
-
 def __log_2_n(num: int) -> int:
     return 1 + __log_2_n(num // 2) if (num > 1) else 0
 
@@ -513,6 +496,14 @@ def __pox_factors_to_byte_array(factor_array: __array) -> __array:
 ######## BITWISE OPS ########
 # https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
 
+
+def __octopad(arr: __array) -> __array:
+    original_len = len(arr)
+    n = original_len
+    while len(arr) % __POX_BLOCK_NUM != 0:
+        arr.append(arr[n % original_len] ^ (n & __MASK_QWORD_14Z2F))
+        n += arr[n % original_len]
+    return arr
 
 def __omega(res_array: __array) -> None:
     res_array[0] = (res_array[0] & __MASK_DWORD_4F4Z) >> __WORD_WIDTH
@@ -938,7 +929,7 @@ def pox_hash(message: any) -> PoxDigest:
             PoxDigest.quad: array.array('Q', 1)    
     """
 
-    ubyte_array = __process_input(message)
+    ubyte_array = __octopad(message)
     if ubyte_array is None:
         return None
 
