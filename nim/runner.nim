@@ -295,12 +295,12 @@ proc printHelp(execName: string) =
   printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", execName)
   printf("If an argument stats with `%s`, it will lead to file read attempt, unless `%c` is passed\n",
       FILE_PREFIX, FLAG_JOIN)
-  printf("If an argument stats with `%s`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", INT_PREFIX)
+  printf("If an argument stats with `%s`, it will parse the int, values 0-255, prefixes `0b`, `0o` and `0x` for bin, oct and hex and none for decimal apply\n", INT_PREFIX)
   println()
   printf("\x1b[1;32mFlags:\x1b[0m\n")
   printf("\x1b[1;33m\t`%c`\x1b[0m: Echo argument\n", FLAG_ECHO)
   printf("\x1b[1;33m\t`%c`\x1b[0m: Don't print header message\n", FLAG_NHEADER)
-  printf("\x1b[1;33m\t`%c`\x1b[0m: Benchmark run (pass two to only show benchmark)\n", FLAG_BENCHMARK)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Benchmark run (pass two to only show benchmark with all timestamps)\n", FLAG_BENCHMARK)
   printf("\x1b[1;33m\t`%c`\x1b[0m: Join arguments with space (byte 32)\n", FLAG_JOIN)
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print every digest\n", FLAG_EVERTHING)
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print every non-decimal digest\n", FLAG_ALL_NON_DEC)
@@ -317,13 +317,16 @@ proc printHelp(execName: string) =
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print octal digest (base eight)\n", FLAG_OCT)
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print senary digest (base six)\n", FLAG_SEN)
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print binary digest (base two)\n", FLAG_BIN)
-  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in nanoseconds\n", FLAG_NS);
-  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in mictoseconds\n",
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total timestamp delta in nanoseconds\n",
+      FLAG_NS);
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total timestamp delta in mictoseconds\n",
       FLAG_US);
-  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in milliseconds\n",
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total timestamp delta in milliseconds\n",
       FLAG_MS);
-  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in seconds\n", FLAG_SS);
-  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in minutes\n", FLAG_MM);
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total timestamp delta in seconds\n",
+      FLAG_SS);
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total timestamp delta in minutes\n",
+      FLAG_MM);
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print Help\n\n", FLAG_HELP)
   quit(1)
 
@@ -706,14 +709,9 @@ proc toInt(arg: string): string =
     result.add(^^convt)
 
 proc joinArgs(args: seq[string]): string =
-  var warned = false
-  for arg in **args:
-    if assertFile(arg) and not warned:
-      printf("\x1b[1;33mWarning:\x1b[0m: The `filepath=` prefix is ignored in join mode\n")
-      warned = true
-    result += arg
-    result += " "
-  result = result[0..result.len() - 2]
+  result = args[0]
+  for arg in **args[1..args.len() - 1]:
+    result = fmt"{result} {arg}"
 
 proc processArg(arg: string): string =
   if not assertFile(arg) and not assertInt(arg):
