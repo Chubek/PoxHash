@@ -1,3 +1,5 @@
+#!/bin/bash
+
 RED="\033[1;31m"
 GREEN="\033[1;32m"
 YELLOW="\033[1;33m"
@@ -75,7 +77,32 @@ case "$#" in
         language=$1 && shift
         language=$(printf "${language}" | tr '[:upper:]' '[:lower:]')        
         check_language
-        if [[ "${1}" == "-s" ]]; then shift; else printf "${to_print}"; fi
-        sudo chmod +x $folder/poxh.sh && $folder/poxh.sh $@
+        
+        silent="0"
+        compile="0"
+        for arg in $1 $2; do
+            if [ "$arg" = "-s" ]; then
+                if [ "$silent" = "1" ]; then 
+                    printf "${RED}Error:${NC} can pass -s and -c twice"
+                    exit 1;
+                fi
+                silent="1"
+                shift
+            elif [ "$arg" = "-c" ]; then
+                if [ "$compile" = "1" ]; then 
+                    printf "${RED}Error:${NC} can pass -s and -c twice"
+                    exit 1;
+                fi
+                compile="1"
+                shift
+            fi                
+        done
+
+        if [ "$silent" = "0" ]; then
+            printf $to_print
+            echo
+        fi
+
+        export COMPILE=$compile && sudo chmod +x $folder/poxh.sh && $folder/poxh.sh $@
         ;;
 esac
