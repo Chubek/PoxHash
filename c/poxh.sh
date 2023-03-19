@@ -1,2 +1,13 @@
-rm -f /tmp/c-poxhash-runner
-gcc c/runner.c -o /tmp/c-poxhash-runner && /tmp/c-poxhash-runner $@
+#!/bin/bash
+
+PROJ_DIR="/tmp/cpoxh"
+COMPILE_NAME="c-poxhash-runner"
+FILE_PATH="c/runner.c"
+
+if [[ "$COMPILE" = "1" ]] || [[ ! -f "$PROJ_DIR/$COMPILE_NAME" ]]; then
+    rm -f $PROJ_DIR/$COMPILE_NAME
+    mkdir -p $PROJ_DIR
+    gcc -O2 $FILE_PATH -o $PROJ_DIR/$COMPILE_NAME &> /dev/null
+fi
+
+$PROJ_DIR/$COMPILE_NAME $@
