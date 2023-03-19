@@ -207,6 +207,10 @@ proc toENotation(numIn: float64, places: int): string =
         continue
       truncs = fmt"{truncs}{c}"
 
+    if truncs.len() < places:
+      var pad = '0'.repeat(places - truncs.len())
+      truncs = fmt"{truncs}{pad}"
+
     if e mod 2 == 0:
       eStr = fmt"{e}"
     else:
@@ -230,6 +234,10 @@ proc toENotation(numIn: float64, places: int): string =
 
       if firstNonZeroIndex != 0 and truncs.len() < places:
         truncs = fmt"{truncs}{c}"
+
+    if truncs.len() < places:
+      var pad = '0'.repeat(places - truncs.len())
+      truncs = fmt"{truncs}{pad}"
 
     e = firstNonZeroIndex - 1
     if e mod 2 == 0:
@@ -373,6 +381,7 @@ proc validateFlags(exec: string, argv: seq[string]) =
     lenFlags = flagsArg.len()
     helpPassed = false
     reoccurrance = '\0'
+    doubleBenchMark = false
     allFlagsPassed = false
     allFlagsNonDecPassed = false
     allFlagsDecPassed = false
@@ -401,6 +410,8 @@ proc validateFlags(exec: string, argv: seq[string]) =
   if reoccurrance != '\0' and reoccurrance != FLAG_BENCHMARK:
     printf("Flag `%c` appears twice", reoccurrance)
     errorOut("Only `^` can appear twice")
+  doubleBenchMark = reoccurrance == FLAG_BENCHMARK
+
 
   if lenArgv < MIN_ARG_NUM + 1:
     errorOut("You must pass at least one argument to hash")
@@ -417,6 +428,8 @@ proc validateFlags(exec: string, argv: seq[string]) =
       of FLAG_NS, FLAG_US, FLAG_MS, FLAG_SS, FLAG_MM:
         if not benchmarkHasPassed:
           errorOut("When a timestamp flag has passed, `^` must be passed as well");
+        elif doubleBenchMark:
+          errorOut("When double benchmark (`^^`) is passed, you may not pass a timestamp flag")
         continue
       of FLAG_EVERTHING:
         if allFlagsDecPassed or allFlagsNonDecPassed:
@@ -525,30 +538,31 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: int64) =
   var
     lenHashes = hashes.len()
     reoccurrance = searchForFlagReoccurrances(flags)
+    doubleBenchmark = reoccurrance == FLAG_BENCHMARK
 
   if argHasFlag(flags, FLAG_BENCHMARK):
-    printf("| %d Messages ||", lenHashes)
+    printf("| %d Message(s) ||", lenHashes)
     var hasPrinted = false
-    if argHasFlag(flags, FLAG_NS):
+    if argHasFlag(flags, FLAG_NS) or doubleBenchmark:
       printf(" %dns |", convertTime(totalTime, NS_TO_NS))
       hasPrinted = true
-    if argHasFlag(flags, FLAG_US):
+    if argHasFlag(flags, FLAG_US) or doubleBenchmark:
       printf(" %dus |", convertTime(totalTime, NS_TO_US))
       hasPrinted = true
-    if argHasFlag(flags, FLAG_MS):
+    if argHasFlag(flags, FLAG_MS) or doubleBenchmark:
       printf(" %dms |", convertTime(totalTime, NS_TO_MS))
       hasPrinted = true
-    if argHasFlag(flags, FLAG_SS):
+    if argHasFlag(flags, FLAG_SS) or doubleBenchmark:
       printf(" %ds |", convertTime(totalTime, NS_TO_SS))
       hasPrinted = true
-    if argHasFlag(flags, FLAG_MM):
+    if argHasFlag(flags, FLAG_MM) or doubleBenchmark:
       printf(" %dm |", convertTime(totalTime, NS_TO_MM))
       hasPrinted = true
     if not hasPrinted:
       printf(" %dus |", convertTime(totalTime, NS_TO_US))
     println()
 
-  if reoccurrance == FLAG_BENCHMARK:
+  if doubleBenchmark:
     println()
     quit(0)
 
