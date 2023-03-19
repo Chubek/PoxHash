@@ -352,17 +352,6 @@ const doubleArrayToQuad = (dArr) => {
   return BigInt.asUintN(64, quad);
 };
 
-const byteArrayToWordArrayAndPad = (bytearr) => {
-  let original_len = bytearr.length;
-  let n = original_len;
-  let wordArr = copyArray(bytearr);
-  while (wordArr.length % cPOX_BLOCK_NUM != 0) {
-    wordArr.push(wordArr[n % original_len] ^ (n & cMASK_QWORD_14Z2F));
-    n += wordArr[n % original_len];
-  }
-  return new Uint16Array(wordArr);
-};
-
 const convertBaseFromDecimal = (base, size, chars, res, dec, offset) => {
   for (let i = size * offset + size - 1; i >= size * offset; i--) {
     res[i] = chars[dec % base];
@@ -438,6 +427,18 @@ const convertWordsToBinDigest = (words) => {
 //-------------------------//
 //////// BITWISE OPS ////////
 // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
+
+
+const octopad = (bytearr) => {
+  let original_len = bytearr.length;
+  let n = original_len;
+  let wordArr = copyArray(bytearr);
+  while (wordArr.length % cPOX_BLOCK_NUM != 0) {
+    wordArr.push(wordArr[n % original_len] ^ (n & cMASK_QWORD_14Z2F));
+    n += wordArr[n % original_len];
+  }
+  return new Uint16Array(wordArr);
+};
 
 const omega = (dwArr) => {
   dwArr[0] = (dwArr[0] & cMASK_DWORD_4F4Z) >> cWORD_WIDTH;
@@ -733,7 +734,7 @@ const poxProcessBlock = (factorArray, blockArray) => {
 const processInput = (input) => {
   if (typeof input == "object") {
     if (input.constructor.name == "Uint8Array") {
-      return byteArrayToWordArrayAndPad(input);
+      return octopad(input);
     }
   }
   return null;
