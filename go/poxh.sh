@@ -15,7 +15,7 @@ if [[ "$COMPILE" = "1" ]] || [[ ! -f "$PROJ_DIR/$COMPILE_NAME" ]]; then
     cp $BASE_DIR/$LIBPOX_NAME $PROJ_DIR/$LIB_NAME/$LIBPOX_NAME
     rm -f $PROJ_DIR/$COMPILE_NAME
     rm -f $PROJ_DIR/$MOD_NAME
-    cd $PROJ_DIR  && go mod init pox &> /dev/null && go mod tidy && go build -ldflags "-s -w" -o $PROJ_DIR/$COMPILE_NAME main.go &> /dev/null 
+    cd $PROJ_DIR  && go mod init pox &> /dev/null && go mod tidy && go build -ldflags "-s -w" -o $PROJ_DIR/$COMPILE_NAME main.go 
 fi
 
 $PROJ_DIR/$COMPILE_NAME $@
