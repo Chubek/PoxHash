@@ -40,7 +40,6 @@ FORMAT_MARKER = '%'
 FORMAT_STR = 's'
 FORMAT_DIGIT = 'd'
 FORMAT_CHAR = 'c'
-NS_TO_US = 1000
 BENCHMARK_BYTE_INDEX = 94
 
 FLAG_BENCHMARK = '^'
@@ -60,12 +59,18 @@ FLAG_DUO = 'd'
 FLAG_OCT = 'o'
 FLAG_SEN = 's'
 FLAG_BIN = 'b'
+FLAG_NS = '9'
+FLAG_US = '6'
+FLAG_MS = '3'
+FLAG_SS = '5'
+FLAG_MM = '0'
 FLAG_HELP = '?'
 FLAG_DASH = '-'
 FLAG_NHEADER = 'z'
 FLAG_ECHO = 'e'
 
 SKIPPER_FLAGS = [FLAG_BENCHMARK, FLAG_JOIN, FLAG_NHEADER, FLAG_ECHO]
+TIMESTAMP_FLAGS = [FLAG_NS, FLAG_US, FLAG_MS, FLAG_SS, FLAG_MM]
 
 FILE_PREFIX = "file="
 FILE_PREFIX_LEN = 5
@@ -77,10 +82,20 @@ MAX_HEX = 2
 MAX_OCT = 3
 MAX_BIN = 8
 
+MAX_U8 = 255
+
 HEX_PREFIX = "0x"
 BIN_PREFIX = "0b"
 OCT_PREFIX = "0o"
 BASE_PREFIX_NUM = 2
+
+NS_TO_NS = 100
+NS_TO_US = 1000
+NS_TO_MS = 1000000
+NS_TO_SS = 1000000000
+NS_TO_MM = 60000000000
+
+E_NOT_TRUNC_LEN = 4
 
 WRONG_FLAGS = [
     ('G', 'g'),
@@ -94,12 +109,6 @@ WRONG_FLAGS = [
     ('w', '4'),
     ('q', '1'),
     ('Q', '1'),
-    ('3', '2'),
-    ('5', '4'),
-    ('6', '^'),
-    ('7', '8'),
-    ('9', '8'),
-    ('0', '1'),
     ('/', '?'),
     ('=', '+'),
     ('B', 'b'),
@@ -119,6 +128,41 @@ WRONG_FLAGS = [
     ('i', 'e'),
 ]
 
+
+def to_e_notation(num_in: float, places: int) -> str:
+    num = abs(num_in)
+    if num > 1.0:
+        num_str = str(num)
+        index_of_period = num_str.index(".")
+        e = index_of_period - 1
+        first_digit = num_str[0]
+        truncs = ""
+        for c in num_str[1:places + 1]:
+            if c == '.':
+                continue
+            truncs = f"{truncs}{c}"
+
+        e_str = f"{e}" if e > 9 else f"0{e}"
+        return f"{first_digit}.{truncs}e+{e_str}"
+    elif 0.0 < num < 1.0:
+        num_str = str(num)
+        first_non_zero_index = 0
+        truncs = ""
+        first_digit = '\0'
+        for i, c in enumerate(num_str):
+            if c != '0' and c != '.' and first_non_zero_index == 0:
+                first_non_zero_index = i
+                first_digit = c
+                continue
+
+            if first_non_zero_index != 0 and len(truncs) < places:
+                truncs = f"{truncs}{c}"
+
+        e = first_non_zero_index - 1
+        e_str = f"{e}" if e > 9 else f"0{e}"
+        return f"{first_digit}.{truncs}e-{e_str}"
+    else:
+        return f"{num}"
 
 def printf(*argc, **_) -> None:
     message = argc[0]
@@ -174,7 +218,9 @@ def printHelp(exec_name: str, script_name: str) -> None:
     printf(
         "If an argument stats with `%s`, it will lead to file read attempt, unless `%c` is passed\n",
         FILE_PREFIX, FLAG_JOIN)
-    printf("If an argument stats with `%s`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", INT_PREFIX)
+    printf(
+        "If an argument stats with `%s`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n",
+        INT_PREFIX)
     println()
     printf("\033[1;32mFlags:\033[0m\n")
     printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO)
@@ -220,6 +266,14 @@ def printHelp(exec_name: str, script_name: str) -> None:
            FLAG_SEN)
     printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n",
            FLAG_BIN)
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in nanoseconds\n",
+           FLAG_NS)
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in mictoseconds\n",
+           FLAG_US)
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in milliseconds\n",
+           FLAG_MS)
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in seconds\n", FLAG_SS)
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in minutes\n", FLAG_MM)
     printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP)
     exit(1)
 
@@ -234,7 +288,7 @@ def check_for_wrong_flags(flags: str) -> None:
             if flag == wrong_flag:
                 printf("No flag for `%c`, perhaps you meant `%c`?", flag,
                        right_flag)
-                error_out("Flag erreror")
+                error_out("Flag errror")
 
 
 def arg_has_flag(flags: str, must_have: str) -> bool:
@@ -294,9 +348,16 @@ def validate_flags(exec: str, argv: list[str]) -> None:
     all_flags_passed = arg_has_flag(flags_arg, FLAG_EVERTHING)
     all_flags_dec_passed = arg_has_flag(flags_arg, FLAG_ALL_DECIMAL)
     all_flags_non_dec_passed = arg_has_flag(flags_arg, FLAG_ALL_NON_DEC)
+    benchmark_has_passed = arg_has_flag(flags_arg, FLAG_BENCHMARK)
 
     for flag in flags_arg[1:-1]:
         if any([flag == f for f in SKIPPER_FLAGS]):
+            continue
+        if any([flag == f for f in TIMESTAMP_FLAGS]):
+            if not benchmark_has_passed:
+                error_out(
+                    "When a timestamp flag has passed, `^` must be passed as well"
+                )
             continue
         if flag == FLAG_EVERTHING:
             if all_flags_dec_passed or all_flags_non_dec_passed:
@@ -395,8 +456,12 @@ def validate_flags(exec: str, argv: list[str]) -> None:
             error_out("Unknown flag detected!")
 
 
-def get_time_in_us() -> int:
-    return time_ns() // NS_TO_US
+def get_time_in_ns() -> int:
+    return time_ns()
+
+
+def convert_time(ns: int, div: int) -> str:
+    return to_e_notation(ns / div, E_NOT_TRUNC_LEN)
 
 
 def all_are_false(bools: list[bool]) -> bool:
@@ -411,8 +476,26 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
     reoccurrance = search_for_flag_occurrances(flags[1:-1])
 
     if arg_has_flag(flags, FLAG_BENCHMARK):
-        printf("Total time for hashing %d unsigned bytearrays(s): %dus \n",
-               len_hashes, total_time)
+        printf("| %d Messages ||", len(hashes))
+        has_printed = False
+        if arg_has_flag(flags, FLAG_NS):
+            printf(" %dns |", convert_time(total_time, NS_TO_NS))
+            has_printed = True
+        if arg_has_flag(flags, FLAG_US):
+            printf(" %dus |", convert_time(total_time, NS_TO_US))
+            has_printed = True
+        if arg_has_flag(flags, FLAG_MS):
+            printf(" %dms |", convert_time(total_time, NS_TO_MS))
+            has_printed = True
+        if arg_has_flag(flags, FLAG_SS):
+            printf(" %ds |", convert_time(total_time, NS_TO_SS))
+            has_printed = True
+        if arg_has_flag(flags, FLAG_MM):
+            printf(" %dm |", convert_time(total_time, NS_TO_MM))
+            has_printed = True
+        if not has_printed:
+            printf(" %dus |", convert_time(total_time, NS_TO_US))
+        println()
 
     if reoccurrance == FLAG_BENCHMARK:
         println()
@@ -490,8 +573,10 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
 def assert_file(arg: str) -> bool:
     return len(arg) > FILE_PREFIX_LEN and arg.startswith(FILE_PREFIX)
 
+
 def assert_int(arg: str) -> bool:
     return len(arg) > INT_PREFIX_LEN and arg.startswith(INT_PREFIX)
+
 
 def to_int(numbers: str) -> array:
     result = []
@@ -513,12 +598,15 @@ def to_int(numbers: str) -> array:
         else:
             if num.isdigit():
                 integer = int(num)
-                if len(bin(integer)) > MAX_BIN:
+                if array('H', [integer])[0] > MAX_U8:
                     error_out("Given integer must be byte-sized (0-255)")
                 result.append(integer)
             else:
-                error_out("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2")
+                error_out(
+                    "With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2"
+                )
     return array('B', result)
+
 
 def join_args(args: list[str]) -> str:
     joined = ""
@@ -568,7 +656,7 @@ def main(exec_name: str, argv: list[str]) -> None:
 
     if not arg_has_flag(flags_arg, FLAG_NHEADER):
         printf(
-            "\033[1;30;47m   PoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  MIT  \033[0m\n"
+            "\033[1;3047m   PoxHashRunner   |    Python   |  March 2023 - Chubak Bidpaa  |  MIT  \033[0m\n"
         )
 
     echo_arg = arg_has_flag(flags_arg, FLAG_ECHO)
@@ -578,21 +666,21 @@ def main(exec_name: str, argv: list[str]) -> None:
     total_time = 0
     if arg_has_flag(flags_arg, FLAG_JOIN):
         args_joined = join_args(argv[1:])
-        if echo_arg: 
+        if echo_arg:
             printf("Joined Args: \n`%s`\n", args_joined)
         u8_arg = to_ubyte_array(args_joined.encode())
-        t1 = get_time_in_us()
+        t1 = get_time_in_ns()
         hashes[0] = pox_hash(u8_arg)
-        t2 = get_time_in_us()
+        t2 = get_time_in_ns()
         print_hashes(hashes[:1], flags_arg, t2 - t1)
     else:
         for i, arg in enumerate(argv[1:]):
-            if echo_arg: 
+            if echo_arg:
                 printf("Arg %d: %s\n", i + 1, arg)
             processed_arg = process_arg(arg)
-            t1 = get_time_in_us()
+            t1 = get_time_in_ns()
             hashes[i] = pox_hash(to_ubyte_array(processed_arg))
-            t2 = get_time_in_us()
+            t2 = get_time_in_ns()
             total_time += t2 - t1
         print_hashes(hashes, flags_arg, total_time)
 
