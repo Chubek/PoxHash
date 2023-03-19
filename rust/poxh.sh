@@ -1,4 +1,18 @@
-rm -f /tmp/rust-poxhash-runner /tmp/libpoxrust.rlib
-rustc rust/libpoxh.rs -O --crate-type lib --crate-name libpoxh -o /tmp/libpoxrust.rlib
-rustc rust/runner.rs -O --extern libpoxh=/tmp/libpoxrust.rlib -o /tmp/rust-poxhash-runner
-/tmp/rust-poxhash-runner $@
+#!/bin/bash
+
+PROJ_DIR="/tmp/rustpoxh"
+COMPILE_NAME_EXEC="rust-poxh-runner"
+COMPILE_NAME_RLIB="libpoxh.rlib"
+CRATE_NAME="libpoxh"
+BASE_DIR="rust"
+LIBPOX_NAME="libpoxh.rs"
+RUNNER_NAME="runner.rs"
+
+if [[ "$COMPILE" = "1" ]] || [[ ! -f "$PROJ_DIR/$COMPILE_NAME_EXEC" ]]; then
+    rm -f $PROJ_DIR/$COMPILE_NAME_EXEC $PROJ_DIR/$COMPILE_NAME_RLIB
+    mkdir -p $PROJ_DIR
+    rustc $BASE_DIR/$LIBPOX_NAME -O --crate-type lib --crate-name $CRATE_NAME -o $PROJ_DIR/$COMPILE_NAME_RLIB
+    rustc $BASE_DIR/$RUNNER_NAME -O --extern $CRATE_NAME=$PROJ_DIR/$COMPILE_NAME_RLIB -o $PROJ_DIR/$COMPILE_NAME_EXEC 
+fi
+
+$PROJ_DIR/$COMPILE_NAME_EXEC $@
