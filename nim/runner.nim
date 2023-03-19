@@ -31,6 +31,8 @@ import os
 import times
 import sequtils
 import strutils
+import math
+import strformat
 
 const
   MAX_FLAG_SIZE: int = 24
@@ -60,6 +62,11 @@ const
   FLAG_OCT = 'o'
   FLAG_SEN = 's'
   FLAG_BIN = 'b'
+  FLAG_NS = '9'
+  FLAG_US = '6'
+  FLAG_MS = '3'
+  FLAG_SS = '1'
+  FLAG_MM = '0'
   FLAG_HELP = '?'
   FLAG_DASH = '-'
   FLAG_NHEADER = 'z'
@@ -82,6 +89,11 @@ const
   OCT_PREFIX = "0o"
   BASE_PREFIX_NUM = 2
 
+  NS_TO_US = 1000i64
+  NS_TO_MS = 1000000i64
+  NS_TO_SS = 1000000000i64
+  NS_TO_MM = 60000000000i64
+
   WRONG_FLAGS = @[
     ('G', 'g'),
     ('V', 'v'),
@@ -94,12 +106,8 @@ const
     ('w', '4'),
     ('q', '1'),
     ('Q', '1'),
-    ('3', '2'),
     ('5', '4'),
-    ('6', '^'),
     ('7', '8'),
-    ('9', '8'),
-    ('0', '1'),
     ('/', '?'),
     ('=', '+'),
     ('B', 'b'),
@@ -149,6 +157,10 @@ iterator enumerate[T](sequence: seq[T]): (int, T) =
   for i in 0..(sequence.len() - 1):
     yield (i, sequence[i])
 
+iterator enumerate(str: string): (int, char) =
+  for i in 0..(str.len() - 1):
+    yield (i, str[i])
+
 proc `+`(str1, str2: string): string =
   var
     len1 = str1.len()
@@ -171,12 +183,60 @@ proc `^^`(c: char): uint8 = cast[uint8](c)
 proc `^^`(str: string): seq[uint8] =
   map(str, proc(x: char): uint8 = ^^x)
 proc `^^`(i: int): char = cast[char](i)
+proc `^*`(i: int64): float32 = cast[float32](i)
 
 proc strIsAllDigit(str: string): bool =
   for c in **str:
     if not ?c:
       return false
   return true
+
+proc toENotation(num: float32, places: int): string =
+  if num > 1.0:
+    var
+      numStr = fmt"{num}"
+      indexOfPeriod = numStr.find(".")
+      e = indexOfPeriod - 1
+      firstDigit = numStr[0]
+      truncs = ""
+      eStr = ""
+
+    for c in **numStr[1..places + 1]:
+      if c == '.':
+        continue
+      truncs = fmt"{truncs}{c}"
+
+    if e mod 2 == 0:
+      eStr = fmt"{e}"
+    else:
+      eStr = fmt"0{e}"
+
+    return fmt"{firstDigit}.{truncs}e+{eStr}"
+  else:
+    var
+      numStr = fmt"{num}"
+      firstNonZeroIndex = 0
+      truncs = ""
+      firstDigit = '\0'
+      eStr = ""
+      e = 0
+
+    for i, c in enumerate(numStr):
+      if c != '0' and c != '.' and firstNonZeroIndex == 0:
+        firstNonZeroIndex = i
+        firstDigit = c
+        continue
+
+      if firstNonZeroIndex != 0 and truncs.len() < places:
+        truncs = fmt"{truncs}{c}"
+
+    e = firstNonZeroIndex - 1
+    if e mod 2 == 0:
+      eStr = fmt"{e}"
+    else:
+      eStr = fmt"0{e}"
+
+    return fmt"{firstDigit}.{truncs}e-{eStr}"
 
 proc printf(input: varargs[string, `$`]) =
   var
@@ -436,7 +496,9 @@ proc validateFlags(exec: string, argv: seq[string]) =
       else:
         errorOut("Unknown flag detected!")
 
-proc getTimeInUS(): Duration = initDuration(nanoseconds = getTime().nanosecond())
+proc getTimeInNS(): Duration = initDuration(nanoseconds = getTime().nanosecond())
+proc roundFloat(num: float32): float32 = round(num * 100.0) / 100.0
+proc convertTime(time, divisor: int64): float32 = roundFloat(^*time / ^*divisor)
 
 proc allAreFalse(bools: seq[bool]): bool =
   for bl in **bools:
@@ -450,11 +512,18 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: int64) =
     reoccurrance = searchForFlagReoccurrances(flags)
 
   if argHasFlag(flags, FLAG_BENCHMARK):
-    printf(
-      "Total time for hashing %d unsigned bytearrays(s): %dus \n",
-      lenHashes,
-      totalTime
-    )
+    printf("| %d Messages |", lenHashes)
+    if argHasFlag(flags, FLAG_NS):
+      printf(" %dns |", totalTime)
+    if argHasFlag(flags, FLAG_US):
+      printf(" %dus |", convertTime(totalTime, NS_TO_US))
+    if argHasFlag(flags, FLAG_MS):
+      printf(" %dms |", convertTime(totalTime, NS_TO_MS))
+    if argHasFlag(flags, FLAG_SS):
+      printf(" %ds |", convertTime(totalTime, NS_TO_SS))
+    if argHasFlag(flags, FLAG_MM):
+      printf(" %dm |", convertTime(totalTime, NS_TO_MM))
+    println()
 
   if reoccurrance == FLAG_BENCHMARK:
     println()
@@ -634,19 +703,19 @@ proc main(exec: string, argv: seq[string]) =
   if argHasFlag(flagsArg, FLAG_JOIN):
     var argsJoined = joinArgs(argv[1..lenHashes])
     if echoArg: printf("Joined Args: \n`%s`\n", args_joined)
-    t1 = getTimeInUS()
+    t1 = getTimeInNS()
     hashes[0] = PoxHash(^^argsJoined)
-    t2 = getTimeInUS()
+    t2 = getTimeInNS()
     totalTime = (t2 - t1).inMicroseconds()
     printHashes(hashes[0..0], flagsArg, totalTime)
   else:
     for (i, arg) in enumerate(argv[1..lenHashes]):
       if echoArg: printf("Arg %d: %s\n", i + 1, arg)
       processedArg = ^^processArg(arg)
-      t1 = getTimeInUS()
+      t1 = getTimeInNS()
       hashes[i] = PoxHash(processedArg)
-      t2 = getTimeInUS()
-      totalTime = totalTime + (t2 - t1).inMicroseconds()
+      t2 = getTimeInNS()
+      totalTime = totalTime + (t2 - t1).inNanoseconds()
     printHashes(hashes, flagsArg, totalTime)
 
 var
