@@ -50,6 +50,11 @@ const FLAG_DUO: char = 'd';
 const FLAG_OCT: char = 'o';
 const FLAG_SEN: char = 's';
 const FLAG_BIN: char = 'b';
+const FLAG_NS: char = '9';
+const FLAG_US: char = '6';
+const FLAG_MS: char = '3';
+const FLAG_SS: char = '5';
+const FLAG_MM: char = '0';
 const FLAG_HELP: char = '?';
 const FLAG_DASH: char = '-';
 const FLAG_NHEADER: char = 'z';
@@ -70,6 +75,14 @@ const BIN_PREFIX: &'static str = "0b";
 const OCT_PREFIX: &'static str = "0o";
 const BASE_PREFIX_NUM: usize = 2;
 
+const NS_TO_NS: u128 = 100;
+const NS_TO_US: u128 = 1000;
+const NS_TO_MS: u128 = 1000000;
+const NS_TO_SS: u128 = 1000000000;
+const NS_TO_MM: u128 = 60000000000;
+
+const E_NOT_TRUNC_LEN: usize = 4;
+
 const WRONG_FLAGS: &'static [(char, char)] = &[
     ('G', 'g'),
     ('V', 'v'),
@@ -82,12 +95,6 @@ const WRONG_FLAGS: &'static [(char, char)] = &[
     ('w', '4'),
     ('q', '1'),
     ('Q', '1'),
-    ('3', '2'),
-    ('5', '4'),
-    ('6', '^'),
-    ('7', '8'),
-    ('9', '8'),
-    ('0', '1'),
     ('/', '?'),
     ('=', '+'),
     ('B', 'b'),
@@ -106,6 +113,50 @@ const WRONG_FLAGS: &'static [(char, char)] = &[
     ('r', 'e'),
     ('i', 'e'),
 ];
+
+
+fn to_e_notation(num_in: f64, places: usize) -> String {
+    let num = num_in.abs();
+    if num > 1.0 {
+        let num_str = num.to_string();
+        let index_of_period = num_str.find('.').unwrap();
+        let e = index_of_period - 1;
+        let first_digit = num_str.chars().nth(0usize).unwrap();
+        let mut truncs = String::new();
+        let str_sub = &num_str[1..places + 1].to_string();
+        for c in str_sub.chars() {
+            if c == '.' {
+                continue;
+            }
+            truncs.push(c);
+        }
+        
+        let e_str = if e > 9 { e.to_string() } else { format!("0{}", e) };
+        format!("{}.{}e+{}", first_digit, truncs, e_str)
+    } else if num > 0.0 && num < 1.0 {
+        let num_str = num.to_string();
+        let mut first_non_zero_index = 0;
+        let mut truncs = String::new();
+        let mut first_digit = '\0';
+        for (i, c) in num_str.char_indices() {
+            if c != '0' && c  != '.' && first_non_zero_index == 0 {
+                first_non_zero_index = i;
+                first_digit = c;
+                continue;
+            }
+            if first_non_zero_index != 0 && truncs.len() < places {
+                truncs.push(c);
+            }
+        }
+
+        let e = first_non_zero_index - 1;            
+        let e_str = if e > 9 { e.to_string() } else { format!("0{}", e) };
+        format!("{}.{}e-{}", first_digit, truncs, e_str)
+    } else {
+        num.to_string()
+    }
+}
+
 
 macro_rules! error_out {
     ($message: literal) => {{
@@ -206,6 +257,11 @@ fn print_help(exec: String) {
         "\x1b[1;33m\t`{}`\x1b[0m: Print binary digest (base two)\n",
         FLAG_BIN
     );
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in nanoseconds\n", FLAG_NS);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in mictoseconds\n", FLAG_US);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in milliseconds\n", FLAG_MS);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in seconds\n", FLAG_SS);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in minutes\n", FLAG_MM);
     print!("\x1b[1;33m\t`{}`\x1b[0m: Print Help\n\n", FLAG_HELP);
     std::process::exit(1);
 }
@@ -218,7 +274,7 @@ fn check_for_wrong_flags(flags: &String) {
                     "No flag for `{}`, perhaps you meant `{}`?",
                     flag, right_flag
                 );
-                error_out!("Flag erreror");
+                error_out!("Flag errror");
             }
         }
     }
@@ -229,24 +285,24 @@ fn get_exec_name(argv0: &String) -> String {
     argv0_split.last().unwrap().to_string()
 }
 
-fn arg_has_flag(flag_arg: &String, must_have: char) -> bool {
-    flag_arg[0..flag_arg.len() - 1]
+fn arg_has_flag(flags_arg: &String, must_have: char) -> bool {
+    flags_arg[0..flags_arg.len() - 1]
         .chars()
         .filter(|c| *c == must_have)
         .count()
         > 0
 }
 
-fn search_for_flag_reocurrance(flag_arg: &String) -> char {
-    let count_benchmark = flag_arg.chars().filter(|c| *c == FLAG_BENCHMARK).count();
+fn search_for_flag_reocurrance(flags_arg: &String) -> char {
+    let count_benchmark = flags_arg.chars().filter(|c| *c == FLAG_BENCHMARK).count();
     if count_benchmark == 2 {
         return FLAG_BENCHMARK;
     } else if count_benchmark > 2 {
         error_out!("`^` can appear at most twice");
     }
 
-    for ch in flag_arg.chars() {
-        if flag_arg.chars().filter(|c| *c == ch).count() > 1 {
+    for ch in flags_arg.chars() {
+        if flags_arg.chars().filter(|c| *c == ch).count() > 1 {
             return ch;
         }
     }
@@ -262,30 +318,30 @@ fn validate_flags(argv: &Vec<String>) {
     }
 
     let exec = argv.get(0).unwrap();
-    let flag_arg = argv.get(1).unwrap();
+    let flags_arg = argv.get(1).unwrap();
 
-    let len_flags = flag_arg.len();
+    let len_flags = flags_arg.len();
     if len_flags < MIN_FLAG_SIZE || len_flags > MAX_FLAG_SIZE {
         error_out!("Length of the first argument must at least be 3 and at most 24");
     }
 
-    if flag_arg.chars().next() != Some(FLAG_DASH) || flag_arg.chars().last() != Some(FLAG_DASH) {
+    if flags_arg.chars().next() != Some(FLAG_DASH) || flags_arg.chars().last() != Some(FLAG_DASH) {
         error_out!("The flag argument must begin and end with `-`");
     }
 
-    check_for_wrong_flags(flag_arg);
+    check_for_wrong_flags(flags_arg);
 
     let exec_name = get_exec_name(exec);
-    if flag_arg == "-?-" {
+    if flags_arg == "-?-" {
         print_help(exec_name);
     }
 
-    let help_passed = arg_has_flag(flag_arg, FLAG_HELP);
+    let help_passed = arg_has_flag(flags_arg, FLAG_HELP);
     if help_passed && len_flags > MIN_FLAG_SIZE {
         error_out!("You may not pass the `?` flag along with other flags");
     }
 
-    let reoccurrance = search_for_flag_reocurrance(&flag_arg[1..flag_arg.len() - 1].to_string());
+    let reoccurrance = search_for_flag_reocurrance(&flags_arg[1..flags_arg.len() - 1].to_string());
     if reoccurrance != '\0' && reoccurrance != FLAG_BENCHMARK {
         print!("Flag `{}` appears twice", reoccurrance);
         error_out!("Only `^` can appear twice");
@@ -295,13 +351,20 @@ fn validate_flags(argv: &Vec<String>) {
         error_out!("You must pass at least one argument to hash");
     }
 
-    let all_flags_passed = arg_has_flag(flag_arg, FLAG_EVERTHING);
-    let all_flags_dec_passed = arg_has_flag(flag_arg, FLAG_ALL_DECIMAL);
-    let all_flags_nondec_passed = arg_has_flag(flag_arg, FLAG_ALL_NON_DEC);
+    let all_flags_passed = arg_has_flag(flags_arg, FLAG_EVERTHING);
+    let all_flags_dec_passed = arg_has_flag(flags_arg, FLAG_ALL_DECIMAL);
+    let all_flags_nondec_passed = arg_has_flag(flags_arg, FLAG_ALL_NON_DEC);
+    let benchmark_has_passed = arg_has_flag(flags_arg, FLAG_BENCHMARK);
 
-    for flag in flag_arg[1..len_flags - 1].chars() {
+    for flag in flags_arg[1..len_flags - 1].chars() {
         match flag {
             FLAG_BENCHMARK | FLAG_JOIN | FLAG_NHEADER | FLAG_ECHO => continue,
+            FLAG_NS | FLAG_US | FLAG_MS | FLAG_SS | FLAG_MM => {
+                if !benchmark_has_passed {
+                    error_out!("When a timestamp flag has passed, `^` must be passed as well");
+                }
+                continue;
+            }
             FLAG_EVERTHING => {
                 if all_flags_dec_passed || all_flags_nondec_passed{
                     error_out!("You may not pass `*` when you have passed `N` or `D`");
@@ -403,12 +466,17 @@ fn validate_flags(argv: &Vec<String>) {
     }
 }
 
-fn get_time_in_us() -> u128 {
+fn get_time_in_ns() -> u128 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .expect("Error getting time")
-        .as_micros()
+        .as_nanos()
 }
+
+fn convert_time(time: u128, divisor: u128) -> String {
+    to_e_notation(time as f64 / divisor as f64, E_NOT_TRUNC_LEN)
+}
+
 
 fn all_are_false(bools: Vec<bool>) -> bool {
     bools.into_iter().filter(|b| *b).count() == 0
@@ -416,12 +484,34 @@ fn all_are_false(bools: Vec<bool>) -> bool {
 
 fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
     if arg_has_flag(flags, FLAG_BENCHMARK) {
-        print!(
-            "Total time for hashing {} unsigned bytearrays(s): {}us\n",
-            hashes.len(),
-            total_time
-        );
+        print!("| {} Messages ||", hashes.len());
+        let mut has_printed = false;
+        if arg_has_flag(flags, FLAG_NS) {
+            print!(" {}ns |", convert_time(total_time, NS_TO_NS));
+            has_printed = true;
+        }
+        if arg_has_flag(flags, FLAG_US) {
+            print!(" {}us |", convert_time(total_time, NS_TO_US));
+            has_printed = true;
+        }
+        if arg_has_flag(flags, FLAG_MS) {
+            print!(" {}ms |", convert_time(total_time, NS_TO_MS));
+            has_printed = true;
+        }
+        if arg_has_flag(flags, FLAG_SS) {
+            print!(" {}s |", convert_time(total_time, NS_TO_SS));
+            has_printed = true;
+        }
+        if arg_has_flag(flags, FLAG_MM) {
+            print!(" {}m |", convert_time(total_time, NS_TO_MM));
+            has_printed = true;
+        }
+        if !has_printed {
+            print!(" {}us |", convert_time(total_time, NS_TO_US));
+        }
+        println!();
     }
+
     let reoccurrance = search_for_flag_reocurrance(&flags[1..flags.len() - 1].to_string());
     if reoccurrance == FLAG_BENCHMARK {
         println!();
@@ -606,25 +696,25 @@ fn process_arg(arg: &String) -> String {
 fn main() {
     let argv: Vec<String> = std::env::args().collect();
     validate_flags(&argv);
-    let flag_arg = argv.get(1).unwrap();
+    let flags_arg = argv.get(1).unwrap();
 
-    if !arg_has_flag(flag_arg, FLAG_NHEADER) {
+    if !arg_has_flag(flags_arg, FLAG_NHEADER) {
         print!(
             "\x1b[1;30;47m   PoxHashRunner   |  Rust  |  March 2023 - Chubak Bidpaa  |  MIT  \x1b[0m\n"
         );
     }
-    let echo_arg = arg_has_flag(flag_arg, FLAG_ECHO);
+    let echo_arg = arg_has_flag(flags_arg, FLAG_ECHO);
     let mut hashes = vec![PoxDigest::default(); argv.len() - 2];
-    match arg_has_flag(&flag_arg, FLAG_JOIN) {
+    match arg_has_flag(&flags_arg, FLAG_JOIN) {
         true => {
             let args_joined = join_args(&argv[2..].to_vec());
             if echo_arg {
                 print!("Joined Args: \n`{}`\n", args_joined);
             }
-            let t1 = get_time_in_us();
+            let t1 = get_time_in_ns();
             hashes[0] = pox_hash(&args_joined.as_bytes().to_vec());
-            let t2 = get_time_in_us();
-            print_hashes(&hashes[..1].to_vec(), &flag_arg, t2 - t1);
+            let t2 = get_time_in_ns();
+            print_hashes(&hashes[..1].to_vec(), &flags_arg, t2 - t1);
         }
         false => {
             let (mut t1, mut t2, mut total_time) = (0u128, 0u128, 0u128);
@@ -633,12 +723,12 @@ fn main() {
                     print!("Arg {}: {}\n", i + 1, arg);
                 }
                 let processed_arg = process_arg(arg).as_bytes().to_vec();
-                t1 = get_time_in_us();
+                t1 = get_time_in_ns();
                 hashes[i] = pox_hash(&processed_arg);
-                t2 = get_time_in_us();
+                t2 = get_time_in_ns();
                 total_time += t2 - t1;
             }
-            print_hashes(&hashes, &flag_arg, total_time);
+            print_hashes(&hashes, &flags_arg, total_time);
         }
     }
 }
