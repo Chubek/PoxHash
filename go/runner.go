@@ -30,6 +30,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"pox/libpoxh"
 	"strconv"
@@ -43,7 +44,6 @@ const (
 	sizeMAX_FLAGS       = 24
 	numMIN_ARGS         = 3
 	numASCII            = 128
-	numWRONG_FLAGS      = 34
 	indexBENCHMARK_BYTE = 94
 
 	flagBENCHMARK   byte = 94
@@ -63,6 +63,11 @@ const (
 	flagOCT         byte = 111
 	flagSEN         byte = 115
 	flagBIN         byte = 98
+	flagNS          byte = 57
+	flagUS          byte = 54
+	flagMS          byte = 51
+	flagSS          byte = 53
+	flagMM          byte = 48
 	flagHELP        byte = 63
 	flagDASH        byte = 45
 	flagNHEADER     byte = 122
@@ -84,9 +89,17 @@ const (
 	prefixHEX = "0x"
 
 	basePREFIX_NUM = 2
+
+	nsTO_NS int64 = 100
+	nsTO_US int64 = 1000
+	nsTO_MS int64 = 1000000
+	nsTO_SS int64 = 1000000000
+	nsTO_MM int64 = 60000000000
+
+	eNOT_TRUNC_LEN int = 4
 )
 
-var wrongFLAGS = [numWRONG_FLAGS][2]byte{
+var wrongFLAGS = [][2]byte{
 	{71, 103},
 	{86, 118},
 	{79, 111},
@@ -98,12 +111,6 @@ var wrongFLAGS = [numWRONG_FLAGS][2]byte{
 	{119, 52},
 	{113, 49},
 	{81, 49},
-	{51, 50},
-	{53, 52},
-	{54, 94},
-	{55, 56},
-	{57, 56},
-	{48, 49},
 	{47, 63},
 	{61, 43},
 	{66, 98},
@@ -121,6 +128,62 @@ var wrongFLAGS = [numWRONG_FLAGS][2]byte{
 	{119, 101},
 	{114, 101},
 	{105, 101},
+}
+
+func toENotation(numIn float64, places int) string {
+	num := math.Abs(float64(numIn))
+	if num > 1.0 {
+		numStr := fmt.Sprintf("%f", num)
+		indexOfPeriod := strings.Index(numStr, ".")
+		e := indexOfPeriod - 1
+		firstDigit := numStr[0]
+		truncs := ""
+		strBytes := []byte(numStr)
+		for _, c := range strBytes[1 : places+1] {
+			if c == 46 {
+				continue
+			}
+			truncs = fmt.Sprintf("%s%c", truncs, c)
+		}
+
+		var eStr string
+		if e > 9 {
+			eStr = fmt.Sprintf("%d", e)
+		} else {
+			eStr = fmt.Sprintf("0%d", e)
+		}
+
+		return fmt.Sprintf("%c.%se+%s", byte(firstDigit), truncs, eStr)
+	} else if num > 0.0 && num < 1.0 {
+		numStr := fmt.Sprintf("%f", num)
+		firstNonZeroIndex := 0
+		truncs := ""
+		var firstDigit byte = 0
+		strBytes := []byte(numStr)
+		for i, c := range strBytes {
+			if c != 48 && c != 46 && firstNonZeroIndex == 0 {
+				firstNonZeroIndex = i
+				firstDigit = c
+				continue
+			}
+
+			if firstNonZeroIndex != 0 && len(truncs) < places {
+				truncs = fmt.Sprintf("%s%c", truncs, c)
+			}
+		}
+		e := firstNonZeroIndex - 1
+
+		var eStr string
+		if e > 9 {
+			eStr = fmt.Sprintf("%d", e)
+		} else {
+			eStr = fmt.Sprintf("0%d", e)
+		}
+
+		return fmt.Sprintf("%c.%se-%s", byte(firstDigit), truncs, eStr)
+	} else {
+		return fmt.Sprintf("%f", num)
+	}
 }
 
 func errorOut(message string) {
@@ -163,6 +226,11 @@ func printHelp(exec string) {
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print octal digest (base eight)\n", flagOCT)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n", flagSEN)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", flagBIN)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in nanoseconds\n", flagNS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in mictoseconds\n", flagUS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in milliseconds\n", flagMS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in seconds\n", flagSS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in minutes\n", flagMM)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", flagHELP)
 	os.Exit(1)
 }
@@ -277,10 +345,16 @@ func validateFlags(lenArgs int, args []string) {
 	allFlagsPassed := argHasFlag(argFlagsBytes, flagEVERTHING)
 	allFlagsDecPassed := argHasFlag(argFlagsBytes, flagALL_DECIMAL)
 	allFlagsNondecPassed := argHasFlag(argFlagsBytes, flagALL_NON_DEC)
+	benchmarkHasPassed := argHasFlag(argFlagsBytes, flagBENCHMARK)
 
 	for _, flag := range argFlagsBytes[1 : len(argFlagsBytes)-1] {
 		switch flag {
 		case flagBENCHMARK, flagJOIN, flagNHEADER, flagECHO:
+			continue
+		case flagNS, flagUS, flagMS, flagSS, flagMM:
+			if !benchmarkHasPassed {
+				errorOut("When a timestamp flag has passed, `^` must be passed as well")
+			}
 			continue
 		case flagEVERTHING:
 			if allFlagsDecPassed || allFlagsNondecPassed {
@@ -369,8 +443,12 @@ func validateFlags(lenArgs int, args []string) {
 	}
 }
 
-func getTimeInUS() int64 {
-	return time.Now().UnixMicro()
+func getTimeInNS() int64 {
+	return time.Now().UnixNano()
+}
+
+func convertTime(time, divisor int64) string {
+	return toENotation(float64(time)/float64(divisor), eNOT_TRUNC_LEN)
 }
 
 func allAreFalse(bools []bool) bool {
@@ -383,32 +461,58 @@ func allAreFalse(bools []bool) bool {
 	return true
 }
 
-func printHashes(hashes []libpoxh.PoxDigest, flag []byte, totalTime int64) {
-	if argHasFlag(flag, flagBENCHMARK) {
-		fmt.Printf("Total time for hashing %d unsigned bytearrays(s): %dus\n", len(hashes), totalTime)
+func printHashes(hashes []libpoxh.PoxDigest, flags []byte, totalTime int64) {
+	lenHashes := len(hashes)
+	if argHasFlag(flags, flagBENCHMARK) {
+		fmt.Printf("| %d Messages ||", lenHashes)
+		hasPrinted := false
+		if argHasFlag(flags, flagNS) {
+			fmt.Printf(" %sns |", convertTime(totalTime, nsTO_NS))
+			hasPrinted = true
+		}
+		if argHasFlag(flags, flagUS) {
+			fmt.Printf(" %sus |", convertTime(totalTime, nsTO_US))
+			hasPrinted = true
+		}
+		if argHasFlag(flags, flagMS) {
+			fmt.Printf(" %sms |", convertTime(totalTime, nsTO_MS))
+			hasPrinted = true
+		}
+		if argHasFlag(flags, flagSS) {
+			fmt.Printf(" %ss |", convertTime(totalTime, nsTO_SS))
+			hasPrinted = true
+		}
+		if argHasFlag(flags, flagMM) {
+			fmt.Printf(" %sm |", convertTime(totalTime, nsTO_MM))
+			hasPrinted = true
+		}
+		if !hasPrinted {
+			fmt.Printf(" %sus |", convertTime(totalTime, nsTO_US))
+		}
+		fmt.Println()
 	}
 
-	reoccurrance := searchFlagsForOccurance([]byte(flag))
+	reoccurrance := searchFlagsForOccurance([]byte(flags))
 	if reoccurrance == flagBENCHMARK {
 		fmt.Println()
 		os.Exit(0)
 	}
 
-	everything := argHasFlag(flag, flagEVERTHING)
-	allFlagsDecimal := argHasFlag(flag, flagALL_DECIMAL)
-	allFLagsNondecimal := argHasFlag(flag, flagALL_NON_DEC)
-	byte := argHasFlag(flag, flagBYTES)
-	word := argHasFlag(flag, flagWORDS)
-	dub := argHasFlag(flag, flagDOUBLES)
-	quad := argHasFlag(flag, flagQUAD)
-	sex := argHasFlag(flag, flagSEX)
-	vig := argHasFlag(flag, flagVIG)
-	hex := argHasFlag(flag, flagHEX)
-	tet := argHasFlag(flag, flagTET)
-	duo := argHasFlag(flag, flagDUO)
-	oct := argHasFlag(flag, flagOCT)
-	sen := argHasFlag(flag, flagSEN)
-	bin := argHasFlag(flag, flagBIN)
+	everything := argHasFlag(flags, flagEVERTHING)
+	allFlagsDecimal := argHasFlag(flags, flagALL_DECIMAL)
+	allFLagsNondecimal := argHasFlag(flags, flagALL_NON_DEC)
+	byte := argHasFlag(flags, flagBYTES)
+	word := argHasFlag(flags, flagWORDS)
+	dub := argHasFlag(flags, flagDOUBLES)
+	quad := argHasFlag(flags, flagQUAD)
+	sex := argHasFlag(flags, flagSEX)
+	vig := argHasFlag(flags, flagVIG)
+	hex := argHasFlag(flags, flagHEX)
+	tet := argHasFlag(flags, flagTET)
+	duo := argHasFlag(flags, flagDUO)
+	oct := argHasFlag(flags, flagOCT)
+	sen := argHasFlag(flags, flagSEN)
+	bin := argHasFlag(flags, flagBIN)
 
 	allFalse := allAreFalse(
 		[]bool{
@@ -491,7 +595,6 @@ func toInt(arg string) []uint8 {
 	for _, num := range split {
 		sansPrefix := string(num[basePREFIX_NUM:])
 		prefix := string(num[:basePREFIX_NUM])
-
 		switch prefix {
 		case prefixBIN:
 			if len(sansPrefix) > maxBIN {
@@ -523,10 +626,10 @@ func toInt(arg string) []uint8 {
 				errorOut("Given integer must be byte-sized (0-255)")
 			}
 			result = append(result, uint8(convt))
-			break
 			if err != nil {
 				errorOut(fmt.Sprintf("%s", err))
 			}
+			break
 		}
 	}
 	return result
@@ -593,9 +696,9 @@ func main() {
 		if echoArg {
 			fmt.Printf("Joined Args: \n`%s`\n", argsJoined)
 		}
-		t1 = getTimeInUS()
+		t1 = getTimeInNS()
 		hashes[0] = libpoxh.PoxHash([]uint8(argsJoined))
-		t2 = getTimeInUS()
+		t2 = getTimeInNS()
 		printHashes(hashes[:1], flagsByte, t2-t1)
 	} else {
 		var processedArg []uint8
@@ -605,9 +708,9 @@ func main() {
 				fmt.Printf("Arg %d: %s\n", i+1, arg)
 			}
 			processedArg = processArg(arg)
-			t1 = getTimeInUS()
+			t1 = getTimeInNS()
 			hashes[cursor] = libpoxh.PoxHash(processedArg)
-			t2 = getTimeInUS()
+			t2 = getTimeInNS()
 			totalTime += t2 - t1
 			cursor += 1
 		}
