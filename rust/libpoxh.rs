@@ -67,8 +67,7 @@ mod consts {
         pub const NIBBLET_10: usize = 0b10;
         pub const NIBBLET_11: usize = 0b11;
         pub const NIBBLET_00: usize = 0b00;
-        pub const MASKS_ARRAY: &'static [u16] =  &[
-            WORD_FFZZ, WORD_ZFFF, WORD_FFFZ, WORD_ZZFF];
+        pub const MASKS_ARRAY: &'static [u16] = &[WORD_FFZZ, WORD_ZFFF, WORD_FFFZ, WORD_ZZFF];
     }
 
     // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#prime-arrays
@@ -378,25 +377,28 @@ mod convert {
 
         quad
     }
-
-    pub fn byte_vec_to_word_vec_and_pad(byte_array: &Vec<u8>) -> Vec<u16> {
-        let original_len = byte_array.len();
-        let mut n = original_len;
-        let mut word_vec = byte_array.into_iter().map(|b| *b as u16).collect::<Vec<u16>>();
-        while word_vec.len() % size_values::BLOCK_NUM != 0 {
-            word_vec.push(word_vec[n % original_len] ^ (n & masks::MASK_QWORD_14Z2F) as u16);
-            n += word_vec[n % original_len] as usize;
-        }
-        word_vec
-    }
 }
 
 mod operations {
     use super::{consts::*, types};
 
     // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
-    mod bitwise {
+    pub mod bitwise {
         use super::*;
+
+        pub fn octopad(byte_array: &Vec<u8>) -> Vec<u16> {
+            let original_len = byte_array.len();
+            let mut n = original_len;
+            let mut word_vec = byte_array
+                .into_iter()
+                .map(|b| *b as u16)
+                .collect::<Vec<u16>>();
+            while word_vec.len() % size_values::BLOCK_NUM != 0 {
+                word_vec.push(word_vec[n % original_len] ^ (n & masks::MASK_QWORD_14Z2F) as u16);
+                n += word_vec[n % original_len] as usize;
+            }
+            word_vec
+        }
 
         pub fn omega(num: u32) -> u32 {
             (num & masks::DWORD_4F4Z) >> bit_values::WORD_WIDTH_U32
@@ -618,7 +620,7 @@ mod round {
         temp_array_cpy[wica] &= temp_array_cpy[wica] ^ prime_arrays::ROUND_PRIMES[sosu];
         temp_array_cpy[nica] ^= (temp_array_cpy[cica] << (wica * 2)) & masks::MASKS_ARRAY[mianja];
         temp_array_cpy[mica] |= temp_array_cpy[nica] | prime_arrays::ROUND_PRIMES[sosa];
-        
+
         temp_array_cpy
     }
 
@@ -907,7 +909,7 @@ pub fn pox_hash(message: &Vec<u8>) -> PoxDigest {
     ///         PoxDigest.words: [u16; 4]
     ///         PoxDigest.doubles: [u32, 2]
     ///         PoxDigest.quad: u64
-    let padded_u16 = convert::byte_vec_to_word_vec_and_pad(message);
+    let padded_u16 = operations::bitwise::octopad(message);
     let mut factor_array: types::ArrType = [
         consts::initial_primes::PRIME_INIT_A,
         consts::initial_primes::PRIME_INIT_B,
