@@ -378,15 +378,6 @@ proc wordArrayToBinDigest(warr: FactorArray): string =
       convertBasesFromDecimal(BIN_BASE, BIN_SIZE, BIN_CHARS, word, bin, i)
    return bin
 
-proc byteArrayToPortionArrayAndPad(barray: MessageSeq): WordSeq =
-   var
-      original_len = ^^^^*barray.len()
-      n: uint64 = ^^^^*original_len
-   barray ---> result
-   while result.len() % POX_BLOCK_NUM != 0:
-      result.add(result[n % original_len] ^ ^^(n & MASK_QWORD_14Z2F))
-      n += ^^^^*result[n % original_len]
-
 ######## /CONVERSION ########
 #---------------------------#
 ######## BITWISE OPS ########
@@ -401,6 +392,15 @@ proc ladca(num: uint32, by: uint32): uint32 = (num << by) | (num >> (
 #----------------------------#
 ######## BESPOKE OPS ########
 # https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-c-bespoke-operations
+
+proc octopad(barray: MessageSeq): WordSeq =
+   var
+      original_len = ^^^^*barray.len()
+      n: uint64 = ^^^^*original_len
+   barray ---> result
+   while result.len() % POX_BLOCK_NUM != 0:
+      result.add(result[n % original_len] ^ ^^(n & MASK_QWORD_14Z2F))
+      n += ^^^^*result[n % original_len]
 
 proc gorda(num, by: uint16): uint16 =
    var res = ^^^^num
@@ -694,7 +694,7 @@ proc PoxHash*(message: MessageSeq): PoxDigest =
    ##          PoxDigest.words: array[4, uint16]
    ##          PoxDigest.doubles: array[2, uint32]
    ##          PoxDigest.quad: uint64
-   var padded = byteArrayToPortionArrayAndPad(message)
+   var padded = octopad(message)
    var factorArray: FactorArray = [POX_PRIME_INIT_A, POX_PRIME_INIT_B,
          POX_PRIME_INIT_C, POX_PRIME_INIT_D]
    var blockArray: BlockArray
