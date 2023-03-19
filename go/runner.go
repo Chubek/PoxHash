@@ -146,6 +146,12 @@ func toENotation(numIn float64, places int) string {
 			truncs = fmt.Sprintf("%s%c", truncs, c)
 		}
 
+		if len(truncs) < places {
+			for i := 0; i < places-len(truncs); i++ {
+				truncs = fmt.Sprintf("%s%c", truncs, 48)
+			}
+		}
+
 		var eStr string
 		if e > 9 {
 			eStr = fmt.Sprintf("%d", e)
@@ -171,6 +177,13 @@ func toENotation(numIn float64, places int) string {
 				truncs = fmt.Sprintf("%s%c", truncs, c)
 			}
 		}
+
+		if len(truncs) < places {
+			for i := 0; i < places-len(truncs); i++ {
+				truncs = fmt.Sprintf("%s%c", truncs, 48)
+			}
+		}
+
 		e := firstNonZeroIndex - 1
 
 		var eStr string
@@ -337,6 +350,7 @@ func validateFlags(lenArgs int, args []string) {
 		fmt.Printf("Flag `%c` appears twice", reoccurrance)
 		errorOut("Only `^` can appear twice")
 	}
+	doubleBenchmark := reoccurrance == flagBENCHMARK
 
 	if lenArgs < numMIN_ARGS {
 		errorOut("You must pass at least one argument to hash")
@@ -354,6 +368,8 @@ func validateFlags(lenArgs int, args []string) {
 		case flagNS, flagUS, flagMS, flagSS, flagMM:
 			if !benchmarkHasPassed {
 				errorOut("When a timestamp flag has passed, `^` must be passed as well")
+			} else if doubleBenchmark {
+				errorOut("When double benchmark (`^^`) is passed, you may not pass a timestamp flag")
 			}
 			continue
 		case flagEVERTHING:
@@ -463,26 +479,29 @@ func allAreFalse(bools []bool) bool {
 
 func printHashes(hashes []libpoxh.PoxDigest, flags []byte, totalTime int64) {
 	lenHashes := len(hashes)
+	reoccurrance := searchFlagsForOccurance(flags)
+	doubleBenchmark := reoccurrance == flagBENCHMARK
+
 	if argHasFlag(flags, flagBENCHMARK) {
-		fmt.Printf("| %d Messages ||", lenHashes)
+		fmt.Printf("| %d Message(s) ||", lenHashes)
 		hasPrinted := false
-		if argHasFlag(flags, flagNS) {
+		if argHasFlag(flags, flagNS) || doubleBenchmark {
 			fmt.Printf(" %sns |", convertTime(totalTime, nsTO_NS))
 			hasPrinted = true
 		}
-		if argHasFlag(flags, flagUS) {
+		if argHasFlag(flags, flagUS) || doubleBenchmark {
 			fmt.Printf(" %sus |", convertTime(totalTime, nsTO_US))
 			hasPrinted = true
 		}
-		if argHasFlag(flags, flagMS) {
+		if argHasFlag(flags, flagMS) || doubleBenchmark {
 			fmt.Printf(" %sms |", convertTime(totalTime, nsTO_MS))
 			hasPrinted = true
 		}
-		if argHasFlag(flags, flagSS) {
+		if argHasFlag(flags, flagSS) || doubleBenchmark {
 			fmt.Printf(" %ss |", convertTime(totalTime, nsTO_SS))
 			hasPrinted = true
 		}
-		if argHasFlag(flags, flagMM) {
+		if argHasFlag(flags, flagMM) || doubleBenchmark {
 			fmt.Printf(" %sm |", convertTime(totalTime, nsTO_MM))
 			hasPrinted = true
 		}
@@ -492,8 +511,7 @@ func printHashes(hashes []libpoxh.PoxDigest, flags []byte, totalTime int64) {
 		fmt.Println()
 	}
 
-	reoccurrance := searchFlagsForOccurance([]byte(flags))
-	if reoccurrance == flagBENCHMARK {
+	if doubleBenchmark {
 		fmt.Println()
 		os.Exit(0)
 	}
