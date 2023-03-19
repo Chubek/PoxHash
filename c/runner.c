@@ -887,35 +887,19 @@ uint8_t *to_int(char *arg)
 
 char *join_args(int argc, char **argv)
 {
-    int final_len = 0;
-    for (int i = 2; i < argc; i++)
+    char *joined = NULL;
+    SASPRINTF(joined, "%s", argv[2]);
+
+    if (argc < 3)
     {
-        final_len += strlen(argv[i]);
-        final_len += 1;
+        return joined;
     }
 
-    char *ret = (char *)malloc(final_len);
-    memset(ret, SPACE, final_len - 1);
-    ret[final_len - 1] = 0;
-    int curr_len = 0;
-    int ret_cursor = 0;
-    int warned = 0;
-    for (int i = 2; i < argc; i++)
+    for (int i = 3; i < argc; i++)
     {
-        if (assert_file(argv[i]) && !warned)
-        {
-            printf("\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n");
-            warned = 1;
-        }
-        curr_len = strlen(argv[i]);
-        for (int j = 0; j < curr_len; j++)
-        {
-            ret[ret_cursor++] = argv[i][j];
-        }
-        ++ret_cursor;
+        SASPRINTF(joined, "%s %s", joined, argv[i]);
     }
-
-    return ret;
+    return joined;
 }
 
 int is_regular_file(const char *path)
