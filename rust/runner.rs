@@ -619,7 +619,7 @@ fn assert_int(arg: &String) -> bool {
     arg.len() > INT_PREFIX_LEN && arg.starts_with(INT_PREFIX)
 }
 
-fn to_int(arg: &String) -> String {
+fn to_int(arg: &String) -> Vec<u8> {
     arg.split(",")
         .map(|n| {
             let sans_prefix = &n[BASE_PREFIX_NUM..];
@@ -629,28 +629,28 @@ fn to_int(arg: &String) -> String {
                         error_out!("Size of binary number should not exceed 8");
                     }
                     
-                    u8::from_str_radix(sans_prefix, 2).expect("Bad binary number") as char
+                    u8::from_str_radix(sans_prefix, 2).expect("Bad binary number")
                 },
                 OCT_PREFIX => {
                     if sans_prefix.len() > MAX_OCT {
                         error_out!("Size of octal number should not exceed 5");
                     }
 
-                    u8::from_str_radix(sans_prefix, 8).expect("Bad octal number") as char
+                    u8::from_str_radix(sans_prefix, 8).expect("Bad octal number")
                 },
                 HEX_PREFIX => {
                     if sans_prefix.len() > MAX_HEX {
                         error_out!("Size of hexadecimal number should not exceed 2");
                     }
 
-                    u8::from_str_radix(sans_prefix, 16).expect("Bad hexadecimal number") as char
+                    u8::from_str_radix(sans_prefix, 16).expect("Bad hexadecimal number")
                 },
                 _ => {
                     if n.to_string().chars().any(|c| !c.is_numeric()) {
                         error_out!("With 'int=' prefix you must pass byte-sized integers in base 16, 8, 10 and 2");
                     }
 
-                    u8::from_str_radix(n, 10).expect("Given integer must be byte-sized (0-255)") as char
+                    u8::from_str_radix(n, 10).expect("Given integer must be byte-sized (0-255)")
                 }
             }
         })
@@ -683,13 +683,13 @@ fn read_given_file(fpath: &String) -> String {
     std::fs::read_to_string(fpath).expect("Unkown error occrurred reading file")
 }
 
-fn process_arg(arg: &String) -> String {
+fn process_arg(arg: &String) -> Vec<u8> {
     if !assert_file(arg) && !assert_int(arg) {
-        return arg.clone();
+        return arg.clone().as_bytes().to_vec();
     } else if assert_int(arg) {
         return to_int(&arg[INT_PREFIX_LEN..].to_string());
     }
-    read_given_file(&arg[FILE_PREFIX_LEN..].to_string())
+    read_given_file(&arg[FILE_PREFIX_LEN..].to_string()).as_bytes().to_vec()
 }
 
 #[allow(unused_assignments)]
@@ -722,7 +722,7 @@ fn main() {
                 if echo_arg {
                     print!("Arg {}: {}\n", i + 1, arg);
                 }
-                let processed_arg = process_arg(arg).as_bytes().to_vec();
+                let processed_arg = process_arg(arg);
                 t1 = get_time_in_ns();
                 hashes[i] = pox_hash(&processed_arg);
                 t2 = get_time_in_ns();
