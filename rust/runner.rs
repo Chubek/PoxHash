@@ -131,6 +131,10 @@ fn to_e_notation(num_in: f64, places: usize) -> String {
             truncs.push(c);
         }
         
+        if truncs.len() < places {
+            (truncs.len()..places).into_iter().for_each(|_| truncs.push('0'));
+        }
+
         let e_str = if e > 9 { e.to_string() } else { format!("0{}", e) };
         format!("{}.{}e+{}", first_digit, truncs, e_str)
     } else if num > 0.0 && num < 1.0 {
@@ -147,6 +151,10 @@ fn to_e_notation(num_in: f64, places: usize) -> String {
             if first_non_zero_index != 0 && truncs.len() < places {
                 truncs.push(c);
             }
+        }
+
+        if truncs.len() < places {
+            (truncs.len()..places).into_iter().for_each(|_| truncs.push('0'));
         }
 
         let e = first_non_zero_index - 1;            
@@ -346,6 +354,7 @@ fn validate_flags(argv: &Vec<String>) {
         print!("Flag `{}` appears twice", reoccurrance);
         error_out!("Only `^` can appear twice");
     }
+    let double_benchmark = reoccurrance == FLAG_BENCHMARK;
 
     if num_argv < MIN_ARG_NUM {
         error_out!("You must pass at least one argument to hash");
@@ -362,6 +371,8 @@ fn validate_flags(argv: &Vec<String>) {
             FLAG_NS | FLAG_US | FLAG_MS | FLAG_SS | FLAG_MM => {
                 if !benchmark_has_passed {
                     error_out!("When a timestamp flag has passed, `^` must be passed as well");
+                } else if double_benchmark {
+                    error_out!("When double benchmark (`^^`) is passed, you may not pass a timestamp flag")
                 }
                 continue;
             }
@@ -483,26 +494,29 @@ fn all_are_false(bools: Vec<bool>) -> bool {
 }
 
 fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
+    let reoccurrance = search_for_flag_reocurrance(&flags[1..flags.len() - 1].to_string());
+    let double_benchmark = reoccurrance == FLAG_BENCHMARK;
+    
     if arg_has_flag(flags, FLAG_BENCHMARK) {
-        print!("| {} Messages ||", hashes.len());
+        print!("| {} Message(s) ||", hashes.len());
         let mut has_printed = false;
-        if arg_has_flag(flags, FLAG_NS) {
+        if arg_has_flag(flags, FLAG_NS) || double_benchmark {
             print!(" {}ns |", convert_time(total_time, NS_TO_NS));
             has_printed = true;
         }
-        if arg_has_flag(flags, FLAG_US) {
+        if arg_has_flag(flags, FLAG_US) || double_benchmark {
             print!(" {}us |", convert_time(total_time, NS_TO_US));
             has_printed = true;
         }
-        if arg_has_flag(flags, FLAG_MS) {
+        if arg_has_flag(flags, FLAG_MS) || double_benchmark {
             print!(" {}ms |", convert_time(total_time, NS_TO_MS));
             has_printed = true;
         }
-        if arg_has_flag(flags, FLAG_SS) {
+        if arg_has_flag(flags, FLAG_SS) || double_benchmark {
             print!(" {}s |", convert_time(total_time, NS_TO_SS));
             has_printed = true;
         }
-        if arg_has_flag(flags, FLAG_MM) {
+        if arg_has_flag(flags, FLAG_MM) || double_benchmark {
             print!(" {}m |", convert_time(total_time, NS_TO_MM));
             has_printed = true;
         }
@@ -512,8 +526,7 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
         println!();
     }
 
-    let reoccurrance = search_for_flag_reocurrance(&flags[1..flags.len() - 1].to_string());
-    if reoccurrance == FLAG_BENCHMARK {
+    if double_benchmark {
         println!();
         std::process::exit(0);
     }
