@@ -396,32 +396,6 @@ static inline uint16_t get_8b_prime(uint16_t num)
     return cPOX_8B_PRIMES[remainder];
 }
 
-#define PADINGU(barr, warrptr, padded_size)                                                             \
-    do                                                                                                  \
-    {                                                                                                   \
-        size_t original_size = strlen(barr);                                                            \
-        size_t n = original_size;                                                                       \
-        warrptr = calloc(original_size, sizeof(uint16_t));                                                          \
-        for (int i = 0; i < original_size; i++)                                                         \
-        {                                                                                               \
-            warrptr[i] = (uint16_t)barr[i];                                                             \
-        }                                                                                               \
-        padded_size = original_size;                                                                    \
-        void *nnptr;                                                                                    \
-        while (padded_size % POX_BLOCK_NUM != 0)                                                        \
-        {                                                                                               \
-            nnptr = realloc(warrptr, ++padded_size * sizeof(uint16_t));                                 \
-            if (!nnptr)                                                                                 \
-            {                                                                                           \
-                fprintf(stderr, "Problem reallocating padded array");                                   \
-                exit(1);                                                                                \
-            }                                                                                           \
-            warrptr = nnptr;                                                                            \
-            warrptr[padded_size - 1] = warrptr[n % original_size] ^ ((uint16_t)(n & MASK_QWORD_14Z2F)); \
-            n += (size_t)warrptr[n % original_size];                                                    \
-        }                                                                                               \
-    } while (0)
-
 #define COPY_WORDS_TO_SUBARRAY(wordarr, subarr, start, end) \
     int __jz = 0;                                           \
     for (int __iz = start; __iz < end; __iz++)              \
@@ -546,6 +520,32 @@ static inline uint16_t get_8b_prime(uint16_t num)
 //-------------------------//
 //////// BITWISE OPS ////////
 // https://github.com/Chubek/PoxHash/blob/master/SPEC.md#part-b-bitwise-operations
+
+#define OCTOPAD(barr, warrptr, padded_size)                                                             \
+    do                                                                                                  \
+    {                                                                                                   \
+        size_t original_size = strlen(barr);                                                            \
+        size_t n = original_size;                                                                       \
+        warrptr = calloc(original_size, sizeof(uint16_t));                                              \
+        for (int i = 0; i < original_size; i++)                                                         \
+        {                                                                                               \
+            warrptr[i] = (uint16_t)barr[i];                                                             \
+        }                                                                                               \
+        padded_size = original_size;                                                                    \
+        void *nnptr;                                                                                    \
+        while (padded_size % POX_BLOCK_NUM != 0)                                                        \
+        {                                                                                               \
+            nnptr = realloc(warrptr, ++padded_size * sizeof(uint16_t));                                 \
+            if (!nnptr)                                                                                 \
+            {                                                                                           \
+                fprintf(stderr, "Problem reallocating padded array");                                   \
+                exit(1);                                                                                \
+            }                                                                                           \
+            warrptr = nnptr;                                                                            \
+            warrptr[padded_size - 1] = warrptr[n % original_size] ^ ((uint16_t)(n & MASK_QWORD_14Z2F)); \
+            n += (size_t)warrptr[n % original_size];                                                    \
+        }                                                                                               \
+    } while (0)
 
 #define OMEGA(num) \
     num = (num & MASK_DWORD_4F4Z) >> WORD_WIDTH
@@ -911,7 +911,7 @@ extern inline poxdigest_t pox_hash(uint8_t *message)
 
     size_t length_padded;
     uint16_t *message_padded;
-    PADINGU(message, message_padded, length_padded);
+    OCTOPAD(message, message_padded, length_padded);
 
     for (int i = 0; i < length_padded; i += POX_BLOCK_NUM)
     {
