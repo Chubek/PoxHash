@@ -217,12 +217,12 @@ func printHelp(exec string) {
 	fmt.Printf("%s -^^+- large seq  to join and  benchmark\n", exec)
 	fmt.Printf("wget -qO- www.example.com | xargs bash -c '%s -h+- $@'\n", exec)
 	fmt.Printf("If an argument stats with `%s`, it will lead to file read attempt, unless `%c` is passed\n", filePREFIX, flagJOIN)
-	fmt.Printf("If an argument stats with `%s`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", intPREFIX)
+	fmt.Printf("If an argument stats with `%s`, it will parse the int, values 0-255, prefixes `0b`, `0o` and `0x` for bin, oct and hex and none for decimal apply\n", intPREFIX)
 	fmt.Println()
 	fmt.Printf("\033[1;32mFlags:\033[0m\n")
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", flagECHO)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Don't print header message\n", flagNHEADER)
-	fmt.Printf("\033[1;33m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n", flagBENCHMARK)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark with all timestamps)\n", flagBENCHMARK)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Join arguments with space (byte 32)\n", flagJOIN)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print every digest\n", flagEVERTHING)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print every non-decimal digest\n", flagALL_NON_DEC)
@@ -239,11 +239,11 @@ func printHelp(exec string) {
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print octal digest (base eight)\n", flagOCT)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n", flagSEN)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", flagBIN)
-	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in nanoseconds\n", flagNS)
-	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in mictoseconds\n", flagUS)
-	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in milliseconds\n", flagMS)
-	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in seconds\n", flagSS)
-	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total time in minutes\n", flagMM)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total timestamp delta in nanoseconds\n", flagNS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total timestamp delta in mictoseconds\n", flagUS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total timestamp delta in milliseconds\n", flagMS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total timestamp delta in seconds\n", flagSS)
+	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print total timestamp delta in minutes\n", flagMM)
 	fmt.Printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", flagHELP)
 	os.Exit(1)
 }
@@ -654,18 +654,10 @@ func toInt(arg string) []uint8 {
 }
 
 func joinArgs(argsSlicedAfterTwo []string) string {
-	joined := ""
-	warned := false
-	for _, arg := range argsSlicedAfterTwo {
-		if assertFile(arg) && !warned {
-			fmt.Printf("\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n")
-			warned = true
-		}
-
-		joined += arg
-		joined += " "
+	joined := argsSlicedAfterTwo[0]
+	for _, arg := range argsSlicedAfterTwo[1:] {
+		joined = fmt.Sprintf("%s %s", joined, arg)
 	}
-	joined = string([]byte(joined)[:len(joined)-1])
 	return joined
 }
 
