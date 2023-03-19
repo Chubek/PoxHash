@@ -4,12 +4,12 @@
 
 This repository contains 7 files named `poxh.sh`. 6 of them are inside implementation directories and the one that ties them together is in the top level folder.
 
-The job of `poxh.sh` at the root folder is to accept a language name, alias or code as an argument and execute the corresponding `poxh.sh` file inside the implementation directories. The Shell scripts inside these directories, in turn either compile the application. They compile the application every time, keep that in mind --- the time it takes to run the commnand is not an indicator of the performance of the implementation. As for interpreted languages, the script just runs that file.
+The job of `poxh.sh` at the root folder is to accept a language name, alias or code as an argument and execute the corresponding `poxh.sh` file inside the implementation directories. The Shell scripts inside these directories. For JS and Python, the shell will just invoke the interpret. For for the static languages, the shell will first check if a compiled binary exists in `/tmp` folder inside a predestined path reserved for each language. If not, it will compile, and then execute the PoxHash Runner binary object file. You can also enforce recompilation, as we'll see.
 
 The argument syntax for the main `poxh.sh` at the top level directory is:
 
 ```
-./poxh.sh <language name, alias or code> [silent?] <runner flags> [arguments passed to runner]
+./poxh.sh <language name, alias or code> [-s silent?] [-c compile?] <runner flags> [arguments passed to runner]
 ```
 
 **Note**: if you run `./poxh.sh -h` it will print help.
@@ -24,10 +24,10 @@ This command will call the C implementation, hash `Masud` and `Masvd` separately
 
 ```
 +C
-PoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  GPLv3
-Hexdigest: 46390453961EACD8
+   PoxHashRunner   |   Header-Only C   |  March 2023 - Chubak Bidpaa  |  MIT
+Hexdigest: A8EBEFCC7CBFA5B4
 ----
-Hexdigest: 11FC08868E62B7AE
+Hexdigest: B6486A8598B501F0
 ----
 ```
 
@@ -37,9 +37,15 @@ You may notice that the script echoes the name of our selected implementation. W
 ./poxh.sh c -s -h- Masud Masvd
 ```
 
+You can pass `-c` flag to force recompilation for static languages:
+
+```
+./poxh.sh nim -c -h- ABCD
+```
+
 This script accepts the following arguments as language names, aliases or codese:
 
-**Note**: all UPPERCASE lettrs in the language argument will be converted to lowercase so it does not matter if you passs the language name with different letter casing.
+**Note**: all UPPERCASE lettrs in the language alias will be converted to lowercase so it does not matter if you passs the language name with different letter casing.
 
 | Language   | Main Arg   | Alias(es) | Code |
 | ---------- | ---------- | --------- | ---- |
@@ -92,6 +98,11 @@ You can pass `-?-` to view these flags. We will list them here.
 | `o`            | Print octal digest             |
 | `s`            | Print senary digest            |
 | `b`            | Print binary digest            |
+| `9`            | Print time delta in nanosecs   |
+| `6`            | Print time delta in microsecs  |
+| `3`            | Print time delta in millisecs  |
+| `5`            | Print time delta in seconds    |
+| `0`            | Print time delta in minutes    |
 | `?`            | Print Help                     |
 
 These rules apply to passing args:
@@ -109,47 +120,96 @@ These rules apply to passing args:
 
 For example:
 
-```bassh
-bash ./poxh.sh nim -hD- SmallPox
+```
+./poxh.sh nim -s -hDz- SmallPox
 ```
 
 We get:
 
 ```
-PoxHashRunner   |   Nim    |  March 2023 - Chubak Bidpaa  |  GPLv3
-Bytes: U8[189, 6, 78, 99, 252, 193, 58, 168]
-Words: U16[1725, 25422, 49660, 43066]
-Doubles: U32[1666057917, 2822423036]
-Quad: U64[12122214636763088573]
-Hexdigest: 06BD634EC1FCA83A
+Bytes: U8[177, 142, 70, 24, 124, 79, 242, 172]
+Words: U16[36529, 6214, 20348, 44274]
+Doubles: U32[407277233, 2901561212]
+Quad: U64[12462110513289399985]
+Hexdigest: 8EB118464F7CACF2
 ----
 ```
 
-```bassh
-bash ./poxh.sh nim -g*- SmallPox
+```
+bash ./poxh.sh p -g*- SmallPox
 ```
 
 We get:
 
 ```
++Python
+
 You may not pass a non-decimal digest flag when `*` or `N` is passed
 Error occurred. Please pass -?- to show help
 ```
 
-```bassh
-bash ./poxh.sh nim -gv^- SmallPox
+**Note**: Errors are written to `stderr`.
+
+When we pass `^`, the benchmark flag, we can either pass one of the timestamp flags, or it will just print microseconds.
+
+```
+bash ./poxh.sh nim -gvz^- SmallPox
 ```
 
 We get:
 
 ```
-Total time for hashing 1 unsigned bytearrays(s): 332us
-Sexdigest: 0Sj73gDleBvk
-Vigdigest: AEGFDD^CGEDAFH*G
++Nim
+
+| 1 Message(s) || 2.8651e+03us |
+Sexdigest: A8n1hY5d8CHs
+Vigdigest: E^GJA+@$C@;IF@*$
 ----
 ```
 
-Will print all decimal digests, plus hexadecimal.
+Or we can pass another timestamp flag:
+
+```
+bash ./poxh.sh nim -gvz30^- SmallPox
+```
+
+We get:
+
+```
++Nim
+
+| 1 Message(s) || 2.6528e+0ms | 4.2137e-01m |
+Sexdigest: A8n1hY5d8CHs
+Vigdigest: E^GJA+@$C@;IF@*$
+----
+```
+
+If we pass two `^`s, we will get all the timestamps. We may not pass any other timestamp along, and also, it will exit and not print any digests.
+
+```
+./poxh.sh p -s -^^z- Cholera Tifus
+```
+
+We just get this:
+
+```
+| 2 Message(s) || 1.0783e+06ns | 1.0783e+05us | 1.0780e+02ms | 1.0783e-01s | 1.7972e-03m |
+```
+
+With this:
+
+```
+./poxh.sh j -s -^^3z- Cholera Tifus
+```
+
+We get:
+
+```
+When double benchmark (`^^`) is passed, you may not pass a timestamp flag
+Error occurred. Please pass -?- to show help
+```
+
+This will pint sexgesimal and vigesimal digests.
 
 ### Hashing Files
 
@@ -171,32 +231,79 @@ We get:
 
 ```
 +Python
-Hexdigest: 1ECEA38E525A6D8D
-----
-+Rust
-Hexdigest: 1ECEA38E525A6D8D
-----
 +C
-Hexdigest: 1ECEA38E525A6D8D
-----
-+JavaScript
-Hexdigest: 1ECEA38E525A6D8D
+Hexdigest: 16FC00E867E82D47
 ----
 +Go
-Hexdigest: 1ECEA38E525A6D8D
+Hexdigest: 16FC00E867E82D47
 ----
 +Nim
-Hexdigest: 1ECEA38E525A6D8D
+Hexdigest: 16FC00E867E82D47
+----
++Rust
+Hexdigest: 16FC00E867E82D47
+----
++Python
+Hexdigest: 16FC00E867E82D47
+----
++JavaScript
+Hexdigest: 16FC00E867E82D47
+----
 ----
 ```
 
-## Testing the Universality
+### Hashing Integers
 
-Let's test the universality of the file by swapping one character with the other.
+If the prefix `int=` is applied to a flag, it will then parse the comma-separated numbers in that argument with taking prefices `0b`, `0o`, and `0x` for binary, octal nd hexadecimal, respectively. No base prefix means decimal integer. Let's see.
+
+```
+for l in c g r n j p; do ./poxh.sh $l -hz- int=0b1001,0o123,0x1F,142,0b01 int=12,13,0b01; done
+```
+
+We get:
+
+```
++C
+Hexdigest: 90ADF79ACB0790F1
+----
+Hexdigest: 5F048F586D954E11
+----
++Go
+Hexdigest: 90ADF79ACB0790F1
+----
+Hexdigest: 5F048F586D954E11
+----
++Rust
+Hexdigest: 90ADF79ACB0790F1
+----
+Hexdigest: 5F048F586D954E11
+----
++Nim
+Hexdigest: 90ADF79ACB0790F1
+----
+Hexdigest: 5F048F586D954E11
+----
++JavaScript
+Hexdigest: 90ADF79ACB0790F1
+----
+Hexdigest: 5F048F586D954E11
+----
++Python
+Hexdigest: 90ADF79ACB0790F1
+----
+Hexdigest: 5F048F586D954E11
+----
+
+
+```
+
+## Testing the Avalanche Effect
+
+Avalanche effect of a hash happens when one bit is flipped, and the whole digest changes. Let's see how PoxHash fairs at this.
 
 This webpage: https://web.archive.org/web/19990429155017/http://www.fanfiction.net/text/main.cfm
 
-Let's save the page intace:
+Let's save the page intact:
 
 ```
 wget -qO- https://web.archive.org/web/19990429155017/http://www.fanfiction.net/text/main.cfm > /tmp/pg1
@@ -211,217 +318,265 @@ wget -qO- https://web.archive.org/web/19990429155017/http://www.fanfiction.net/t
 Now:
 
 ```
-for i in {1..6}; do ./poxh.sh $i -hz- file=/tmp/pg1 file=/tmp/pg2; done
+for l in j c n; do ./poxh.sh $l -hz- file=/tmp/pg1 file=/tmp/pg2; done
 ```
 
 We get:
 
 ```
-+Python
-Hexdigest: DCD082987D176E9F
++JavaScript
+
+Hexdigest: 56122442BB6C4CB8
 ----
-Hexdigest: 9D3EA829202B936E
-----
-+Rust
-Hexdigest: DCD082987D176E9F
-----
-Hexdigest: 9D3EA829202B936E
+Hexdigest: 3FB5B2E693A9B936
 ----
 +C
-Hexdigest: DCD082987D176E9F
+
+Hexdigest: 56122442BB6C4CB8
 ----
-Hexdigest: 9D3EA829202B936E
-----
-+JavaScript
-Hexdigest: DCD082987D176E9F
-----
-Hexdigest: 9D3EA829202B936E
-----
-+Go
-Hexdigest: DCD082987D176E9F
-----
-Hexdigest: 9D3EA829202B936E
+Hexdigest: 3FB5B2E693A9B936
 ----
 +Nim
-Hexdigest: DCD082987D176E9F
+
+Hexdigest: 56122442BB6C4CB8
 ----
-Hexdigest: 9D3EA829202B936E
+Hexdigest: 3FB5B2E693A9B936
 ----
+
 ```
 
 ## Benchmarking the Implementations
 
-The runners provide us with tools to benchmark the time it takes for the hasher functions to scramble a message. So let's do that.
+Let's create a small-but-decently sized file, with random bytes. We set the size at 20KB. With it we are going to benchmark the implementations.
 
-But it is rather unfair to compare Python and JS to statically typed, compiled languages. So we will do a grouped benchmark. One group is Python and JS, the other group is C, Rust, Go and Nim.
-
-First, let's generate a large enough file for the first group, say, 2.5MB:
+First, let's generate the bytes:
 
 ```
-python3 -c "from string import ascii_lowercase;from random import choices;print(''.join(choices(ascii_lowercase, k=int(2.5e6))))" > /tmp/lrg
+python3 -c "from random import choices;from string import printable;print(''.join(choices(printable, k=20000)))" > /tmp/20kb
 ```
 
-Now let's hash this file in statically-typed implementations:
+Let's check the size of the file in bytes:
 
 ```
-for i in {1..6}; do ./poxh.sh $i -^^z- file=/tmp/lrg; done
+wc -c /tmp/20kb
 ```
 
 We get:
 
 ```
-+C
-Total time for hashing 1 unsigned bytearrays(s): 12686060us
-
-+Rust
-Total time for hashing 1 unsigned bytearrays(s): 10346094us
-
-+Go
-Total time for hashing 1 unsigned bytearrays(s): 12508965us
-
-+Nim
-Total time for hashing 1 unsigned bytearrays(s): 59180us
+20001 /tmp/20kb
 ```
 
-Now let us put Python and JS to the test.
+Now let's hash it:
 
 ```
-for i in j p; do ./poxh.sh $i -^^z- file=/tmp/lrg; done
+for l in c g r n j p; do ./poxh.sh $l -z^^- file=/tmp/20kb; done
 ```
-
-We get:
-
-```
-+JavaScript
-Total time for hashing 1 unsigned bytearrays(s): 28218256us
-
-```
-
-Now here is where I have to break the obvious news, Python is slow. So slow that I had to kill the process after 10 minutes! It's a lot of loops and the such and the so. Let's create a new, smaller file to test Python in tandeme with the other 5 implementations.
-
-If we change the expontent in the `python -c` command that generates a file from 6 to 4 and pipe it to `/tmp/slrg`, according to `wc -c /tmp/slrg` we end up with `25001` bytes.
-
-Let beunchmark it.
-
-```
-for i in c g r n j p; do ./poxh.sh $i -^^z- file=/tmp/slrg; done
-```
-
-We end up with:
 
 ```
 +C
-Total time for hashing 1 unsigned bytearrays(s): 127435us
+
+| 1 Message(s) || 1.5488e+06ns | 1.5488e+05us | 1.5480e+02ms | 1.5488e-01s | 2.5810e-03m |
 
 +Go
-Total time for hashing 1 unsigned bytearrays(s): 127397us
+
+| 1 Message(s) || 4.1634e+06ns | 4.1634e+05us | 4.1630e+02ms | 4.1634e-01s | 6.9390e-03m |
 
 +Rust
-Total time for hashing 1 unsigned bytearrays(s): 103081us
+
+| 1 Message(s) || 2.3192e+06ns | 2.3192e+05us | 2.3190e+02ms | 2.3192e-01s | 3.8653e-03m |
 
 +Nim
-Total time for hashing 1 unsigned bytearrays(s): 110692us
+
+| 1 Message(s) || 2.02476e+6ns | 2.02476e+05us | 2.0247e+2ms | 2.0247e-01s | 3.3746e-03m |
 
 +JavaScript
-Total time for hashing 1 unsigned bytearrays(s): 323601us
+
+| 1 Message(s) || 3.4634e+06ns | 3.4634e+05us | 3.4630e+02ms | 3.4634e-01s | 5.7724e-03m |
 
 +Python
-Total time for hashing 1 unsigned bytearrays(s): 7726792us
-```
 
-Python is clearly slower thna all of them combined. Now it may depend on the implementation of Python, be it Cython or CPython etc. It differs. I bet JIT will help a lot. Alass, Python is a great utility and scrpting language, but it's just not made for performance. I am surprised at ho fast JS is.
-
-And finally, let's have every digest printed, in every implementation, for string `SmallPox`.
+| 1 Message(s) || 1.6592e+08ns | 1.6592e+07us | 1.6592e+04ms | 1.6590e+01s | 2.7653e-01m |
 
 ```
-for i in c g r n j p; do ./poxh.sh $i -z*- SmallPox; done
+
+## A Final Look
+
+Finally, let's print all digests all at once for every implementation for two messages: `PoxHash` and `PoHxash`
+
+```
+for l in c g r n j p; do ./poxh.sh $l -*z- PoxHash PoHxash; done
 ```
 
 We get:
 
 ```
 +C
-Bytes: U8[189, 6, 78, 99, 252, 193, 58, 168]
-Words: U16[1725, 25422, 49660, 43066]
-Doubles: U32[1666057917, 2822423036]
-Quad: U64[12122214636763088573]
-Sexdigest: 0Sj73gDleBvk
-Vigdigest: AEGFDD^CGEDAFH*G
-Hexdigest: 06BD634EC1FCA83A
-Tetdigest: 008E30939W14152119T2
-Duodigest: 00##912866248*420#0*
-Octdigest: 003275061516140774124072
-Sendgiest: 0011553031341010215240531214
-Bindigest: 0000011010111101011000110100111011000001111111001010100000111010
+
+Bytes: U8[208, 7, 140, 75, 228, 210, 243, 123]
+Words: U16[2000, 19340, 53988, 31731]
+Doubles: U32[1267468240, 2079576804]
+Quad: U64[8931714363967670224]
+Sexdigest: 0XK5MKExm8mp
+Vigdigest: AFAACIHAG$~ID~G^
+Hexdigest: 07D04B8CD2E47BF3
+Tetdigest: 00T2W07096159640E7W7
+Duodigest: 011*80#238272#016443
+Octdigest: 003720045614151344075763
+Sendgiest: 0013132022531210535400402523
+Bindigest: 0000011111010000010010111000110011010010111001000111101111110011
+----
+Bytes: U8[247, 15, 107, 190, 189, 227, 79, 159]
+Words: U16[4087, 48747, 58301, 40783]
+Doubles: U32[3194687479, 2672812989]
+Quad: U64[11479644379273695223]
+Sexdigest: 187DWRGBfBJh
+Vigdigest: A@EHGB;HHF+BFB~D
+Hexdigest: 0FF7BE6BE3BD9F4F
+Tetdigest: 016ER13T9R1736510W11
+Duodigest: 0244724263298*51#727
+Octdigest: 007767137153161675117517
+Sendgiest: 0030531101340311255250512451
+Bindigest: 0000111111110111101111100110101111100011101111011001111101001111
 ----
 +Go
-Bytes: U8[189, 6, 78, 99, 252, 193, 58, 168]
-Words: U16[1725, 25422, 49660, 43066]
-Doubles: U32[1666057917, 2822423036]
-Quad: U64[12122214636763088573]
-Sexdigest: 0Sj73gDleBvk
-Vigdigest: AEGFDD^CGEDAFH*G
-Hexdigest: 06BD634EC1FCA83A
-Tetdigest: 008E30939W14152119T2
-Duodigest: 00##912866248*420#0*
-Octdigest: 003275061516140774124072
-Sendgiest: 0011553031341010215240531214
-Bindigest: 0000011010111101011000110100111011000001111111001010100000111010
+
+Bytes: U8[208, 7, 140, 75, 228, 210, 243, 123]
+Words: U16[2000, 19340, 53988, 31731]
+Doubles: U32[1267468240, 2079576804]
+Quad: U64[8931714363967670224]
+Sexdigest: 0XK5MKExm8mp
+Vigdigest: AFAACIHAG$~ID~G^
+Hexdigest: 07D04B8CD2E47BF3
+Tetdigest: 00T2W07096159640E7W7
+Duodigest: 011*80#238272#016443
+Octdigest: 003720045614151344075763
+Sendgiest: 0013132022531210535400402523
+Bindigest: 0000011111010000010010111000110011010010111001000111101111110011
+----
+Bytes: U8[247, 15, 107, 190, 189, 227, 79, 159]
+Words: U16[4087, 48747, 58301, 40783]
+Doubles: U32[3194687479, 2672812989]
+Quad: U64[11479644379273695223]
+Sexdigest: 187DWRGBfBJh
+Vigdigest: A@EHGB;HHF+BFB~D
+Hexdigest: 0FF7BE6BE3BD9F4F
+Tetdigest: 016ER13T9R1736510W11
+Duodigest: 0244724263298*51#727
+Octdigest: 007767137153161675117517
+Sendgiest: 0030531101340311255250512451
+Bindigest: 0000111111110111101111100110101111100011101111011001111101001111
 ----
 +Rust
-Bytes: U8[189, 6, 78, 99, 252, 193, 58, 168]
-Words: U16[1725, 25422, 49660, 43066]
-Doubles: U32[1666057917, 2822423036]
-Quad: U64[12122214636763088573]
-Sexdigest: 0Sj73gDleBvk
-Vigdigest: AEGFDD^CGEDAFH*G
-Hexdigest: 06BD634EC1FCA83A
-Tetdigest: 008E30939W14152119T2
-Duodigest: 00##912866248*420#0*
-Octdigest: 003275061516140774124072
-Sendgiest: 0011553031341010215240531214
-Bindigest: 0000011010111101011000110100111011000001111111001010100000111010
+
+Bytes: U8[208, 7, 140, 75, 228, 210, 243, 123]
+Words: U16[2000, 19340, 53988, 31731]
+Doubles: U32[1267468240, 2079576804]
+Quad: U64[8931714363967670224]
+Sexdigest: 0XK5MKExm8mp
+Vigdigest: AFAACIHAG$~ID~G^
+Hexdigest: 07D04B8CD2E47BF3
+Tetdigest: 00T2W07096159640E7W7
+Duodigest: 011*80#238272#016443
+Octdigest: 003720045614151344075763
+Sendgiest: 0013132022531210535400402523
+Bindigest: 0000011111010000010010111000110011010010111001000111101111110011
+----
+Bytes: U8[247, 15, 107, 190, 189, 227, 79, 159]
+Words: U16[4087, 48747, 58301, 40783]
+Doubles: U32[3194687479, 2672812989]
+Quad: U64[11479644379273695223]
+Sexdigest: 187DWRGBfBJh
+Vigdigest: A@EHGB;HHF+BFB~D
+Hexdigest: 0FF7BE6BE3BD9F4F
+Tetdigest: 016ER13T9R1736510W11
+Duodigest: 0244724263298*51#727
+Octdigest: 007767137153161675117517
+Sendgiest: 0030531101340311255250512451
+Bindigest: 0000111111110111101111100110101111100011101111011001111101001111
 ----
 +Nim
-Bytes: U8[189, 6, 78, 99, 252, 193, 58, 168]
-Words: U16[1725, 25422, 49660, 43066]
-Doubles: U32[1666057917, 2822423036]
-Quad: U64[12122214636763088573]
-Sexdigest: 0Sj73gDleBvk
-Vigdigest: AEGFDD^CGEDAFH*G
-Hexdigest: 06BD634EC1FCA83A
-Tetdigest: 008E30939W14152119T2
-Duodigest: 00##912866248*420#0*
-Octdigest: 003275061516140774124072
-Sendgiest: 0011553031341010215240531214
-Bindigest: 0000011010111101011000110100111011000001111111001010100000111010
+
+Bytes: U8[208, 7, 140, 75, 228, 210, 243, 123]
+Words: U16[2000, 19340, 53988, 31731]
+Doubles: U32[1267468240, 2079576804]
+Quad: U64[8931714363967670224]
+Sexdigest: 0XK5MKExm8mp
+Vigdigest: AFAACIHAG$~ID~G^
+Hexdigest: 07D04B8CD2E47BF3
+Tetdigest: 00T2W07096159640E7W7
+Duodigest: 011*80#238272#016443
+Octdigest: 003720045614151344075763
+Sendgiest: 0013132022531210535400402523
+Bindigest: 0000011111010000010010111000110011010010111001000111101111110011
+----
+Bytes: U8[247, 15, 107, 190, 189, 227, 79, 159]
+Words: U16[4087, 48747, 58301, 40783]
+Doubles: U32[3194687479, 2672812989]
+Quad: U64[11479644379273695223]
+Sexdigest: 187DWRGBfBJh
+Vigdigest: A@EHGB;HHF+BFB~D
+Hexdigest: 0FF7BE6BE3BD9F4F
+Tetdigest: 016ER13T9R1736510W11
+Duodigest: 0244724263298*51#727
+Octdigest: 007767137153161675117517
+Sendgiest: 0030531101340311255250512451
+Bindigest: 0000111111110111101111100110101111100011101111011001111101001111
 ----
 +JavaScript
-Bytes: U8[189, 6, 78, 99, 252, 193, 58, 168]
-Words: U16[1725, 25422, 49660, 43066]
-Doubles: U32[1666057917, 2822423036]
-Quad: U64[12122214636763088573]
-Sexdigest: 0Sj73gDleBvk
-Vigdigest: AEGFDD^CGEDAFH*G
-Hexdigest: 06BD634EC1FCA83A
-Tetdigest: 008E30939W14152119T2
-Duodigest: 00##912866248*420#0*
-Octdigest: 003275061516140774124072
-Sendgiest: 0011553031341010215240531214
-Bindigest: 0000011010111101011000110100111011000001111111001010100000111010
+
+Bytes: U8[208, 7, 140, 75, 228, 210, 243, 123]
+Words: U16[2000, 19340, 53988, 31731]
+Doubles: U32[1267468240, 2079576804]
+Quad: U64[8931714363967670224]
+Sexdigest: 0XK5MKExm8mp
+Vigdigest: AFAACIHAG$~ID~G^
+Hexdigest: 07D04B8CD2E47BF3
+Tetdigest: 00T2W07096159640E7W7
+Duodigest: 011*80#238272#016443
+Octdigest: 003720045614151344075763
+Sendgiest: 0013132022531210535400402523
+Bindigest: 0000011111010000010010111000110011010010111001000111101111110011
+----
+Bytes: U8[247, 15, 107, 190, 189, 227, 79, 159]
+Words: U16[4087, 48747, 58301, 40783]
+Doubles: U32[3194687479, 2672812989]
+Quad: U64[11479644379273695223]
+Sexdigest: 187DWRGBfBJh
+Vigdigest: A@EHGB;HHF+BFB~D
+Hexdigest: 0FF7BE6BE3BD9F4F
+Tetdigest: 016ER13T9R1736510W11
+Duodigest: 0244724263298*51#727
+Octdigest: 007767137153161675117517
+Sendgiest: 0030531101340311255250512451
+Bindigest: 0000111111110111101111100110101111100011101111011001111101001111
 ----
 +Python
-Bytes: U8[189, 6, 78, 99, 252, 193, 58, 168]
-Words: U16[1725, 25422, 49660, 43066]
-Doubles: U32[1666057917, 2822423036]
-Quad: U64[12122214636763088573]
-Sexdigest: 0Sj73gDleBvk
-Vigdigest: AEGFDD^CGEDAFH*G
-Hexdigest: 06BD634EC1FCA83A
-Tetdigest: 008E30939W14152119T2
-Duodigest: 00##912866248*420#0*
-Octdigest: 003275061516140774124072
-Sendgiest: 0011553031341010215240531214
-Bindigest: 0000011010111101011000110100111011000001111111001010100000111010
+
+Bytes: U8[208, 7, 140, 75, 228, 210, 243, 123]
+Words: U16[2000, 19340, 53988, 31731]
+Doubles: U32[1267468240, 2079576804]
+Quad: U64[8931714363967670224]
+Sexdigest: 0XK5MKExm8mp
+Vigdigest: AFAACIHAG$~ID~G^
+Hexdigest: 07D04B8CD2E47BF3
+Tetdigest: 00T2W07096159640E7W7
+Duodigest: 011*80#238272#016443
+Octdigest: 003720045614151344075763
+Sendgiest: 0013132022531210535400402523
+Bindigest: 0000011111010000010010111000110011010010111001000111101111110011
+----
+Bytes: U8[247, 15, 107, 190, 189, 227, 79, 159]
+Words: U16[4087, 48747, 58301, 40783]
+Doubles: U32[3194687479, 2672812989]
+Quad: U64[11479644379273695223]
+Sexdigest: 187DWRGBfBJh
+Vigdigest: A@EHGB;HHF+BFB~D
+Hexdigest: 0FF7BE6BE3BD9F4F
+Tetdigest: 016ER13T9R1736510W11
+Duodigest: 0244724263298*51#727
+Octdigest: 007767137153161675117517
+Sendgiest: 0030531101340311255250512451
+Bindigest: 0000111111110111101111100110101111100011101111011001111101001111
 ----
 ```
