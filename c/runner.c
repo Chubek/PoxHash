@@ -94,11 +94,11 @@
 
 #define BASE_PREFIX_NUM 2
 
-#define NS_TO_NS 100
-#define NS_TO_US 1000
-#define NS_TO_MS 1000000
-#define NS_TO_SS 1000000000
-#define NS_TO_MM 60000000000
+#define NS_TO_NS 100.00
+#define NS_TO_US 1000.00
+#define NS_TO_MS 1000000.00
+#define NS_TO_SS 1000000000.00
+#define NS_TO_MM 60000000000.00
 
 #define E_NOT_TRUNC_LEN 4
 
@@ -123,20 +123,14 @@
     fprintf(stderr, "\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n"); \
     exit(1)
 
-#define SASPRINTF(write_to, ...)                  \
-    {                                             \
-        char *tmp_string_for_extend = (write_to); \
-        asprintf(&(write_to), __VA_ARGS__);       \
-        free(tmp_string_for_extend);              \
-    }
+#define UNUSED(x) (void)(x)
 
-#define INDEX_OF(str, of, res)            \
-    for (int i = 0; i < strlen(str); i++) \
-    {                                     \
-        if (str[i] == of)                 \
-        {                                 \
-            res = i;                      \
-        }                                 \
+#define SASPRINTF(write_to, ...)                       \
+    {                                                  \
+        char *tmp_string_for_extend = (write_to);      \
+        int vint = asprintf(&(write_to), __VA_ARGS__); \
+        UNUSED(vint);                                  \
+        free(tmp_string_for_extend);                   \
     }
 
 typedef enum FLAGS
@@ -230,7 +224,8 @@ char *to_e_notation(double num, size_t places)
 
         num_str = NULL;
         SASPRINTF(num_str, "%f", num);
-        INDEX_OF(num_str, '.', index_of_period);
+        char *cc = strchr(num_str, '.');
+        index_of_period = (size_t)(cc - num_str);
         e = index_of_period - 1;
 
         truncs = NULL;
@@ -484,6 +479,7 @@ int validate_flags(int argc, char **argv)
         printf("Flag `%c` appears twice", reoccurrance);
         ERR_OUT("Only `^` can appear twice");
     }
+    int double_benchmark = reoccurrance == FLAG_BENCHMARK;
 
     if (argc < MIN_ARG_NUM)
     {
@@ -512,6 +508,10 @@ int validate_flags(int argc, char **argv)
             if (!benchmark_has_passed)
             {
                 ERR_OUT("When a timestamp flag has passed, `^` must be passed as well");
+            }
+            else if (double_benchmark)
+            {
+                ERR_OUT("When double benchmark (`^^`) is passed, you may not pass a timestamp flag");
             }
             continue;
         case FLAG_EVERTHING:
@@ -619,16 +619,16 @@ int validate_flags(int argc, char **argv)
     return len_flags;
 }
 
-uint64_t get_time_in_ns()
+int64_t get_time_in_ns()
 {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     return ts.tv_nsec;
 }
 
-char *convert_time(uint64_t time, uint64_t divisor)
+char *convert_time(int64_t time, double divisor)
 {
-    return to_e_notation(((double)time) / ((double)divisor), E_NOT_TRUNC_LEN);
+    return to_e_notation(time / divisor, E_NOT_TRUNC_LEN);
 }
 
 int all_are_false(int *arr, int size)
@@ -643,41 +643,43 @@ int all_are_false(int *arr, int size)
     return 1;
 }
 
-void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time)
+void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flags, int64_t total_time)
 {
+    char reoccurrance = search_for_flag_reocurrance(flags, len_flags);
+    int double_benchmark = reoccurrance == FLAG_BENCHMARK;
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
     {
-        printf("| %d Messages ||", len_hashes);
+        printf("| %d Message(s) ||", len_hashes);
         int has_printed = 0;
-        if (arg_has_flag(flags, len_flags, FLAG_NS))
+        if (arg_has_flag(flags, len_flags, FLAG_NS) || double_benchmark)
         {
             char *ns_float_notation = convert_time(total_time, NS_TO_NS);
             printf(" %sns |", ns_float_notation);
             free(ns_float_notation);
             has_printed = 1;
         }
-        if (arg_has_flag(flags, len_flags, FLAG_US))
+        if (arg_has_flag(flags, len_flags, FLAG_US) || double_benchmark)
         {
             char *us_float_notation = convert_time(total_time, NS_TO_US);
             printf(" %sus |", us_float_notation);
             free(us_float_notation);
             has_printed = 1;
         }
-        if (arg_has_flag(flags, len_flags, FLAG_MS))
+        if (arg_has_flag(flags, len_flags, FLAG_MS) || double_benchmark)
         {
             char *ms_float_notation = convert_time(total_time, NS_TO_MS);
             printf(" %sms |", ms_float_notation);
             free(ms_float_notation);
             has_printed = 1;
         }
-        if (arg_has_flag(flags, len_flags, FLAG_SS))
+        if (arg_has_flag(flags, len_flags, FLAG_SS) || double_benchmark)
         {
             char *ss_float_notation = convert_time(total_time, NS_TO_SS);
             printf(" %ss |", ss_float_notation);
             free(ss_float_notation);
             has_printed = 1;
         }
-        if (arg_has_flag(flags, len_flags, FLAG_MM))
+        if (arg_has_flag(flags, len_flags, FLAG_MM) || double_benchmark)
         {
             char *mm_float_notation = convert_time(total_time, NS_TO_MM);
             printf(" %sm |", mm_float_notation);
@@ -693,8 +695,7 @@ void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flag
         printf("\n");
     }
 
-    char reoccurrance = search_for_flag_reocurrance(flags, len_flags);
-    if (reoccurrance == FLAG_BENCHMARK)
+    if (double_benchmark)
     {
         printf("\n");
         exit(0);
@@ -945,7 +946,8 @@ uint8_t *read_given_file(char *fpath)
     rewind(fptr);
 
     bytearray = calloc(barray_len + 1, sizeof(uint8_t));
-    fread(bytearray, 1, barray_len, fptr);
+    size_t vint = fread(bytearray, 1, barray_len, fptr);
+    UNUSED(vint);
     bytearray[barray_len] = '\0';
 
     fclose(fptr);
@@ -989,7 +991,7 @@ int main(int argc, char **argv)
 
     int echo_arg = arg_has_flag(argv[1], len_flags, FLAG_ECHO);
     poxdigest_t hashes[argc - 2];
-    uint64_t total_time, t1, t2;
+    int64_t total_time, t1, t2;
     total_time = 0;
     memset(hashes, 0, (argc - 2) * sizeof(poxdigest_t));
     if (arg_has_flag(argv[1], len_flags, FLAG_JOIN))
