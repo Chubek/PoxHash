@@ -728,7 +728,7 @@ const printHashes = (hashes, flags, totalTime) => {
     if (everything || allFlagsNonDecimal || bin) {
       printf("Bindigest: %s\n", hashes[i].bindigest);
     }
-    printf("----\n");
+    printf("\033[2m----\033[0m\n");
   }
 };
 

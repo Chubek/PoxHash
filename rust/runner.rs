@@ -620,7 +620,7 @@ fn print_hashes(hashes: &Vec<PoxDigest>, flags: &String, total_time: u128) {
         if everything || all_flags_non_decimal || bin {
             print!("Bindigest: {}\n", hash.bindigest);
         }
-        print!("----\n");
+        print!("\x1b[2m----\x1b[0m\n");
     }
 }
 

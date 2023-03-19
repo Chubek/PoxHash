@@ -580,7 +580,7 @@ def print_hashes(hashes: list[PoxDigest], flags: str, total_time: int) -> None:
             printf("Sendgiest: %s\n", hash.sendigest)
         if everything or all_flags_non_decimal or bin:
             printf("Bindigest: %s\n", hash.bindigest)
-        printf("----\n")
+        printf("\033[2m----\033[0m\n")
 
 
 def assert_file(arg: str) -> bool:

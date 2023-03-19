@@ -592,7 +592,7 @@ func printHashes(hashes []libpoxh.PoxDigest, flags []byte, totalTime int64) {
 		if everything || allFLagsNondecimal || bin {
 			fmt.Printf("Bindigest: %s\n", hash.Bindigest)
 		}
-		fmt.Printf("----\n")
+		fmt.Printf("\033[2m----\033[0m\n")
 	}
 }
 

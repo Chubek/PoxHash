@@ -770,7 +770,7 @@ void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flag
             printf("Sendgiest: %s\n", hashes[i].sendigest);
         if (everything || all_flags_non_decimal || bin)
             printf("Bindigest: %s\n", hashes[i].bindigest);
-        printf("----\n");
+        printf("\033[2m----\033[0m\n");
     }
 }
 

@@ -661,7 +661,7 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: int64) =
 
     if everything or allFlagsNonDecimal or bin:
       printf("Bindigest: %s\n", hash.bindigest)
-    printf("----\n")
+    printf("\x1b[2m----\x1b[0m\n")
 
 proc assertFile(arg: string): bool =
   result = arg.len() > FILE_PREFIX_LEN and arg.startsWith(FILE_PREFIX)
