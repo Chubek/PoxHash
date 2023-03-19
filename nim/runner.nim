@@ -31,7 +31,6 @@ import os
 import times
 import sequtils
 import strutils
-import math
 import strformat
 
 const
@@ -65,7 +64,7 @@ const
   FLAG_NS = '9'
   FLAG_US = '6'
   FLAG_MS = '3'
-  FLAG_SS = '1'
+  FLAG_SS = '5'
   FLAG_MM = '0'
   FLAG_HELP = '?'
   FLAG_DASH = '-'
@@ -89,10 +88,13 @@ const
   OCT_PREFIX = "0o"
   BASE_PREFIX_NUM = 2
 
+  NS_TO_NS = 100i64
   NS_TO_US = 1000i64
   NS_TO_MS = 1000000i64
   NS_TO_SS = 1000000000i64
   NS_TO_MM = 60000000000i64
+
+  E_NOT_TRUNC_LEN = 4
 
   WRONG_FLAGS = @[
     ('G', 'g'),
@@ -106,8 +108,6 @@ const
     ('w', '4'),
     ('q', '1'),
     ('Q', '1'),
-    ('5', '4'),
-    ('7', '8'),
     ('/', '?'),
     ('=', '+'),
     ('B', 'b'),
@@ -183,7 +183,7 @@ proc `^^`(c: char): uint8 = cast[uint8](c)
 proc `^^`(str: string): seq[uint8] =
   map(str, proc(x: char): uint8 = ^^x)
 proc `^^`(i: int): char = cast[char](i)
-proc `^*`(i: int64): float32 = cast[float32](i)
+proc `^*`(i: int64): float64 = cast[float64](i)
 
 proc strIsAllDigit(str: string): bool =
   for c in **str:
@@ -191,7 +191,8 @@ proc strIsAllDigit(str: string): bool =
       return false
   return true
 
-proc toENotation(num: float32, places: int): string =
+proc toENotation(numIn: float64, places: int): string =
+  var num = abs(numIn)
   if num > 1.0:
     var
       numStr = fmt"{num}"
@@ -212,7 +213,7 @@ proc toENotation(num: float32, places: int): string =
       eStr = fmt"0{e}"
 
     return fmt"{firstDigit}.{truncs}e+{eStr}"
-  else:
+  elif num > 0.0 and num < 1.0:
     var
       numStr = fmt"{num}"
       firstNonZeroIndex = 0
@@ -235,8 +236,10 @@ proc toENotation(num: float32, places: int): string =
       eStr = fmt"{e}"
     else:
       eStr = fmt"0{e}"
-
     return fmt"{firstDigit}.{truncs}e-{eStr}"
+  else:
+    return fmt"{num}"
+
 
 proc printf(input: varargs[string, `$`]) =
   var
@@ -306,6 +309,13 @@ proc printHelp(execName: string) =
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print octal digest (base eight)\n", FLAG_OCT)
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print senary digest (base six)\n", FLAG_SEN)
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print binary digest (base two)\n", FLAG_BIN)
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in nanoseconds\n", FLAG_NS);
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in mictoseconds\n",
+      FLAG_US);
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in milliseconds\n",
+      FLAG_MS);
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in seconds\n", FLAG_SS);
+  printf("\x1b[1;33m\t`%c`\x1b[0m: Print total time in minutes\n", FLAG_MM);
   printf("\x1b[1;33m\t`%c`\x1b[0m: Print Help\n\n", FLAG_HELP)
   quit(1)
 
@@ -329,7 +339,7 @@ proc checkForWrongFlags(flags: string) =
           flag,
           rightFlag
         )
-        errorOut("Flag erreror")
+        errorOut("Flag errror")
 
 proc argHasFlag(flags: string, mustHave: char): bool =
   for flag in **flags:
@@ -366,6 +376,7 @@ proc validateFlags(exec: string, argv: seq[string]) =
     allFlagsPassed = false
     allFlagsNonDecPassed = false
     allFlagsDecPassed = false
+    benchmarkHasPassed = false
     execName = getExecName(exec)
 
   if lenArgv < MIN_ARG_NUM:
@@ -397,10 +408,15 @@ proc validateFlags(exec: string, argv: seq[string]) =
   allFlagsPassed = argHasFlag(flagsArg, FLAG_EVERTHING)
   allFlagsDecPassed = argHasFlag(flagsArg, FLAG_ALL_DECIMAL)
   allFlagsNonDecPassed = argHasFlag(flagsArg, FLAG_ALL_NON_DEC)
+  benchmarkHasPassed = argHasFlag(flagsArg, FLAG_BENCHMARK)
 
   for flag in **flagsArg[1..lenFlags - 2]:
     case flag:
       of FLAG_BENCHMARK, FLAG_JOIN, FLAG_NHEADER, FLAG_ECHO:
+        continue
+      of FLAG_NS, FLAG_US, FLAG_MS, FLAG_SS, FLAG_MM:
+        if not benchmarkHasPassed:
+          errorOut("When a timestamp flag has passed, `^` must be passed as well");
         continue
       of FLAG_EVERTHING:
         if allFlagsDecPassed or allFlagsNonDecPassed:
@@ -497,8 +513,7 @@ proc validateFlags(exec: string, argv: seq[string]) =
         errorOut("Unknown flag detected!")
 
 proc getTimeInNS(): Duration = initDuration(nanoseconds = getTime().nanosecond())
-proc roundFloat(num: float32): float32 = round(num * 100.0) / 100.0
-proc convertTime(time, divisor: int64): float32 = roundFloat(^*time / ^*divisor)
+proc convertTime(time, divisor: int64): string = toENotation(^*time / ^*divisor, E_NOT_TRUNC_LEN)
 
 proc allAreFalse(bools: seq[bool]): bool =
   for bl in **bools:
@@ -512,17 +527,25 @@ proc printHashes(hashes: seq[PoxDigest], flags: string, totalTime: int64) =
     reoccurrance = searchForFlagReoccurrances(flags)
 
   if argHasFlag(flags, FLAG_BENCHMARK):
-    printf("| %d Messages |", lenHashes)
+    printf("| %d Messages ||", lenHashes)
+    var hasPrinted = false
     if argHasFlag(flags, FLAG_NS):
-      printf(" %dns |", totalTime)
+      printf(" %dns |", convertTime(totalTime, NS_TO_NS))
+      hasPrinted = true
     if argHasFlag(flags, FLAG_US):
       printf(" %dus |", convertTime(totalTime, NS_TO_US))
+      hasPrinted = true
     if argHasFlag(flags, FLAG_MS):
       printf(" %dms |", convertTime(totalTime, NS_TO_MS))
+      hasPrinted = true
     if argHasFlag(flags, FLAG_SS):
       printf(" %ds |", convertTime(totalTime, NS_TO_SS))
+      hasPrinted = true
     if argHasFlag(flags, FLAG_MM):
       printf(" %dm |", convertTime(totalTime, NS_TO_MM))
+      hasPrinted = true
+    if not hasPrinted:
+      printf(" %dus |", convertTime(totalTime, NS_TO_US))
     println()
 
   if reoccurrance == FLAG_BENCHMARK:
