@@ -252,7 +252,7 @@ const printHelp = (execApp, execScript) => {
   printf("\033[1;33m\t`%c`\033[0m: Echo argument\n", FLAG_ECHO);
   printf("\033[1;33m\t`%c`\033[0m: Don't print header message\n", FLAG_NHEADER);
   printf(
-    "\033[1;33m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark)\n",
+    "\033[1;33m\t`%c`\033[0m: Benchmark run (pass two to only show benchmark with all timestamps)\n",
     FLAG_BENCHMARK
   );
   printf(
@@ -310,17 +310,26 @@ const printHelp = (execApp, execScript) => {
   );
   printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
   printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
-  printf("\033[1;33m\t`%c`\033[0m: Print total time in nanoseconds\n", FLAG_NS);
   printf(
-    "\033[1;33m\t`%c`\033[0m: Print total time in mictoseconds\n",
+    "\033[1;33m\t`%c`\033[0m: Print total timestamp delta in nanoseconds\n",
+    FLAG_NS
+  );
+  printf(
+    "\033[1;33m\t`%c`\033[0m: Print total timestamp delta in mictoseconds\n",
     FLAG_US
   );
   printf(
-    "\033[1;33m\t`%c`\033[0m: Print total time in milliseconds\n",
+    "\033[1;33m\t`%c`\033[0m: Print total timestamp delta in milliseconds\n",
     FLAG_MS
   );
-  printf("\033[1;33m\t`%c`\033[0m: Print total time in seconds\n", FLAG_SS);
-  printf("\033[1;33m\t`%c`\033[0m: Print total time in minutes\n", FLAG_MM);
+  printf(
+    "\033[1;33m\t`%c`\033[0m: Print total timestamp delta in seconds\n",
+    FLAG_SS
+  );
+  printf(
+    "\033[1;33m\t`%c`\033[0m: Print total timestamp delta in minutes\n",
+    FLAG_MM
+  );
   printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
   process.exit(1);
 };
@@ -818,20 +827,10 @@ const readGivenFile = async (arg) => {
 };
 
 const joinArgs = (args) => {
-  let joined = "";
-  let warned = false;
-  args.forEach((arg) => {
-    if (assertFile(arg) && !warned) {
-      printf(
-        "\033[1;33mWarning:\033[0m: The `filepath=` prefix is ignored in join mode\n"
-      );
-      warned = true;
-    }
-
-    joined += arg;
-    joined += " ";
-  });
-  joined = joined.substring(0, joined.length - 1);
+  let joined = args[0];
+  args.slice(1).forEach((arg) => {
+      joined = `${joined} ${arg}`;
+    });
   return joined;
 };
 
