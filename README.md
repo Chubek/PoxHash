@@ -19,47 +19,47 @@ Length of the hash is 64 bits. It is comprised of 4 unsigned 16-bit integers. Si
 
 To demonstate the universality of PoxHash, look at the table below. The strings are encoded with UTF-8 and passed to the hasher function.
 
-#### Shorter Messages
+#### Short String Messages
 
-| Message | Hexdigest        | Message  | Hexdigest        |
-| ------- | ---------------- | -------- | ---------------- |
-| PoxHash | C28BDAFFCCD40526 | Felix    | 93D9E06FD6CFC2DA |
-| QoxHash | FB441271DAED0056 | Feliz    | 8A11D66FC211E7BE |
-| oPxHash | C7E81CB4D222EBE5 | Estella  | DA1DDD889834AC42 |
-| Tanami  | 3641F6F8D849AA04 | Ertella  | 758ED778D01D50A4 |
-| Tanammi | 99F13D64CE45153E | Lilly    | FC12E356CA142CED |
-| Sanami  | E4062809A44AA672 | Likmy    | ADD6F7C17E101365 |
-| 001298  | B6181CC3E2E5A0F1 | SmallPox | 06BD634EC1FCA83A |
-| 001398  | 6FF92D0C82A6AFA2 | SmallPoy | 030156BFD808CB9C |
+| Message | Hexdigest        |
+| ------- | ---------------- |
+| PoxHash | 07D04B8CD2E47BF3 |
+| oPxHash | 8F7D20ECC51F3285 |
+| PoxaHsh | 547CBDB0CB569320 |
+| PxoHash | D92204E8D1C90376 |
+| PoxHahs | 8D1DFF6A365C6E1A |
+| QoxHash | 74B3D0533F14145B |
+| PpxHash | E6DD8876150D0CBA |
+| PoyHash | 337BA5F968A3927E |
+| PoxIash | 61C8B88057481B42 |
 
-#### Some Longer Messages
+#### Long String Messages
 
-First, let hash the static HTML page of example.com.
+- Message A: HTML for `www.example.com`
+- Message A': Message A, with <html>`changes to`<htlm>`
+- Message B: contents of `https://www.ietf.org/rfc/rfc2616.txt`
+- Message B': Message B, with `[Page 116]` changed to `[Page 161]`
 
-We get -> **5D485D326ADE5220**
+| Message | Hexdigest        |
+| ------- | ---------------- |
+| A       | 53F0C77BD979E4C9 |
+| A'      | DC1119514D34DD17 |
+| B       | 43B9A61E5A9A5441 |
+| B'      | 332BF0AEDC518AF1 |
 
-Now, let's replace the string `<html>`, which only appears once on top, with `<htlm>`.
+#### Byte Arrays
 
-Now, we get -> **C6AE61C95D0C481F**
+- Message A; [0b00100010, 0b01100101, 0b10110101, 0b10110101, 0b01011101, 0b1111110, 0b1111101]
+- Message B: [0b00100010, 0b01100100, 0b10110101, 0b10110101, 0b01011101, 0b1111110, 0b1111101]
+- Message C: [0b00100010, 0b01100101, 0b10110101, 0b10110101, 0b01011101, 0b1101110, 0b1111101]
+- Message D: [0b00100010, 0b01100101, 0b10110101, 0b10111101, 0b01011101, 0b1111110, 0b1111101]
 
-The RFC for HTTP 1.1 text file: https://www.ietf.org/rfc/rfc2616.txt
-
-Intact -> **E8F8CCD71D80CEA4**
-
-With 'must-revalidate' which appears only once change to 'must-ervalidate'
-
-We get -> **E3C6E071187CD358**
-
-With the same string changed to 'must-revalidbte':
-
-We get -> **F3E8D234423EBE97**
-
-#### Unsigned Byte Arrays
-
-- [0x00, 0x00] -> **1474F230D6D1CDEC**
-- [0x01, 0x00] -> **E4170016DBDE32E5**
-- [0x00, 0x01] -> **E5B5FC44DCA9CF55**
-- [0...255]    -> **810432FC3F471642**
+| Message | Hexdigest        |
+| ------- | ---------------- |
+| A       | 41BA2FB4D6421610 |
+| B       | 1568B6F5F5948EF6 |
+| C       | 6293E59B2064CD28 |
+| D       | 8D91A7BC753E223D |
 
 ### Irreversibility
 
@@ -69,29 +69,19 @@ If you manage to break the universality or irreversibility of PoxHash, please le
 
 ### Speed
 
-Speed is not th focus of PoxHash. It does some very heavy operations on the messag that requires time and resource expense. But the implementations in static languages are fast enough, with Nim being the fastest. Python is the slowest of them all.
+The following table shows the speed with which the implementations hash a message of 20KBs.
 
-In the table below you will see the time it takes to hash 25KBs of data, in microseconds (1e-6 of a second).
-
-| Language   | Time Taken |
-| ---------- | ---------- |
-| C          | 127435us   |
-| Go         | 127397us   |
-| Rust       | 103081us   |
-| Nim        | 110692us   |
-| JavaScript | 323601us   |
-| Python     | 7726792us  |
+| Language | Nanos        | Micros        | Millis       | Secs        | Mins        |
+| -------- | ------------ | ------------- | ------------ | ----------- | ----------- |
+| C        | 1.5488e+06ns | 1.5488e+05us  | 1.5480e+02ms | 1.5488e-01s | 2.5810e-03m |
+| Go       | 4.1634e+06ns | 4.1634e+05us  | 4.1630e+02ms | 4.1634e-01s | 6.9390e-03m |
+| Rust     | 2.3192e+06ns | 2.3192e+05us  | 2.3190e+02ms | 2.3192e-01s | 3.8653e-03m |
+| Nim      | 2.02476e+6ns | 2.02476e+05us | 2.0247e+2ms  | 2.0247e-01s | 3.3746e-03m |
+| JS       | 3.4634e+06ns | 3.4634e+05us  | 3.4630e+02ms | 3.4634e-01s | 5.7724e-03m |
+| Python   | 1.6592e+08ns | 1.6592e+07us  | 1.6592e+04ms | 1.6590e+01s | 2.7653e-01m |
 
 ## Future Plans
 
-I am currently done with this version of PoxHash. What I wanna do is to use the experience I earned from designing my first hash to come up with a faster, more universal hash.
-
-I may add a Kotlin version very soon. Java is out of the question. Functional programming is impossible with Java and I want all the formal implementations to remain unifromly functional in paradigm.
-
-I also wish to design PoxCipher. That is why the files are all called `libpoxh.*` and not just `libpox.*`, because I wish there to be `libpoxc.*` one day.
-
-Another interest of mine are EC ciphers. Curve-based ciphers fascinate me. I have previously implemented Edwards-512 in my [mathcord](https://github.com/chbuek/mathcord) project and I wish to come up with one of myself.
-
-Currently, I want to work on a photo color manipulation utility which I will again implement cross-language. If you find this project useful, please consider a small [donation](https://github.com/Chubek/chubek/blob/master/README.md#donation-%E2%80%BF) my way. It will go a long way!
+I wish to make Pox into a series of cryptographical tools and algorithms. I wish to make a PoxCipher, a PoxECC (Elliptic Curve Ciper), and my next target is PoxChain, a BlockChain implementation in Go using libp2p. If you find this project useful, please consider a small [donation](https://github.com/Chubek/chubek/blob/master/README.md#donation-%E2%80%BF) my way. It will go a long way!
 
 If you have any questions or requests, my contact details are inside my Github profile. Thank you.
