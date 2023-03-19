@@ -189,7 +189,7 @@ fn print_help(exec: String) {
         exec
     );
     print!("If an argument stats with `{}`, it will lead to file read attempt, unless `{}` is passed\n", FILE_PREFIX, FLAG_JOIN);
-    print!("If an argument stats with `{}`, it will parse the int, prefixes 0b, 0o and 0x for bin, oct and hex and none for decimal apply\n", INT_PREFIX);
+    print!("If an argument stats with `{}`, it will parse the int, prefixes `0b`, `0o` and `0x` for bin, oct and hex and none for decimal apply\n", INT_PREFIX);
     println!();
     print!("\x1b[1;32mFlags:\x1b[0m\n");
     print!("\x1b[1;33m\t`{}`\x1b[0m: Echo argument\n", FLAG_ECHO);
@@ -198,7 +198,7 @@ fn print_help(exec: String) {
         FLAG_NHEADER
     );
     print!(
-        "\x1b[1;33m\t`{}`\x1b[0m: Benchmark run (pass two to only show benchmark)\n",
+        "\x1b[1;33m\t`{}`\x1b[0m: Benchmark run (pass two to only show benchmark with all timestamps)\n",
         FLAG_BENCHMARK
     );
     print!(
@@ -265,11 +265,11 @@ fn print_help(exec: String) {
         "\x1b[1;33m\t`{}`\x1b[0m: Print binary digest (base two)\n",
         FLAG_BIN
     );
-    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in nanoseconds\n", FLAG_NS);
-    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in mictoseconds\n", FLAG_US);
-    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in milliseconds\n", FLAG_MS);
-    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in seconds\n", FLAG_SS);
-    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total time in minutes\n", FLAG_MM);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total timestamp delta in nanoseconds\n", FLAG_NS);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total timestamp delta in mictoseconds\n", FLAG_US);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total timestamp delta in milliseconds\n", FLAG_MS);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total timestamp delta in seconds\n", FLAG_SS);
+    print!("\x1b[1;33m\t`{}`\x1b[0m: Print total timestamp delta in minutes\n", FLAG_MM);
     print!("\x1b[1;33m\t`{}`\x1b[0m: Print Help\n\n", FLAG_HELP);
     std::process::exit(1);
 }
@@ -671,17 +671,11 @@ fn to_int(arg: &String) -> Vec<u8> {
 }
 
 fn join_args(argv: &Vec<String>) -> String {
-    let mut joined = String::new();
-    let mut warned = false;
-    for arg in argv {
-        if assert_file(&arg) && !warned {
-            print!("\x1b[1;33mWarning:\x1b[0m: The `filepath=` prefix is ignored in join mode\n");
-            warned = true;
-        }
-        joined.push_str(&arg);
-        joined.push(' ');
+    let mut joined = argv.get(0).unwrap().clone();
+    for arg in &argv[1..] {
+        joined = format!("{} {}", joined, arg);
     }
-    joined.trim().to_string()
+    joined
 }
 
 fn is_regular_file(fpath: &String) {
