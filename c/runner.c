@@ -34,7 +34,12 @@
 
 #ifndef __INCLUDE_STDIO
 #define __INCLUDE_STDIO
+#define _GNU_SOURCE
 #include <stdio.h>
+#endif
+#ifndef __INCLUDE_STDLIB
+#define __INCLUDE_STDLIB
+#include <stdlib.h>
 #endif
 #ifndef __INDLUCE_TIME
 #define __INCLUDE_TIME
@@ -61,8 +66,10 @@
 #include <string.h>
 #endif
 
-#define SEC_TO_US(sec) ((sec)*1000000)
-#define NS_TO_US(ns) ((ns) / 1000)
+#define NS_TO_US(ns) ns / 1000
+#define NS_TO_MS(ns) ns / 1000000
+#define NS_TO_SS(ns) ns / 1000000000
+#define NS_TO_MM(ns) ns / 60000000000
 
 #define MAX_FLAG_SIZE 24
 #define MIN_FLAG_SIZE 3
@@ -70,7 +77,7 @@
 #define SPACE 32
 #define MIN_ARG_NUM 3
 #define NUM_ASCII 128
-#define LEN_WRONG_FLAGS 34
+#define LEN_WRONG_FLAGS 30
 #define BENCHMARK_BYTE_INDEX 94
 #define FILE_PREFIX_LEN 5
 #define FILE_PREFIX "file="
@@ -109,6 +116,22 @@
     fprintf(stderr, "\033[1;31mError occurred\033[0m. Please pass \033[1;34m-?-\033[0m to show help\n"); \
     exit(1)
 
+#define SASPRINTF(write_to, ...)                  \
+    {                                             \
+        char *tmp_string_for_extend = (write_to); \
+        asprintf(&(write_to), __VA_ARGS__);       \
+        free(tmp_string_for_extend);              \
+    }
+
+#define INDEX_OF(str, of, res)            \
+    for (int i = 0; i < strlen(str); i++) \
+    {                                     \
+        if (str[i] == of)                 \
+        {                                 \
+            res = i;                      \
+        }                                 \
+    }
+
 typedef enum FLAGS
 {
     FLAG_BENCHMARK = '^',
@@ -128,6 +151,11 @@ typedef enum FLAGS
     FLAG_OCT = 'o',
     FLAG_SEN = 's',
     FLAG_BIN = 'b',
+    FLAG_NS = '9',
+    FLAG_US = '6',
+    FLAG_MS = '3',
+    FLAG_SS = '1',
+    FLAG_MM = '0',
     FLAG_HELP = '?',
     FLAG_DASH = '-',
     FLAG_NHEADER = 'z',
@@ -154,12 +182,8 @@ const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
     {'w', '4'},
     {'q', '1'},
     {'Q', '1'},
-    {'3', '2'},
     {'5', '4'},
-    {'6', '^'},
     {'7', '8'},
-    {'9', '8'},
-    {'0', '1'},
     {'/', '?'},
     {'=', '+'},
     {'B', 'b'},
@@ -190,6 +214,84 @@ const char cALL_DIGITS[10] = {
     '8',
     '9',
 };
+
+char *to_e_notation(float num, size_t places)
+{
+    if (num > 1.0)
+    {
+        char *num_str, first_digit, *truncs, *e_str, *ret;
+        size_t index_of_period, e;
+
+        num_str = NULL;
+        SASPRINTF(num_str, "%f", num);
+        INDEX_OF(num_str, '.', index_of_period);
+        e = index_of_period - 1;
+
+        truncs = NULL;
+        first_digit = num_str[0];
+        for (int i = 1; i < places + 1; i++)
+        {
+            if (num_str[i] == '.')
+            {
+                continue;
+            }
+            truncs == NULL ? (SASPRINTF(truncs, "%c", num_str[i])) : (SASPRINTF(truncs, "%s%c", truncs, num_str[i]));
+        }
+
+        e_str = NULL;
+        if (e > 9)
+        {
+            SASPRINTF(e_str, "%lu", e);
+        }
+        else
+        {
+            SASPRINTF(e_str, "0%lu", e);
+        }
+        ret = NULL;
+        SASPRINTF(ret, "%c.%se+%s", first_digit, truncs, e_str);
+        return ret;
+    }
+    else
+    {
+        char *num_str, first_digit, *truncs, *e_str, *ret, c;
+        size_t first_non_zero_index, e, len_truncs;
+
+        num_str = NULL;
+        SASPRINTF(num_str, "%f", num);
+
+        first_non_zero_index = 0;
+        len_truncs = 0;
+        truncs = NULL;
+        for (int i = 0; i < strlen(num_str); i++)
+        {
+            c = num_str[i];
+            if (c != '0' && c != '.' && first_non_zero_index == 0)
+            {
+                first_non_zero_index = i;
+                first_digit = c;
+                continue;
+            }
+            if (first_non_zero_index != 0 && len_truncs < places)
+            {
+                truncs == NULL ? (SASPRINTF(truncs, "%c", c)) : (SASPRINTF(truncs, "%s%c", truncs, c));
+                ++len_truncs;
+            }
+        }
+        e = first_non_zero_index - 1;
+        e_str = NULL;
+        if (e > 9)
+        {
+            SASPRINTF(e_str, "%lu", e);
+        }
+        else
+        {
+            SASPRINTF(e_str, "0%lu", e);
+        }
+        ret = NULL;
+        SASPRINTF(ret, "%c.%se-%s", first_digit, truncs, e_str);
+        return ret;
+    }
+}
 
 void print_help(char *exec)
 {
@@ -471,12 +573,11 @@ int validate_flags(int argc, char **argv)
     return len_flags;
 }
 
-uint64_t get_time_in_us()
+uint64_t get_time_in_ns()
 {
     struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-    uint64_t us = SEC_TO_US((uint64_t)ts.tv_sec) + NS_TO_US((uint64_t)ts.tv_nsec);
-    return us;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts.tv_nsec;
 }
 
 int all_are_false(int *arr, int size)
@@ -657,7 +758,7 @@ uint8_t *to_int(char *arg)
             {
                 ERR_OUT("Size of binary number should not exceed 8");
             }
-            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_BIN);
+            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_BIN + BASE_PREFIX_NUM);
             REALLOC_ARR(size, result);
             result[size - 1] = (uint8_t)strtol(sans_base, NULL, 2);
             free(base);
@@ -669,7 +770,7 @@ uint8_t *to_int(char *arg)
             {
                 ERR_OUT("Size of octal number should not exceed 5");
             }
-            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_OCT);
+            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_OCT + BASE_PREFIX_NUM);
             REALLOC_ARR(size, result);
             result[size - 1] = (uint8_t)strtol(sans_base, NULL, 8);
             free(base);
@@ -681,7 +782,7 @@ uint8_t *to_int(char *arg)
             {
                 ERR_OUT("Size of hexadecimal number should not exceed 2");
             }
-            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_HEX);
+            char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_HEX + BASE_PREFIX_NUM);
             REALLOC_ARR(size, result);
             result[size - 1] = (uint8_t)strtol(sans_base, NULL, 16);
             free(base);
@@ -822,9 +923,9 @@ int main(int argc, char **argv)
             printf("Joined Args: \n`%s`\n", args_joined);
         }
         uint8_t *args_joined_uint8 = char_to_uint8(args_joined);
-        t1 = get_time_in_us();
+        t1 = get_time_in_ns();
         hashes[0] = pox_hash(args_joined_uint8);
-        t2 = get_time_in_us();
+        t2 = get_time_in_ns();
         free(args_joined);
         free(args_joined_uint8);
         print_hashes(hashes, 1, argv[1], len_flags, t2 - t1);
@@ -838,10 +939,10 @@ int main(int argc, char **argv)
             {
                 printf("Arg %d: %s\n", i - 1, argv[i]);
             }
-            t1 = get_time_in_us();
+            t1 = get_time_in_ns();
             uint8_t *arg_uint8 = process_arg(argv[i]);
             hashes[cursor++] = pox_hash(arg_uint8);
-            t2 = get_time_in_us();
+            t2 = get_time_in_ns();
             free(arg_uint8);
             total_time += t2 - t1;
         }
