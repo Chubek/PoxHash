@@ -629,7 +629,7 @@ void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flag
 {
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
     {
-        printf("| %d Messages |", len_hashes);
+        printf("| %d Messages ||", len_hashes);
         int has_printed = 0;
         if (arg_has_flag(flags, len_flags, FLAG_NS))
         {
@@ -839,7 +839,6 @@ uint8_t *to_int(char *arg)
             char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_BIN + BASE_PREFIX_NUM);
             REALLOC_ARR(size, result);
             result[size - 1] = (uint8_t)strtol(sans_base, NULL, 2);
-            free(base);
             free(sans_base);
         }
         else if COMPARE_STR (base, PREFIX_OCT, 2)
@@ -851,7 +850,6 @@ uint8_t *to_int(char *arg)
             char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_OCT + BASE_PREFIX_NUM);
             REALLOC_ARR(size, result);
             result[size - 1] = (uint8_t)strtol(sans_base, NULL, 8);
-            free(base);
             free(sans_base);
         }
         else if COMPARE_STR (num, PREFIX_HEX, 2)
@@ -863,7 +861,6 @@ uint8_t *to_int(char *arg)
             char *sans_base = substring(num, BASE_PREFIX_NUM, MAX_HEX + BASE_PREFIX_NUM);
             REALLOC_ARR(size, result);
             result[size - 1] = (uint8_t)strtol(sans_base, NULL, 16);
-            free(base);
             free(sans_base);
         }
         else
@@ -879,12 +876,12 @@ uint8_t *to_int(char *arg)
             }
             REALLOC_ARR(size, result);
             result[size - 1] = (uint8_t)convt;
-            free(base);
         }
-        //   printf("%u\n", (uint8_t)result[size - 1]);
+        free(base);
         num = strtok(NULL, ",");
     }
     free(arg);
+    result[size] = 0;
     return result;
 }
 
