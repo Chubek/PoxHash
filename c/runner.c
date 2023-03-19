@@ -65,11 +65,10 @@
 #define __INCLUDE_STR
 #include <string.h>
 #endif
-
-#define NS_TO_US(ns) ns / 1000
-#define NS_TO_MS(ns) ns / 1000000
-#define NS_TO_SS(ns) ns / 1000000000
-#define NS_TO_MM(ns) ns / 60000000000
+#ifndef __INCLUDE_MATH
+#define __INCLUDE_MATH
+#include <math.h>
+#endif
 
 #define MAX_FLAG_SIZE 24
 #define MIN_FLAG_SIZE 3
@@ -77,7 +76,7 @@
 #define SPACE 32
 #define MIN_ARG_NUM 3
 #define NUM_ASCII 128
-#define LEN_WRONG_FLAGS 30
+#define LEN_WRONG_FLAGS 28
 #define BENCHMARK_BYTE_INDEX 94
 #define FILE_PREFIX_LEN 5
 #define FILE_PREFIX "file="
@@ -94,6 +93,14 @@
 #define PREFIX_BIN "0b"
 
 #define BASE_PREFIX_NUM 2
+
+#define NS_TO_NS 100
+#define NS_TO_US 1000
+#define NS_TO_MS 1000000
+#define NS_TO_SS 1000000000
+#define NS_TO_MM 60000000000
+
+#define E_NOT_TRUNC_LEN 4
 
 #define COMPARE_STR(a, b, n) (strncmp(a, b, n) == 0)
 #define IS_STRLEN_BIGGER(a, len) (strlen(a) > len)
@@ -154,7 +161,7 @@ typedef enum FLAGS
     FLAG_NS = '9',
     FLAG_US = '6',
     FLAG_MS = '3',
-    FLAG_SS = '1',
+    FLAG_SS = '5',
     FLAG_MM = '0',
     FLAG_HELP = '?',
     FLAG_DASH = '-',
@@ -182,8 +189,6 @@ const char cWRONG_FLAGS[LEN_WRONG_FLAGS][2] = {
     {'w', '4'},
     {'q', '1'},
     {'Q', '1'},
-    {'5', '4'},
-    {'7', '8'},
     {'/', '?'},
     {'=', '+'},
     {'B', 'b'},
@@ -215,8 +220,9 @@ const char cALL_DIGITS[10] = {
     '9',
 };
 
-char *to_e_notation(float num, size_t places)
+char *to_e_notation(double num, size_t places)
 {
+    num = fabs(num);
     if (num > 1.0)
     {
         char *num_str, first_digit, *truncs, *e_str, *ret;
@@ -251,7 +257,7 @@ char *to_e_notation(float num, size_t places)
         SASPRINTF(ret, "%c.%se+%s", first_digit, truncs, e_str);
         return ret;
     }
-    else
+    else if (num > 0.0 && num < 1.0)
     {
         char *num_str, first_digit, *truncs, *e_str, *ret, c;
         size_t first_non_zero_index, e, len_truncs;
@@ -291,6 +297,12 @@ char *to_e_notation(float num, size_t places)
         SASPRINTF(ret, "%c.%se-%s", first_digit, truncs, e_str);
         return ret;
     }
+    else
+    {
+        char *num_str = NULL;
+        SASPRINTF(num_str, "%f", num);
+        return num_str;
+    }
 }
 
 void print_help(char *exec)
@@ -326,6 +338,11 @@ void print_help(char *exec)
     printf("\033[1;33m\t`%c`\033[0m: Print octal digest (base eight)\n", FLAG_OCT);
     printf("\033[1;33m\t`%c`\033[0m: Print senary digest (base six)\n", FLAG_SEN);
     printf("\033[1;33m\t`%c`\033[0m: Print binary digest (base two)\n", FLAG_BIN);
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in nanoseconds\n", FLAG_NS);
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in mictoseconds\n", FLAG_US);
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in milliseconds\n", FLAG_MS);
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in seconds\n", FLAG_SS);
+    printf("\033[1;33m\t`%c`\033[0m: Print total time in minutes\n", FLAG_MM);
     printf("\033[1;33m\t`%c`\033[0m: Print Help\n\n", FLAG_HELP);
     free(exec);
     exit(1);
@@ -344,7 +361,7 @@ void check_for_wrong_flags(char *flags, int len_flags)
             if (flag == wrong_flag)
             {
                 printf("No flag for `%c`, perhaps you meant `%c`?", flag, right_flag);
-                ERR_OUT("Flag erreror");
+                ERR_OUT("Flag errror");
             }
         }
     }
@@ -458,6 +475,7 @@ int validate_flags(int argc, char **argv)
     int all_flags_passed = arg_has_flag(argv[1], len_flags, FLAG_EVERTHING);
     int all_flags_dec_passed = arg_has_flag(argv[1], len_flags, FLAG_ALL_DECIMAL);
     int all_flags_nondec_passed = arg_has_flag(argv[1], len_flags, FLAG_ALL_NON_DEC);
+    int benchmark_has_passed = arg_has_flag(argv[1], len_flags, FLAG_BENCHMARK);
 
     for (int i = 1; i < len_flags - 1; i++)
     {
@@ -467,6 +485,16 @@ int validate_flags(int argc, char **argv)
         case FLAG_JOIN:
         case FLAG_NHEADER:
         case FLAG_ECHO:
+            continue;
+        case FLAG_NS:
+        case FLAG_US:
+        case FLAG_MS:
+        case FLAG_SS:
+        case FLAG_MM:
+            if (!benchmark_has_passed)
+            {
+                ERR_OUT("When a timestamp flag has passed, `^` must be passed as well");
+            }
             continue;
         case FLAG_EVERTHING:
             if (all_flags_dec_passed || all_flags_nondec_passed)
@@ -580,6 +608,11 @@ uint64_t get_time_in_ns()
     return ts.tv_nsec;
 }
 
+char *convert_time(uint64_t time, uint64_t divisor)
+{
+    return to_e_notation(((double)time) / ((double)divisor), E_NOT_TRUNC_LEN);
+}
+
 int all_are_false(int *arr, int size)
 {
     for (int i = 0; i < size; i++)
@@ -595,7 +628,52 @@ int all_are_false(int *arr, int size)
 void print_hashes(poxdigest_t *hashes, int len_hashes, char *flags, int len_flags, uint64_t total_time)
 {
     if (arg_has_flag(flags, len_flags, FLAG_BENCHMARK))
-        printf("Total time for hashing %d unsigned bytearrays(s): %luus\n", len_hashes, total_time);
+    {
+        printf("| %d Messages |", len_hashes);
+        int has_printed = 0;
+        if (arg_has_flag(flags, len_flags, FLAG_NS))
+        {
+            char *ns_float_notation = convert_time(total_time, NS_TO_NS);
+            printf(" %sns |", ns_float_notation);
+            free(ns_float_notation);
+            has_printed = 1;
+        }
+        if (arg_has_flag(flags, len_flags, FLAG_US))
+        {
+            char *us_float_notation = convert_time(total_time, NS_TO_US);
+            printf(" %sus |", us_float_notation);
+            free(us_float_notation);
+            has_printed = 1;
+        }
+        if (arg_has_flag(flags, len_flags, FLAG_MS))
+        {
+            char *ms_float_notation = convert_time(total_time, NS_TO_MS);
+            printf(" %sms |", ms_float_notation);
+            free(ms_float_notation);
+            has_printed = 1;
+        }
+        if (arg_has_flag(flags, len_flags, FLAG_SS))
+        {
+            char *ss_float_notation = convert_time(total_time, NS_TO_SS);
+            printf(" %ss |", ss_float_notation);
+            free(ss_float_notation);
+            has_printed = 1;
+        }
+        if (arg_has_flag(flags, len_flags, FLAG_MM))
+        {
+            char *mm_float_notation = convert_time(total_time, NS_TO_MM);
+            printf(" %sm |", mm_float_notation);
+            free(mm_float_notation);
+            has_printed = 1;
+        }
+        if (!has_printed)
+        {
+            char *us_float_notation = convert_time(total_time, NS_TO_US);
+            printf(" %sus |", us_float_notation);
+            free(us_float_notation);
+        }
+        printf("\n");
+    }
 
     char reoccurrance = search_for_flag_reocurrance(flags, len_flags);
     if (reoccurrance == FLAG_BENCHMARK)
