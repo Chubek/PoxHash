@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PROJ_DIR="/tmp/cpoxh"
-COMPILE_NAME="c-poxhash-runner"
+COMPILE_NAME="$USER-c-poxhrun"
 FILE_PATH="c/runner.c"
 
 if [[ "$COMPILE" = "1" ]] || [[ ! -f "$PROJ_DIR/$COMPILE_NAME" ]]; then

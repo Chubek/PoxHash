@@ -5,7 +5,7 @@ PROJ_DIR="/tmp/gopoxh"
 LIB_NAME="libpoxh"
 RUNNER_NAME="runner.go"
 LIBPOX_NAME="libpoxh.go"
-COMPILE_NAME="go-poxhash-runner"
+COMPILE_NAME="$USER-go-poxhrun"
 MOD_NAME="go.mod"
 MAIN_NAME="main.go"
 

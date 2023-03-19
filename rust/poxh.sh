@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PROJ_DIR="/tmp/rustpoxh"
-COMPILE_NAME_EXEC="rust-poxh-runner"
+COMPILE_NAME_EXEC="$USER-rs-poxhrun"
 COMPILE_NAME_RLIB="libpoxh.rlib"
 CRATE_NAME="libpoxh"
 BASE_DIR="rust"

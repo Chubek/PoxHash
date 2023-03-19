@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PROJ_DIR="/tmp/nimpoxh"
-COMPILE_NAME="nim-poxhash-runner"
+COMPILE_NAME="$USER-nim-poxhrun"
 RUNNER_PATH="nim/runner.nim"
 
 if [[ "$COMPILE" = "1" ]] || [[ ! -f "$PROJ_DIR/$COMPILE_NAME" ]]; then
