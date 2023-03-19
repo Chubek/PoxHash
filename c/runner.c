@@ -226,7 +226,7 @@ char *to_e_notation(double num, size_t places)
     if (num > 1.0)
     {
         char *num_str, first_digit, *truncs, *e_str, *ret;
-        size_t index_of_period, e;
+        size_t index_of_period, e, len_truncs;
 
         num_str = NULL;
         SASPRINTF(num_str, "%f", num);
@@ -235,6 +235,7 @@ char *to_e_notation(double num, size_t places)
 
         truncs = NULL;
         first_digit = num_str[0];
+        len_truncs = 0;
         for (int i = 1; i < places + 1; i++)
         {
             if (num_str[i] == '.')
@@ -242,6 +243,15 @@ char *to_e_notation(double num, size_t places)
                 continue;
             }
             truncs == NULL ? (SASPRINTF(truncs, "%c", num_str[i])) : (SASPRINTF(truncs, "%s%c", truncs, num_str[i]));
+            ++len_truncs;
+        }
+
+        if (truncs == NULL || len_truncs < places)
+        {
+            for (int i = 0; i < places - len_truncs; i++)
+            {
+                truncs == NULL ? (SASPRINTF(truncs, "%c", '0')) : (SASPRINTF(truncs, "%s%c", truncs, '0'));
+            }
         }
 
         e_str = NULL;
@@ -261,7 +271,6 @@ char *to_e_notation(double num, size_t places)
     {
         char *num_str, first_digit, *truncs, *e_str, *ret, c;
         size_t first_non_zero_index, e, len_truncs;
-
         num_str = NULL;
         SASPRINTF(num_str, "%f", num);
 
@@ -283,6 +292,15 @@ char *to_e_notation(double num, size_t places)
                 ++len_truncs;
             }
         }
+
+        if (truncs == NULL || len_truncs < places)
+        {
+            for (int i = 0; i < places - len_truncs; i++)
+            {
+                truncs == NULL ? (SASPRINTF(truncs, "%c", '0')) : (SASPRINTF(truncs, "%s%c", truncs, '0'));
+            }
+        }
+
         e = first_non_zero_index - 1;
         e_str = NULL;
         if (e > 9)
