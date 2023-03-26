@@ -85,3 +85,6 @@ The following table shows the speed with which the implementations hash a messag
 I wish to make Pox into a series of cryptographical tools and algorithms. I wish to make a PoxCipher, a PoxECC (Elliptic Curve Ciper), and my next target is PoxChain, a BlockChain implementation in Go using libp2p. If you find this project useful, please consider a small [donation](https://github.com/Chubek/chubek/blob/master/README.md#donation-%E2%80%BF) my way. It will go a long way!
 
 If you have any questions or requests, my contact details are inside my Github profile. Thank you.
+
+# Disclaimer
+PoxHash remains untested and its methodology are experimental. It's not recommended for use in production for checksums or for security purposes even at the lowest stakes. If you decide to use PoxHash for any other purpose than education and recreation, I cannot be held reliable. I recommend BLAKEx family of hashes and SHA-x family of hashes for both cryptography and checksums and MD5 for lower-stake checksums. 
